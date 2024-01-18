@@ -74,6 +74,87 @@ namespace WoWNamingLib
             return NewFileManager.ReturnNewNames();
         }
 
+        public static void NameMusic()
+        {
+            try
+            {
+                Music.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during music naming: " + e.Message);
+            }
+        }
+        public static void NameItemTexture()
+        {
+            try
+            {
+                ItemTexture.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during item texture naming: " + e.Message);
+            }
+        }
+        public static void NameInterface()
+        {
+            try
+            {
+                Interface.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during interface naming: " + e.Message);
+            }
+        }
+
+        public static void NameCreatureDisplayInfo()
+        {
+            try
+            {
+                CreatureDisplayInfo.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during CreatureDisplayInfo naming: " + e.Message);
+            }
+        }
+
+        public static void NameCharCust()
+        {
+            try
+            {
+                CharCustomization.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during character customization naming: " + e.Message);
+            }
+        }
+        public static void NameBakedNPC()
+        {
+            try
+            {
+                BakedNPC.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during Baked NPC texture naming: " + e.Message);
+            }
+        }
+
+        public static void NameDBFilesClient(string definitionDir)
+        {
+            try
+            {
+                DBFilesClient.Name(definitionDir);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during DBFilesClient naming: " + e.Message);
+            }
+        }
+
         public static void NameVO(string creatureCacheLocation)
         {
             var creatureNames = new Dictionary<uint, string>();
