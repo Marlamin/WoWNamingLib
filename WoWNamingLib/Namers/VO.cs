@@ -149,10 +149,7 @@ namespace WoWNamingLib.Namers
                 var creatureID = uint.Parse(key.String);
 
                 if (!creatureNames.TryGetValue(creatureID, out string creatureName))
-                {
-                    Console.WriteLine("No NPC name found for creature ID " + creatureID + ", skipping!");
                     continue;
-                }
 
                 var quotes = npcTable.Get(key).ToObject<Table>().Get("quotes").ToObject<Table>();
 

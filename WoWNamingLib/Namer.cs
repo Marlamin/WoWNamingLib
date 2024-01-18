@@ -189,5 +189,125 @@ namespace WoWNamingLib
                 Console.WriteLine("Exception during VO naming: " + e.Message);
             }
         }
+
+        public static void NameWWF()
+        {
+            try
+            {
+                WWF.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during WWF naming: " + e.Message);
+            }
+        }
+
+        public static void NameColorGrading()
+        {
+            try
+            {
+                ColorGrading.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during ColorGrading naming: " + e.Message);
+            }
+        }
+
+        public static void NameEmotes()
+        {
+            try
+            {
+                Emotes.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during Emotes naming: " + e.Message);
+            }
+        }
+
+        public static void NameTerrainMaterial()
+        {
+            try
+            {
+                TerrainMaterial.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during TerrainMaterial naming: " + e.Message);
+            }
+        }
+
+        public static void NameAnima()
+        {
+            try
+            {
+                Anima.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during Anima naming: " + e.Message);
+            }
+        }
+
+        public static void NameCollectable()
+        {
+            try
+            {
+                Collectable.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during Collectable naming: " + e.Message);
+            }
+        }
+
+        public static void NameFullScreenEffect()
+        {
+            try
+            {
+                FullScreenEffect.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during FullScreenEffect naming: " + e.Message);
+            }
+        }
+
+        public static void NameGODisplayInfo()
+        {
+            try
+            {
+                GODisplayInfo.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during GODisplayInfo naming: " + e.Message);
+            }
+        }
+
+        public static void NameSound()
+        {
+            try
+            {
+                Sound.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during SoundKit naming: " + e.Message);
+            }
+        }
+
+        public static void NameSpellTextures()
+        {
+            try
+            {
+                SpellTextures.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during SpellTextures naming: " + e.Message);
+            }
+        }
     }
 }
