@@ -4,20 +4,20 @@ namespace WoWNamingLib.Services
 {
     public static class NewFileManager
     {
-        private static Dictionary<uint, string> newFiles;
+        private static Dictionary<int, string> newFiles;
         private static Jenkins96 Hasher = new Jenkins96();
 
         static NewFileManager()
         {
-            newFiles = new Dictionary<uint, string>();
+            newFiles = new Dictionary<int, string>();
         }
 
-        public static Dictionary<uint, string> ReturnNewNames()
+        public static Dictionary<int, string> ReturnNewNames()
         {
             return newFiles;
         }
 
-        public static void AddNewFile(uint fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
+        public static void AddNewFile(int fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
         {
             // Please don't overwrite these files.
             if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357)

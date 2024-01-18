@@ -10,6 +10,7 @@ namespace WoWNamingLib.Namers
 
         public static void Name(Dictionary<uint, string> creatureNames)
         {
+            creatureVO.Clear();
             VO.creatureNames = creatureNames;
 
             // TODO: Parse scenescripts
@@ -75,7 +76,7 @@ namespace WoWNamingLib.Namers
                 Console.WriteLine("Error parsing BroadcastText: " + e.Message);
             }
 
-            var soundKitFDIDMap = new Dictionary<uint, List<uint>>();
+            var soundKitFDIDMap = new Dictionary<uint, List<int>>();
 
             try
             {
@@ -83,10 +84,10 @@ namespace WoWNamingLib.Namers
                 foreach (var soundKitEntry in soundKitDB.Values)
                 {
                     var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
-                    var soundKitFileDataID = uint.Parse(soundKitEntry["FileDataID"].ToString());
+                    var soundKitFileDataID = int.Parse(soundKitEntry["FileDataID"].ToString());
                     if (!soundKitFDIDMap.ContainsKey(soundKitID))
                     {
-                        soundKitFDIDMap.Add(soundKitID, new List<uint>() { soundKitFileDataID });
+                        soundKitFDIDMap.Add(soundKitID, new List<int>() { soundKitFileDataID });
                     }
                     else
                     {
@@ -211,7 +212,7 @@ namespace WoWNamingLib.Namers
             }
         }
 
-        private static void NameVO(string creatureName, uint fileDataID)
+        private static void NameVO(string creatureName, int fileDataID)
         {
             if (Namer.IDToNameLookup.ContainsKey(fileDataID))
                 return;
@@ -244,7 +245,7 @@ namespace WoWNamingLib.Namers
 
             return creatureName.Replace(" ", "_");
         }
-        private static uint makeVOVersion(uint fileDataID)
+        private static uint makeVOVersion(int fileDataID)
         {
             uint voVersion = 9999;
 

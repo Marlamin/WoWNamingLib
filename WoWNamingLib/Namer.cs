@@ -8,15 +8,17 @@ namespace WoWNamingLib
 {
     public static class Namer
     {
-        public static Dictionary<uint, string> IDToNameLookup = new();
-        public static HashSet<uint> placeholderNames = new();
-        public static Dictionary<string, uint> DB2ToIDLookup = new();
+        public static Dictionary<int, string> IDToNameLookup = new();
+        public static HashSet<int> placeholderNames = new();
+        public static Dictionary<string, int> DB2ToIDLookup = new();
 
         public static string localProduct = "";
         public static string build = "";
         public static string wowDir = "";
 
         private static DBCManager? dbcManager;
+
+        public static bool isInitialized = false;
 
         public static void SetCASC(ref CASCHandler handler, ref List<int> availableFDIDs)
         {
@@ -37,7 +39,7 @@ namespace WoWNamingLib
             return dbcManager.Load(name);
         }
 
-        public static void SetInitialListfile(ref Dictionary<uint, string> listfile)
+        public static void SetInitialListfile(ref Dictionary<int, string> listfile)
         {
             IDToNameLookup = new(listfile);
 
@@ -60,10 +62,14 @@ namespace WoWNamingLib
                 }
             }
 
+            IDToNameLookup = new(listfile.Where(x => x.Value != ""));
+
             CASCManager.LoadOfficialListfile();
+
+            isInitialized = true;
         }
 
-        public static Dictionary<uint, string> GetNewFiles()
+        public static Dictionary<int, string> GetNewFiles()
         {
             return NewFileManager.ReturnNewNames();
         }
