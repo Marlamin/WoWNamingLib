@@ -346,7 +346,7 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameWMO(uint fileDataID, bool forceFullRun = false)
+        public static void NameWMO()
         {
             try
             {
