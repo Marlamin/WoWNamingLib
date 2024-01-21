@@ -333,5 +333,17 @@ namespace WoWNamingLib
                 Console.WriteLine("Exception during M2 naming: " + e.Message);
             }
         }
+
+        public static void NameMap()
+        {
+            try
+            {
+                Map.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during map naming: " + e.Message);
+            }
+        }
     }
 }
