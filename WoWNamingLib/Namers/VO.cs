@@ -132,6 +132,12 @@ namespace WoWNamingLib.Namers
             }
         }
 
+        private static void ParseAdventureArchivesLua(string filename)
+        {
+            // AdventureArchivesTalkingHeadDB_9 -- has "VO" for soundkit, "nm" for creature name
+            // AdventureArchivesMessageDB_9 -- NPC text in chat, manual like before :(
+        }
+
         private static void ParseWoWDBLua(string filename)
         {
             var script = new Script();

@@ -309,5 +309,29 @@ namespace WoWNamingLib
                 Console.WriteLine("Exception during SpellTextures naming: " + e.Message);
             }
         }
+
+        public static void NameM2(uint fileDataID, bool forceFullRun = false)
+        {
+            try
+            {
+                Model.Name([fileDataID], forceFullRun);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during M2 naming (fullrun: " + false + ", fdid: " + fileDataID + "): " + e.Message);
+            }
+        }
+
+        public static void NameM2s(List<uint> fileDataIDs, bool forceFullRun = false)
+        {
+            try
+            {
+                Model.Name(fileDataIDs, forceFullRun);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during M2 naming: " + e.Message);
+            }
+        }
     }
 }
