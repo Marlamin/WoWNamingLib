@@ -345,5 +345,17 @@ namespace WoWNamingLib
                 Console.WriteLine("Exception during map naming: " + e.Message);
             }
         }
+
+        public static void NameWMO(uint fileDataID, bool forceFullRun = false)
+        {
+            try
+            {
+                WMO.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during WMO naming: " + e.Message);
+            }
+        }
     }
 }
