@@ -53,7 +53,7 @@ namespace WoWNamingLib.Namers
                     NewFileManager.AddNewFile(mapFiles.wdlFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdl");
 
                 if (mapFiles.pd4FileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.pd4FileDataID))
-                    throw new Exception("PD4!!!!!!!!!!!!!!! WDT FDID: " + wdtFileDataID);
+                    Console.WriteLine("Found PD4!!!!!!!!!!!!!!! WDT FDID: " + wdtFileDataID + " pd4 fdid: " + mapFiles.pd4FileDataID);
 
                 if (mapFiles.tileFileDataIDs == null && wdtFileDataID != 0)
                 {
