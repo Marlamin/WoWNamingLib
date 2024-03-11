@@ -11,6 +11,7 @@ namespace WoWNamingLib
         public static Dictionary<int, string> IDToNameLookup = new();
         public static HashSet<int> placeholderNames = new();
         public static Dictionary<string, int> DB2ToIDLookup = new();
+        public static List<uint> ForceRename = new();
 
         public static string localProduct = "";
         public static string build = "";
@@ -29,6 +30,11 @@ namespace WoWNamingLib
         public static void SetProviders(IDBCProvider dbcProvider, IDBDProvider dbdProvider)
         {
             dbcManager = new DBCManager(dbcProvider, dbdProvider);
+        }
+
+        public static void AddNewFile(uint fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
+        {
+            NewFileManager.AddNewFile((int)fileDataID, filename, updateIfExists, forceUpdate);
         }
 
         public static IDBCDStorage LoadDBC(string name)

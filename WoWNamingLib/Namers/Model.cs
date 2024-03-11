@@ -235,48 +235,28 @@ namespace WoWNamingLib.Namers
             // SpellXSpellVisual::SpellVisualID => SpellID
 
             var svenMap = new Dictionary<uint, uint>();
-
-            try
+            if (fullRun)
             {
-                var spellNames = new Dictionary<uint, List<SpellEntry>>();
-
-                var svkmaDB = Namer.LoadDBC("SpellVisualKitModelAttach");
-                var svkeDB = Namer.LoadDBC("SpellVisualKitEffect");
-                var sveDB = Namer.LoadDBC("SpellVisualEvent");
-                var svenDB = Namer.LoadDBC("SpellVisualEffectName");
-                var svToSpellDB = Namer.LoadDBC("SpellXSpellVisual");
-
-                var svenToKit = new Dictionary<uint, List<uint>>();
-                var svkmaIDToSvenID = new Dictionary<int, uint>();
-
-                foreach (var svkmaEntry in svkmaDB.Values)
+                try
                 {
-                    var svenID = uint.Parse(svkmaEntry["SpellVisualEffectNameID"].ToString());
-                    var svkID = uint.Parse(svkmaEntry["ParentSpellVisualKitID"].ToString());
+                    var spellNames = new Dictionary<uint, List<SpellEntry>>();
 
-                    svkmaIDToSvenID.Add(svkmaEntry.ID, svenID);
+                    var svkmaDB = Namer.LoadDBC("SpellVisualKitModelAttach");
+                    var svkeDB = Namer.LoadDBC("SpellVisualKitEffect");
+                    var sveDB = Namer.LoadDBC("SpellVisualEvent");
+                    var svenDB = Namer.LoadDBC("SpellVisualEffectName");
+                    var svToSpellDB = Namer.LoadDBC("SpellXSpellVisual");
 
-                    if (!svenToKit.ContainsKey(svenID))
+                    var svenToKit = new Dictionary<uint, List<uint>>();
+                    var svkmaIDToSvenID = new Dictionary<int, uint>();
+
+                    foreach (var svkmaEntry in svkmaDB.Values)
                     {
-                        svenToKit.Add(svenID, new List<uint>() { svkID });
-                    }
-                    else
-                    {
-                        if (!svenToKit[svenID].Contains(svkID))
-                            svenToKit[svenID].Add(svkID);
-                    }
-                }
+                        var svenID = uint.Parse(svkmaEntry["SpellVisualEffectNameID"].ToString());
+                        var svkID = uint.Parse(svkmaEntry["ParentSpellVisualKitID"].ToString());
 
-                foreach (var svkeEntry in svkeDB.Values)
-                {
-                    if (uint.Parse(svkeEntry["EffectType"].ToString()) != 2)
-                        continue;
+                        svkmaIDToSvenID.Add(svkmaEntry.ID, svenID);
 
-                    var spkmaID = uint.Parse(svkeEntry["Effect"].ToString());
-                    var svkID = uint.Parse(svkeEntry["ParentSpellVisualKitID"].ToString());
-
-                    if (svkmaIDToSvenID.TryGetValue((int)spkmaID, out var svenID))
-                    {
                         if (!svenToKit.ContainsKey(svenID))
                         {
                             svenToKit.Add(svenID, new List<uint>() { svkID });
@@ -287,608 +267,634 @@ namespace WoWNamingLib.Namers
                                 svenToKit[svenID].Add(svkID);
                         }
                     }
-                }
 
-                var svkToType = new Dictionary<uint, uint>();
-                var kitToVisual = new Dictionary<uint, List<uint>>();
-                foreach (var sveEntry in sveDB.Values)
-                {
-                    var svkID = uint.Parse(sveEntry["SpellVisualKitID"].ToString());
-                    var svID = uint.Parse(sveEntry["SpellVisualID"].ToString());
-
-                    if (!svkToType.ContainsKey(svkID))
-                        svkToType.Add(svkID, uint.Parse(sveEntry["StartEvent"].ToString()));
-
-                    if (svID == 0)
-                        continue;
-
-                    if (!kitToVisual.ContainsKey(svkID))
-                        kitToVisual.Add(svkID, new List<uint>() { svID });
-                    else
-                        kitToVisual[svkID].Add(svID);
-                }
-
-                var spellVisualToSpell = new Dictionary<uint, List<uint>>();
-                foreach (var svToSpellEntry in svToSpellDB.Values)
-                {
-                    var svID = uint.Parse(svToSpellEntry["SpellVisualID"].ToString());
-                    var spellID = uint.Parse(svToSpellEntry["SpellID"].ToString());
-
-                    if (!spellVisualToSpell.ContainsKey(svID))
-                        spellVisualToSpell.Add(svID, new List<uint>() { spellID });
-                    else
-                        spellVisualToSpell[svID].Add(spellID);
-                }
-
-                var spellNameDB = Namer.LoadDBC("SpellName");
-                var spellToSpellName = new Dictionary<uint, string>();
-                foreach (var spellNameEntry in spellNameDB.Values)
-                {
-                    var spellID = uint.Parse(spellNameEntry["ID"].ToString());
-                    var spellName = spellNameEntry["Name_lang"].ToString();
-                    spellToSpellName.Add(spellID, spellName);
-                }
-
-                foreach (var svenEntry in svenDB.Values)
-                {
-                    var svenFDID = uint.Parse(svenEntry["ModelFileDataID"].ToString());
-                    if (svenFDID == 0)
-                        continue;
-
-                    if (uint.Parse(svenEntry["Type"].ToString()) != 0)
-                        continue;
-
-                    if (Namer.placeholderNames.Contains((int)svenFDID) || !Namer.IDToNameLookup.ContainsKey((int)svenFDID))
+                    foreach (var svkeEntry in svkeDB.Values)
                     {
-                        svenMap.Add(uint.Parse(svenEntry["ID"].ToString()), svenFDID);
-                        spellFDIDs.Add(svenFDID);
-                    }
-                }
-
-                var spellOutputLines = new List<string>();
-
-                foreach (var svenEntry in svenMap)
-                {
-                    var svenID = svenEntry.Key;
-                    var spellModelFDID = svenEntry.Value;
-
-                    if (!svenToKit.TryGetValue(svenID, out var svkIDs))
-                        continue;
-
-                    spellOutputLines.Add(spellModelFDID + " (SpellVisualEffectName ID " + svenID + ")");
-                    foreach (var svkID in svkIDs)
-                    {
-                        spellOutputLines.Add("\t SpellKitVisualID " + svkID);
-
-                        if (!kitToVisual.TryGetValue(svkID, out var svIDs))
+                        if (uint.Parse(svkeEntry["EffectType"].ToString()) != 2)
                             continue;
 
-                        foreach (var svID in svIDs)
+                        var spkmaID = uint.Parse(svkeEntry["Effect"].ToString());
+                        var svkID = uint.Parse(svkeEntry["ParentSpellVisualKitID"].ToString());
+
+                        if (svkmaIDToSvenID.TryGetValue((int)spkmaID, out var svenID))
                         {
-                            spellOutputLines.Add("\t\t SpellVisualID " + svID);
-
-                            if (!spellVisualToSpell.TryGetValue(svID, out var spellIDs))
-                                continue;
-
-                            foreach (var spellID in spellIDs)
+                            if (!svenToKit.ContainsKey(svenID))
                             {
-                                if (!spellToSpellName.TryGetValue(spellID, out var spellName))
-                                    continue;
-
-                                spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + spellID + ")");
-
-                                var eventStart = svkToType[svkID];
-                                if (!spellNames.ContainsKey(spellModelFDID))
-                                    spellNames.Add(spellModelFDID, new List<SpellEntry>() { new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart } });
-                                else
-                                    spellNames[spellModelFDID].Add(new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart });
+                                svenToKit.Add(svenID, new List<uint>() { svkID });
                             }
-                        }
-                    }
-                }
-
-                var spellClassOptionDB = Namer.LoadDBC("SpellClassOptions");
-                var classSpells = new List<uint>();
-                foreach (var scoEntry in spellClassOptionDB.Values)
-                {
-                    var spellID = uint.Parse(scoEntry["SpellID"].ToString());
-                    if (!classSpells.Contains(spellID))
-                        classSpells.Add(spellID);
-                }
-
-                var journalEncounterSectionDB = Namer.LoadDBC("JournalEncounterSection");
-                var encounterSpells = new List<uint>();
-                foreach (var jesEntry in journalEncounterSectionDB.Values)
-                {
-                    var spellID = uint.Parse(jesEntry["SpellID"].ToString());
-                    if (!encounterSpells.Contains(spellID))
-                        encounterSpells.Add(spellID);
-                }
-
-                var spellModelNames = new Dictionary<uint, SpellEntry>();
-
-                foreach (var spellNameEntry in spellNames)
-                {
-                    var spellModelFDID = spellNameEntry.Key;
-                    var spellNameList = spellNameEntry.Value;
-                    var spellName = new SpellEntry();
-                    if (spellNameList.Count == 1)
-                        spellName = spellNameList[0];
-                    else
-                    {
-
-                        var spellNameDict = new Dictionary<string, int>();
-                        foreach (var name in spellNameList)
-                        {
-                            if (!spellNameDict.ContainsKey(name.SpellName))
-                                spellNameDict.Add(name.SpellName, 1);
                             else
-                                spellNameDict[name.SpellName]++;
-
-                            if (encounterSpells.Contains(name.SpellID))
-                                spellNameDict[name.SpellName] = 99;
-
-                            if (classSpells.Contains(name.SpellID))
-                                spellNameDict[name.SpellName] = 99;
-                        }
-                        var maxCount = 0;
-                        foreach (var name in spellNameDict)
-                        {
-                            if (name.Value > maxCount)
                             {
-                                maxCount = name.Value;
-                                spellName = spellNameList.Where(x => x.SpellName == name.Key).First();
+                                if (!svenToKit[svenID].Contains(svkID))
+                                    svenToKit[svenID].Add(svkID);
                             }
                         }
                     }
 
-                    if (spellName.SpellName == null)
+                    var svkToType = new Dictionary<uint, uint>();
+                    var kitToVisual = new Dictionary<uint, List<uint>>();
+                    foreach (var sveEntry in sveDB.Values)
                     {
-                        Console.WriteLine("No name found for " + spellModelFDID);
-                        continue;
+                        var svkID = uint.Parse(sveEntry["SpellVisualKitID"].ToString());
+                        var svID = uint.Parse(sveEntry["SpellVisualID"].ToString());
+
+                        if (!svkToType.ContainsKey(svkID))
+                            svkToType.Add(svkID, uint.Parse(sveEntry["StartEvent"].ToString()));
+
+                        if (svID == 0)
+                            continue;
+
+                        if (!kitToVisual.ContainsKey(svkID))
+                            kitToVisual.Add(svkID, new List<uint>() { svID });
+                        else
+                            kitToVisual[svkID].Add(svID);
                     }
 
-                    if (!spellModelNames.ContainsKey(spellModelFDID))
-                        spellModelNames.Add(spellModelFDID, spellName);
-                }
-
-                spellOutputLines.Add("## __ CALCULATED NAMES __ ##");
-
-                var journalInstanceDB = Namer.LoadDBC("JournalInstance");
-                var journalEncounterDB = Namer.LoadDBC("JournalEncounter");
-
-                foreach (var spellModelName in spellModelNames)
-                {
-                    var spellname = spellModelName.Value.SpellName;
-                    var spellID = spellModelName.Value.SpellID;
-                    var prefix = "";
-
-                    if (encounterSpells.Contains(spellID))
+                    var spellVisualToSpell = new Dictionary<uint, List<uint>>();
+                    foreach (var svToSpellEntry in svToSpellDB.Values)
                     {
-                        prefix = "10FX_";
+                        var svID = uint.Parse(svToSpellEntry["SpellVisualID"].ToString());
+                        var spellID = uint.Parse(svToSpellEntry["SpellID"].ToString());
 
-                        // Figure out instance?
-                        foreach (var jesEntry in journalEncounterSectionDB.Values)
+                        if (!spellVisualToSpell.ContainsKey(svID))
+                            spellVisualToSpell.Add(svID, new List<uint>() { spellID });
+                        else
+                            spellVisualToSpell[svID].Add(spellID);
+                    }
+
+                    var spellNameDB = Namer.LoadDBC("SpellName");
+                    var spellToSpellName = new Dictionary<uint, string>();
+                    foreach (var spellNameEntry in spellNameDB.Values)
+                    {
+                        var spellID = uint.Parse(spellNameEntry["ID"].ToString());
+                        var spellName = spellNameEntry["Name_lang"].ToString();
+                        spellToSpellName.Add(spellID, spellName);
+                    }
+
+                    foreach (var svenEntry in svenDB.Values)
+                    {
+                        var svenFDID = uint.Parse(svenEntry["ModelFileDataID"].ToString());
+                        if (svenFDID == 0)
+                            continue;
+
+                        if (uint.Parse(svenEntry["Type"].ToString()) != 0)
+                            continue;
+
+                        if (Namer.placeholderNames.Contains((int)svenFDID) || !Namer.IDToNameLookup.ContainsKey((int)svenFDID))
                         {
-                            var jesSpellID = uint.Parse(jesEntry["SpellID"].ToString());
-                            if (jesSpellID != spellID)
+                            svenMap.Add(uint.Parse(svenEntry["ID"].ToString()), svenFDID);
+                            spellFDIDs.Add(svenFDID);
+                        }
+                    }
+
+                    var spellOutputLines = new List<string>();
+
+                    foreach (var svenEntry in svenMap)
+                    {
+                        var svenID = svenEntry.Key;
+                        var spellModelFDID = svenEntry.Value;
+
+                        if (!svenToKit.TryGetValue(svenID, out var svkIDs))
+                            continue;
+
+                        spellOutputLines.Add(spellModelFDID + " (SpellVisualEffectName ID " + svenID + ")");
+                        foreach (var svkID in svkIDs)
+                        {
+                            spellOutputLines.Add("\t SpellKitVisualID " + svkID);
+
+                            if (!kitToVisual.TryGetValue(svkID, out var svIDs))
                                 continue;
 
-                            var jesEncounterID = uint.Parse(jesEntry["JournalEncounterID"].ToString());
-                            foreach (var jeEntry in journalEncounterDB.Values)
+                            foreach (var svID in svIDs)
                             {
-                                if (jeEntry.ID != jesEncounterID)
+                                spellOutputLines.Add("\t\t SpellVisualID " + svID);
+
+                                if (!spellVisualToSpell.TryGetValue(svID, out var spellIDs))
                                     continue;
 
-                                var jeInstanceID = uint.Parse(jeEntry["JournalInstanceID"].ToString());
-                                foreach (var jiEntry in journalInstanceDB.Values)
+                                foreach (var spellID in spellIDs)
                                 {
-                                    if (jiEntry.ID != jeInstanceID)
+                                    if (!spellToSpellName.TryGetValue(spellID, out var spellName))
                                         continue;
 
-                                    var jiName = jiEntry["Name_lang"].ToString();
-                                    var jiNameClean = jiName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
-                                    switch (jiNameClean)
+                                    spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + spellID + ")");
+
+                                    var eventStart = svkToType[svkID];
+                                    if (!spellNames.ContainsKey(spellModelFDID))
+                                        spellNames.Add(spellModelFDID, new List<SpellEntry>() { new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart } });
+                                    else
+                                        spellNames[spellModelFDID].Add(new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart });
+                                }
+                            }
+                        }
+                    }
+
+                    var spellClassOptionDB = Namer.LoadDBC("SpellClassOptions");
+                    var classSpells = new List<uint>();
+                    foreach (var scoEntry in spellClassOptionDB.Values)
+                    {
+                        var spellID = uint.Parse(scoEntry["SpellID"].ToString());
+                        if (!classSpells.Contains(spellID))
+                            classSpells.Add(spellID);
+                    }
+
+                    var journalEncounterSectionDB = Namer.LoadDBC("JournalEncounterSection");
+                    var encounterSpells = new List<uint>();
+                    foreach (var jesEntry in journalEncounterSectionDB.Values)
+                    {
+                        var spellID = uint.Parse(jesEntry["SpellID"].ToString());
+                        if (!encounterSpells.Contains(spellID))
+                            encounterSpells.Add(spellID);
+                    }
+
+                    var spellModelNames = new Dictionary<uint, SpellEntry>();
+
+                    foreach (var spellNameEntry in spellNames)
+                    {
+                        var spellModelFDID = spellNameEntry.Key;
+                        var spellNameList = spellNameEntry.Value;
+                        var spellName = new SpellEntry();
+                        if (spellNameList.Count == 1)
+                            spellName = spellNameList[0];
+                        else
+                        {
+
+                            var spellNameDict = new Dictionary<string, int>();
+                            foreach (var name in spellNameList)
+                            {
+                                if (!spellNameDict.ContainsKey(name.SpellName))
+                                    spellNameDict.Add(name.SpellName, 1);
+                                else
+                                    spellNameDict[name.SpellName]++;
+
+                                if (encounterSpells.Contains(name.SpellID))
+                                    spellNameDict[name.SpellName] = 99;
+
+                                if (classSpells.Contains(name.SpellID))
+                                    spellNameDict[name.SpellName] = 99;
+                            }
+                            var maxCount = 0;
+                            foreach (var name in spellNameDict)
+                            {
+                                if (name.Value > maxCount)
+                                {
+                                    maxCount = name.Value;
+                                    spellName = spellNameList.Where(x => x.SpellName == name.Key).First();
+                                }
+                            }
+                        }
+
+                        if (spellName.SpellName == null)
+                        {
+                            Console.WriteLine("No name found for " + spellModelFDID);
+                            continue;
+                        }
+
+                        if (!spellModelNames.ContainsKey(spellModelFDID))
+                            spellModelNames.Add(spellModelFDID, spellName);
+                    }
+
+                    spellOutputLines.Add("## __ CALCULATED NAMES __ ##");
+
+                    var journalInstanceDB = Namer.LoadDBC("JournalInstance");
+                    var journalEncounterDB = Namer.LoadDBC("JournalEncounter");
+
+                    foreach (var spellModelName in spellModelNames)
+                    {
+                        var spellname = spellModelName.Value.SpellName;
+                        var spellID = spellModelName.Value.SpellID;
+                        var prefix = "";
+
+                        if (encounterSpells.Contains(spellID))
+                        {
+                            prefix = "10FX_";
+
+                            // Figure out instance?
+                            foreach (var jesEntry in journalEncounterSectionDB.Values)
+                            {
+                                var jesSpellID = uint.Parse(jesEntry["SpellID"].ToString());
+                                if (jesSpellID != spellID)
+                                    continue;
+
+                                var jesEncounterID = uint.Parse(jesEntry["JournalEncounterID"].ToString());
+                                foreach (var jeEntry in journalEncounterDB.Values)
+                                {
+                                    if (jeEntry.ID != jesEncounterID)
+                                        continue;
+
+                                    var jeInstanceID = uint.Parse(jeEntry["JournalInstanceID"].ToString());
+                                    foreach (var jiEntry in journalInstanceDB.Values)
                                     {
-                                        case "TheVortexPinnacle":
-                                            jiNameClean = "VortexPinnacle";
-                                            break;
-                                        case "TheNokhudOffensive":
-                                            jiNameClean = "Nokhud";
-                                            break;
-                                        case "TheAzureVault":
-                                            jiNameClean = "AzureVault";
-                                            break;
-                                        case "AberrustheShadowedCrucible":
-                                            jiNameClean = "Aberrus";
-                                            break;
-                                        case "UldamanLegacyOfTyr":
-                                            jiNameClean = "UldamanLOT";
-                                            break;
-                                        case "AlgetharAcademy":
-                                            jiNameClean = "Algethar";
-                                            break;
-                                        case "DawnoftheInfinite":
-                                            jiNameClean = "BronzeDungeon";
-                                            break;
-                                        case "VaultoftheIncarnates":
-                                            jiNameClean = "VOTI";
-                                            break;
-                                        case "AmirdrassiltheDreamsHope":
-                                            jiNameClean = "Amirdrassil";
-                                            break;
-                                        case "SepulcheroftheFirstOnes":
-                                            jiNameClean = "Sepulcher";
-                                            prefix = "9FX_";
-                                            break;
+                                        if (jiEntry.ID != jeInstanceID)
+                                            continue;
+
+                                        var jiName = jiEntry["Name_lang"].ToString();
+                                        var jiNameClean = jiName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
+                                        switch (jiNameClean)
+                                        {
+                                            case "TheVortexPinnacle":
+                                                jiNameClean = "VortexPinnacle";
+                                                break;
+                                            case "TheNokhudOffensive":
+                                                jiNameClean = "Nokhud";
+                                                break;
+                                            case "TheAzureVault":
+                                                jiNameClean = "AzureVault";
+                                                break;
+                                            case "AberrustheShadowedCrucible":
+                                                jiNameClean = "Aberrus";
+                                                break;
+                                            case "UldamanLegacyOfTyr":
+                                                jiNameClean = "UldamanLOT";
+                                                break;
+                                            case "AlgetharAcademy":
+                                                jiNameClean = "Algethar";
+                                                break;
+                                            case "DawnoftheInfinite":
+                                                jiNameClean = "BronzeDungeon";
+                                                break;
+                                            case "VaultoftheIncarnates":
+                                                jiNameClean = "VOTI";
+                                                break;
+                                            case "AmirdrassiltheDreamsHope":
+                                                jiNameClean = "Amirdrassil";
+                                                break;
+                                            case "SepulcheroftheFirstOnes":
+                                                jiNameClean = "Sepulcher";
+                                                prefix = "9FX_";
+                                                break;
+                                        }
+
+                                        var jeName = jeEntry["Name_lang"].ToString();
+                                        var jeNameClean = jeName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
+                                        switch (jeNameClean)
+                                        {
+                                            case "ScalecommanderSarkareth":
+                                                jeNameClean = "Sarkareth";
+                                                break;
+                                            case "TheVigilantStewardZskarn":
+                                                jeNameClean = "Zskarn";
+                                                break;
+                                            case "TheAmalgamationChamber":
+                                                jeNameClean = "Amalgamation";
+                                                break;
+                                            case "TheForgottenExperiments":
+                                                jeNameClean = "ForgottenExperiments";
+                                                break;
+                                            case "KazzaratheHellforged":
+                                                jeNameClean = "Kazzara";
+                                                break;
+                                            case "RashoktheElder":
+                                                jeNameClean = "Rashok";
+                                                break;
+                                            case "AssaultoftheZaqali":
+                                                jeNameClean = "Zaqali";
+                                                break;
+                                            case "RaszageththeStormEater":
+                                                jeNameClean = "Raszageth";
+                                                break;
+                                            case "DatheaAscended":
+                                                jeNameClean = "Dathea";
+                                                break;
+                                            case "KurogGrimtotem":
+                                                jeNameClean = "Kurog";
+                                                break;
+                                            case "LiskanothTheFuturebane":
+                                                jeNameClean = "Liskanoth";
+                                                break;
+                                            case "ForgemasterGorek":
+                                                jeNameClean = "Gorek";
+                                                break;
+                                            case "MelidrussaChillworn":
+                                                jeNameClean = "Melidrussa";
+                                                break;
+                                            case "IridikrontheStonescaled":
+                                                jeNameClean = "Iridikron";
+                                                break;
+                                            case "ChronoLordDeios":
+                                                jeNameClean = "Deios";
+                                                break;
+                                            case "ManifestedTimeways":
+                                                jeNameClean = "Timeways";
+                                                break;
+                                            case "TyrtheInfiniteKeeper":
+                                                jeNameClean = "Tyr";
+                                                break;
+                                            case "SennarththeColdBreath":
+                                                jeNameClean = "Sennarth";
+                                                break;
+                                            case "FyrakktheBlazing":
+                                                jeNameClean = "Fyrakk";
+                                                break;
+                                        }
+
+                                        prefix += jiNameClean + "_" + jeNameClean + "_";
+                                        break;
                                     }
 
-                                    var jeName = jeEntry["Name_lang"].ToString();
-                                    var jeNameClean = jeName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
-                                    switch (jeNameClean)
-                                    {
-                                        case "ScalecommanderSarkareth":
-                                            jeNameClean = "Sarkareth";
-                                            break;
-                                        case "TheVigilantStewardZskarn":
-                                            jeNameClean = "Zskarn";
-                                            break;
-                                        case "TheAmalgamationChamber":
-                                            jeNameClean = "Amalgamation";
-                                            break;
-                                        case "TheForgottenExperiments":
-                                            jeNameClean = "ForgottenExperiments";
-                                            break;
-                                        case "KazzaratheHellforged":
-                                            jeNameClean = "Kazzara";
-                                            break;
-                                        case "RashoktheElder":
-                                            jeNameClean = "Rashok";
-                                            break;
-                                        case "AssaultoftheZaqali":
-                                            jeNameClean = "Zaqali";
-                                            break;
-                                        case "RaszageththeStormEater":
-                                            jeNameClean = "Raszageth";
-                                            break;
-                                        case "DatheaAscended":
-                                            jeNameClean = "Dathea";
-                                            break;
-                                        case "KurogGrimtotem":
-                                            jeNameClean = "Kurog";
-                                            break;
-                                        case "LiskanothTheFuturebane":
-                                            jeNameClean = "Liskanoth";
-                                            break;
-                                        case "ForgemasterGorek":
-                                            jeNameClean = "Gorek";
-                                            break;
-                                        case "MelidrussaChillworn":
-                                            jeNameClean = "Melidrussa";
-                                            break;
-                                        case "IridikrontheStonescaled":
-                                            jeNameClean = "Iridikron";
-                                            break;
-                                        case "ChronoLordDeios":
-                                            jeNameClean = "Deios";
-                                            break;
-                                        case "ManifestedTimeways":
-                                            jeNameClean = "Timeways";
-                                            break;
-                                        case "TyrtheInfiniteKeeper":
-                                            jeNameClean = "Tyr";
-                                            break;
-                                        case "SennarththeColdBreath":
-                                            jeNameClean = "Sennarth";
-                                            break;
-                                        case "FyrakktheBlazing":
-                                            jeNameClean = "Fyrakk";
-                                            break;
-                                    }
-
-                                    prefix += jiNameClean + "_" + jeNameClean + "_";
                                     break;
+                                }
+                                break;
+                            }
+                        }
+                        else if (classSpells.Contains(spellID))
+                        {
+                            prefix = "CFX_";
+                            foreach (var scoEntry in spellClassOptionDB.Values)
+                            {
+                                var scoSpellID = uint.Parse(scoEntry["SpellID"].ToString());
+                                if (scoSpellID != spellID)
+                                    continue;
+
+                                var classSet = uint.Parse(scoEntry["SpellClassSet"].ToString());
+
+                                switch (classSet)
+                                {
+                                    case 3:
+                                        prefix += "Mage_";
+                                        break;
+                                    case 4:
+                                        prefix += "Warrior_";
+                                        break;
+                                    case 5:
+                                        prefix += "Warlock_";
+                                        break;
+                                    case 6:
+                                        prefix += "Priest_";
+                                        break;
+                                    case 7:
+                                        prefix += "Druid_";
+                                        break;
+                                    case 8:
+                                        prefix += "Rogue_";
+                                        break;
+                                    case 9:
+                                        prefix += "Hunter_";
+                                        break;
+                                    case 10:
+                                        prefix += "Paladin_";
+                                        break;
+                                    case 11:
+                                        prefix += "Shaman_";
+                                        break;
+                                    case 15:
+                                        prefix += "DeathKnight_";
+                                        break;
+                                    case 53:
+                                        prefix += "Monk_";
+                                        break;
+                                    case 107:
+                                        prefix += "DemonHunter_";
+                                        break;
+                                    case 224:
+                                        prefix += "Evoker_";
+                                        break;
                                 }
 
                                 break;
                             }
-                            break;
-                        }
-                    }
-                    else if (classSpells.Contains(spellID))
-                    {
-                        prefix = "CFX_";
-                        foreach (var scoEntry in spellClassOptionDB.Values)
-                        {
-                            var scoSpellID = uint.Parse(scoEntry["SpellID"].ToString());
-                            if (scoSpellID != spellID)
-                                continue;
-
-                            var classSet = uint.Parse(scoEntry["SpellClassSet"].ToString());
-
-                            switch (classSet)
-                            {
-                                case 3:
-                                    prefix += "Mage_";
-                                    break;
-                                case 4:
-                                    prefix += "Warrior_";
-                                    break;
-                                case 5:
-                                    prefix += "Warlock_";
-                                    break;
-                                case 6:
-                                    prefix += "Priest_";
-                                    break;
-                                case 7:
-                                    prefix += "Druid_";
-                                    break;
-                                case 8:
-                                    prefix += "Rogue_";
-                                    break;
-                                case 9:
-                                    prefix += "Hunter_";
-                                    break;
-                                case 10:
-                                    prefix += "Paladin_";
-                                    break;
-                                case 11:
-                                    prefix += "Shaman_";
-                                    break;
-                                case 15:
-                                    prefix += "DeathKnight_";
-                                    break;
-                                case 53:
-                                    prefix += "Monk_";
-                                    break;
-                                case 107:
-                                    prefix += "DemonHunter_";
-                                    break;
-                                case 224:
-                                    prefix += "Evoker_";
-                                    break;
-                            }
-
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        prefix = "FX_";
-                    }
-
-                    var eventSuffix = "";
-
-                    switch (spellModelName.Value.EventStart)
-                    {
-                        case 1:
-                            eventSuffix = "_Precast";
-                            break;
-                        case 2:
-                            eventSuffix = "_Precast";
-                            break;
-                        case 3:
-                            eventSuffix = "_Cast";
-                            break;
-                        case 4:
-                            eventSuffix = "_Travel";
-                            break;
-                        case 5:
-                            eventSuffix = "_TravelE";
-                            break;
-                        case 6:
-                            eventSuffix = "_Impact";
-                            break;
-                        case 7:
-                            eventSuffix = "_Aura";
-                            break;
-                        case 8:
-                            eventSuffix = "_Aura";
-                            break;
-                        case 9:
-                            eventSuffix = "_AreaTrigger";
-                            break;
-                        case 11:
-                            eventSuffix = "_Channel";
-                            break;
-                        case 12:
-                            eventSuffix = "_Channel";
-                            break;
-                        case 13:
-                            eventSuffix = "_OneShot";
-                            break;
-                        default:
-                            Console.WriteLine("Unknown event start " + spellModelName.Value.EventStart + " for Spell " + spellID + " (" + spellModelName.Value.SpellName + ")");
-                            break;
-
-                    }
-
-                    var cleanSpellname = spellname.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
-                    var calculatedName = "spells/" + prefix + cleanSpellname + eventSuffix + ".m2";
-                    var nameSaved = false;
-                    var numIndex = 0;
-
-                    while (!nameSaved)
-                    {
-                        if (!spellNamesClean.ContainsValue(calculatedName) && !Namer.IDToNameLookup.Values.Contains(calculatedName))
-                        {
-                            spellNamesClean.Add(spellModelName.Key, calculatedName);
-                            nameSaved = true;
                         }
                         else
                         {
-                            numIndex++;
-                            calculatedName = "spells/" + prefix + cleanSpellname + eventSuffix + numIndex.ToString().PadLeft(2, '0') + ".m2";
+                            prefix = "FX_";
                         }
+
+                        var eventSuffix = "";
+
+                        switch (spellModelName.Value.EventStart)
+                        {
+                            case 1:
+                                eventSuffix = "_Precast";
+                                break;
+                            case 2:
+                                eventSuffix = "_Precast";
+                                break;
+                            case 3:
+                                eventSuffix = "_Cast";
+                                break;
+                            case 4:
+                                eventSuffix = "_Travel";
+                                break;
+                            case 5:
+                                eventSuffix = "_TravelE";
+                                break;
+                            case 6:
+                                eventSuffix = "_Impact";
+                                break;
+                            case 7:
+                                eventSuffix = "_Aura";
+                                break;
+                            case 8:
+                                eventSuffix = "_Aura";
+                                break;
+                            case 9:
+                                eventSuffix = "_AreaTrigger";
+                                break;
+                            case 11:
+                                eventSuffix = "_Channel";
+                                break;
+                            case 12:
+                                eventSuffix = "_Channel";
+                                break;
+                            case 13:
+                                eventSuffix = "_OneShot";
+                                break;
+                            default:
+                                Console.WriteLine("Unknown event start " + spellModelName.Value.EventStart + " for Spell " + spellID + " (" + spellModelName.Value.SpellName + ")");
+                                break;
+
+                        }
+
+                        var cleanSpellname = spellname.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
+                        var calculatedName = "spells/" + prefix + cleanSpellname + eventSuffix + ".m2";
+                        var nameSaved = false;
+                        var numIndex = 0;
+
+                        while (!nameSaved)
+                        {
+                            if (!spellNamesClean.ContainsValue(calculatedName) && !Namer.IDToNameLookup.Values.Contains(calculatedName))
+                            {
+                                spellNamesClean.Add(spellModelName.Key, calculatedName);
+                                nameSaved = true;
+                            }
+                            else
+                            {
+                                numIndex++;
+                                calculatedName = "spells/" + prefix + cleanSpellname + eventSuffix + numIndex.ToString().PadLeft(2, '0') + ".m2";
+                            }
+                        }
+
+                        spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
                     }
 
-                    spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
+                    File.WriteAllLines("spellOutput.txt", spellOutputLines.ToArray());
                 }
-
-                File.WriteAllLines("spellOutput.txt", spellOutputLines.ToArray());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Can't load Spell DBs for model naming: " + e.Message);
+                catch (Exception e)
+                {
+                    Console.WriteLine("Can't load Spell DBs for model naming: " + e.Message);
+                }
             }
 
             var itemAppearance = Namer.LoadDBC("ItemAppearance");
             var itemModelNames = new Dictionary<uint, string>();
 
             var itemFDIDs = new List<uint>();
-            try
+
+            if (fullRun)
             {
-                var mfdDict = new Dictionary<uint, List<uint>>();
-
-                var mfdDB = Namer.LoadDBC("ModelFileData");
-                foreach (var mfdEntry in mfdDB.Values)
+                try
                 {
-                    var mfdID = uint.Parse(mfdEntry["ModelResourcesID"].ToString());
-                    var mfdFDID = uint.Parse(mfdEntry["FileDataID"].ToString());
-                    if (!mfdDict.ContainsKey(mfdID))
+                    var mfdDict = new Dictionary<uint, List<uint>>();
+
+                    var mfdDB = Namer.LoadDBC("ModelFileData");
+                    foreach (var mfdEntry in mfdDB.Values)
                     {
-                        mfdDict.Add(mfdID, new List<uint>() { mfdFDID });
-                    }
-                    else
-                    {
-                        mfdDict[mfdID].Add(mfdFDID);
-                    }
-                }
-
-
-                var cfdDB = Namer.LoadDBC("ComponentModelFileData");
-                var idiDB = Namer.LoadDBC("ItemDisplayInfo");
-                var chrRaces = Namer.LoadDBC("ChrRaces");
-                var racePrefix = new Dictionary<uint, string>();
-                foreach (dynamic chrRaceEntry in chrRaces.Values)
-                {
-                    racePrefix.Add(uint.Parse(chrRaceEntry.ID.ToString()), chrRaceEntry.ClientPrefix.ToString());
-                }
-
-                foreach (var cfdEntry in cfdDB.Values)
-                {
-                    var cfdFDID = uint.Parse(cfdEntry["ID"].ToString());
-                    if (!itemFDIDs.Contains(cfdFDID))
-                        itemFDIDs.Add(cfdFDID);
-                }
-
-                foreach (var idiEntry in idiDB.Values)
-                {
-                    for (int i = 0; i < 2; i++)
-                    {
-                        var modelRes = ((uint[])idiEntry["ModelResourcesID"])[i];
-                        if (mfdDict.TryGetValue(modelRes, out var itemM2FDIDs))
+                        var mfdID = uint.Parse(mfdEntry["ModelResourcesID"].ToString());
+                        var mfdFDID = uint.Parse(mfdEntry["FileDataID"].ToString());
+                        if (!mfdDict.ContainsKey(mfdID))
                         {
-                            itemFDIDs.AddRange(itemM2FDIDs);
+                            mfdDict.Add(mfdID, new List<uint>() { mfdFDID });
+                        }
+                        else
+                        {
+                            mfdDict[mfdID].Add(mfdFDID);
+                        }
+                    }
 
-                            foreach (var itemM2FDID in itemM2FDIDs)
+
+                    var cfdDB = Namer.LoadDBC("ComponentModelFileData");
+                    var idiDB = Namer.LoadDBC("ItemDisplayInfo");
+                    var chrRaces = Namer.LoadDBC("ChrRaces");
+                    var racePrefix = new Dictionary<uint, string>();
+                    foreach (dynamic chrRaceEntry in chrRaces.Values)
+                    {
+                        racePrefix.Add(uint.Parse(chrRaceEntry.ID.ToString()), chrRaceEntry.ClientPrefix.ToString());
+                    }
+
+                    foreach (var cfdEntry in cfdDB.Values)
+                    {
+                        var cfdFDID = uint.Parse(cfdEntry["ID"].ToString());
+                        if (!itemFDIDs.Contains(cfdFDID))
+                            itemFDIDs.Add(cfdFDID);
+                    }
+
+                    foreach (var idiEntry in idiDB.Values)
+                    {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            var modelRes = ((uint[])idiEntry["ModelResourcesID"])[i];
+                            if (mfdDict.TryGetValue(modelRes, out var itemM2FDIDs))
                             {
-                                if (itemM2FDID == 0)
-                                    continue;
+                                itemFDIDs.AddRange(itemM2FDIDs);
 
-                                if (itemModelNames.ContainsKey(itemM2FDID))
-                                    continue;
-
-                                var itemModelIsNamed = true;
-
-                                if (Namer.IDToNameLookup.TryGetValue((int)itemM2FDID, out var currentItemFilename))
+                                foreach (var itemM2FDID in itemM2FDIDs)
                                 {
-                                    if (Namer.placeholderNames.Contains((int)itemM2FDID))
+                                    if (itemM2FDID == 0)
+                                        continue;
+
+                                    if (itemModelNames.ContainsKey(itemM2FDID))
+                                        continue;
+
+                                    var itemModelIsNamed = true;
+
+                                    if (Namer.IDToNameLookup.TryGetValue((int)itemM2FDID, out var currentItemFilename))
+                                    {
+                                        if (Namer.placeholderNames.Contains((int)itemM2FDID))
+                                        {
+                                            // Is unnamed
+                                            itemModelIsNamed = false;
+                                        }
+                                    }
+                                    else
                                     {
                                         // Is unnamed
                                         itemModelIsNamed = false;
                                     }
-                                }
-                                else
-                                {
-                                    // Is unnamed
-                                    itemModelIsNamed = false;
-                                }
 
-                                if (!itemModelIsNamed)
-                                {
-                                    uint iconFDID = 0;
-
-                                    foreach (dynamic iaRow in itemAppearance.Values)
+                                    if (!itemModelIsNamed)
                                     {
-                                        if (uint.Parse(iaRow["ItemDisplayInfoID"].ToString()) == uint.Parse(idiEntry.ID.ToString()))
+                                        uint iconFDID = 0;
+
+                                        foreach (dynamic iaRow in itemAppearance.Values)
                                         {
-                                            iconFDID = uint.Parse(iaRow.DefaultIconFileDataID.ToString());
-                                        }
-                                    }
-
-                                    if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out string iconFileName))
-                                    {
-                                        var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/", "").Replace(".blp", "").Trim();
-
-                                        if (iconFileName.ToLower().Contains("questionmark") || iconFileName.ToLower() == "interface/icons/temp.blp")
-                                            continue;
-
-                                        Console.WriteLine("!!! Unnamed item M2 " + itemM2FDID + " has an icon with name " + cleanedName);
-                                        if (cfdDB.TryGetValue(int.Parse(itemM2FDID.ToString()), out var cfdRow))
-                                        {
-                                            // Console.WriteLine(itemM2FDID.ToString() + " is for race " + cfdRow["RaceID"].ToString() + " " + cfdRow["GenderIndex"].ToString() + " sex " + cfdRow["GenderIndex"].ToString()  + " pos " + cfdRow["PositionIndex"].ToString());
-
-                                            var cfdSuffixedName = GetCFDSuffixedName(cfdRow, racePrefix, cleanedName);
-                                            if (cfdSuffixedName != "")
+                                            if (uint.Parse(iaRow["ItemDisplayInfoID"].ToString()) == uint.Parse(idiEntry.ID.ToString()))
                                             {
-                                                itemModelNames.Add(itemM2FDID, cfdSuffixedName);
+                                                iconFDID = uint.Parse(iaRow.DefaultIconFileDataID.ToString());
+                                            }
+                                        }
+
+                                        if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out string iconFileName))
+                                        {
+                                            var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/", "").Replace(".blp", "").Trim();
+
+                                            if (iconFileName.ToLower().Contains("questionmark") || iconFileName.ToLower() == "interface/icons/temp.blp")
+                                                continue;
+
+                                            Console.WriteLine("!!! Unnamed item M2 " + itemM2FDID + " has an icon with name " + cleanedName);
+                                            if (cfdDB.TryGetValue(int.Parse(itemM2FDID.ToString()), out var cfdRow))
+                                            {
+                                                // Console.WriteLine(itemM2FDID.ToString() + " is for race " + cfdRow["RaceID"].ToString() + " " + cfdRow["GenderIndex"].ToString() + " sex " + cfdRow["GenderIndex"].ToString()  + " pos " + cfdRow["PositionIndex"].ToString());
+
+                                                var cfdSuffixedName = GetCFDSuffixedName(cfdRow, racePrefix, cleanedName);
+                                                if (cfdSuffixedName != "")
+                                                {
+                                                    itemModelNames.Add(itemM2FDID, cfdSuffixedName);
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine("Got empty cfd suffix for " + itemM2FDID + " " + cleanedName);
+                                                }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("Got empty cfd suffix for " + itemM2FDID + " " + cleanedName);
+                                                itemModelNames.Add(itemM2FDID, cleanedName);
                                             }
-                                        }
-                                        else
-                                        {
-                                            itemModelNames.Add(itemM2FDID, cleanedName);
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                foreach (var itemFDID in itemFDIDs)
-                {
-                    var itemModelIsNamed = true;
-
-                    if (Namer.IDToNameLookup.TryGetValue((int)itemFDID, out var currentItemFilename))
+                    foreach (var itemFDID in itemFDIDs)
                     {
-                        if (Namer.placeholderNames.Contains((int)itemFDID))
+                        var itemModelIsNamed = true;
+
+                        if (Namer.IDToNameLookup.TryGetValue((int)itemFDID, out var currentItemFilename))
+                        {
+                            if (Namer.placeholderNames.Contains((int)itemFDID))
+                            {
+                                // Is unnamed
+                                itemModelIsNamed = false;
+                            }
+                        }
+                        else
                         {
                             // Is unnamed
                             itemModelIsNamed = false;
                         }
-                    }
-                    else
-                    {
-                        // Is unnamed
-                        itemModelIsNamed = false;
-                    }
 
-                    if (itemModelIsNamed || itemModelNames.ContainsKey(itemFDID))
-                        continue;
+                        if (itemModelIsNamed || itemModelNames.ContainsKey(itemFDID))
+                            continue;
 
-                    if (cfdDB.TryGetValue(int.Parse(itemFDID.ToString()), out var cfdRow))
-                    {
-                        var cleanedName = itemFDID.ToString();
-                        var cfdSuffixedName = GetCFDSuffixedName(cfdRow, racePrefix, cleanedName);
-                        if (cfdSuffixedName != "")
+                        if (cfdDB.TryGetValue(int.Parse(itemFDID.ToString()), out var cfdRow))
                         {
-                            itemModelNames.Add(itemFDID, cfdSuffixedName);
-                        }
-                        else
-                        {
-                            Console.WriteLine("Got empty cfd suffix for " + itemFDID);
+                            var cleanedName = itemFDID.ToString();
+                            var cfdSuffixedName = GetCFDSuffixedName(cfdRow, racePrefix, cleanedName);
+                            if (cfdSuffixedName != "")
+                            {
+                                itemModelNames.Add(itemFDID, cfdSuffixedName);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Got empty cfd suffix for " + itemFDID);
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Can't load item data for model naming: " + e.Message + " " + e.StackTrace);
+                catch (Exception e)
+                {
+                    Console.WriteLine("Can't load item data for model naming: " + e.Message + " " + e.StackTrace);
+                }
             }
 
             var unkPrefixes = new Dictionary<string, int>();
@@ -928,11 +934,11 @@ namespace WoWNamingLib.Namers
                     var overrideName = false;
                     var forceOverrideName = false;
 
-                    //if (Namer.ForceRename.Contains(fdid))
-                    //{
-                    //    overrideName = true;
-                    //    forceOverrideName = true;
-                    //}
+                    if (Namer.ForceRename.Contains(fdid))
+                    {
+                        overrideName = true;
+                        forceOverrideName = true;
+                    }
 
                     try
                     {
