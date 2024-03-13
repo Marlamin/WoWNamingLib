@@ -56,6 +56,23 @@ namespace WoWNamingLib
 
                 if (filename.EndsWith(".db2"))
                     DB2ToIDLookup.Add(Path.GetFileNameWithoutExtension(filename).ToLower(), fileDataID);
+            }
+
+            ReloadPlaceholders();
+
+            IDToNameLookup = new(listfile.Where(x => x.Value != ""));
+
+            CASCManager.LoadOfficialListfile();
+
+            isInitialized = true;
+        }
+
+        static void ReloadPlaceholders()
+        {
+            foreach (var entry in IDToNameLookup)
+            {
+                var fileDataID = entry.Key;
+                var filename = entry.Value;
 
                 if (filename.StartsWith("models") ||
                     filename.StartsWith("unkmaps") ||
@@ -67,17 +84,16 @@ namespace WoWNamingLib
                     placeholderNames.Add(fileDataID);
                 }
             }
-
-            IDToNameLookup = new(listfile.Where(x => x.Value != ""));
-
-            CASCManager.LoadOfficialListfile();
-
-            isInitialized = true;
         }
 
         public static Dictionary<int, string> GetNewFiles()
         {
             return NewFileManager.ReturnNewNames();
+        }
+
+        public static void ClearNewFiles()
+        {
+            NewFileManager.ClearNewFiles();
         }
 
         public static void NameMusic()
@@ -321,6 +337,7 @@ namespace WoWNamingLib
             try
             {
                 Model.Name([fileDataID], forceFullRun);
+                ReloadPlaceholders();
             }
             catch (Exception e)
             {
@@ -361,6 +378,19 @@ namespace WoWNamingLib
             catch (Exception e)
             {
                 Console.WriteLine("Exception during WMO naming: " + e.Message);
+            }
+        }
+
+        public static void NameByContentHashes(Dictionary<int, string> idToHashes)
+        {
+            try
+            {
+                ContentHashNamer.Name(idToHashes);
+                ReloadPlaceholders();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during content hash naming: " + e.Message);
             }
         }
     }

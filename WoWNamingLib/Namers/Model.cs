@@ -1377,6 +1377,10 @@ namespace WoWNamingLib.Namers
                         if (currentModelName == "7XP_Waterfall_Top")
                             Debugger.Break();
 
+                        var M2baseName = Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]);
+                        if (M2baseName.ToLower() != currentModelName.ToLower() && !folder.ToLower().StartsWith("item"))
+                            NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
+
                         for (var i = 0; i < m2.skinFileDataIDs.Length; i++)
                         {
                             if (i > (m2.nViews - 1))

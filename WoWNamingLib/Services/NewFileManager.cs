@@ -1,4 +1,5 @@
 ﻿using CASCLib;
+using System.Data;
 
 namespace WoWNamingLib.Services
 {
@@ -17,6 +18,11 @@ namespace WoWNamingLib.Services
             return newFiles;
         }
 
+        public static void ClearNewFiles()
+        {
+            newFiles.Clear();
+        }
+
         // Overload for old namer code compatibility
         public static void AddNewFile(uint fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
         {
@@ -26,7 +32,7 @@ namespace WoWNamingLib.Services
         public static void AddNewFile(int fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
         {
             // Please don't overwrite these files.
-            if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357)
+            if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357 || fileDataID == 2887301 || fileDataID == 3557051)
                 return;
 
             if (CASCManager.BuildName.Contains("Classic"))
@@ -55,7 +61,7 @@ namespace WoWNamingLib.Services
                 var oldHash = Hasher.ComputeHash(currentFileName);
                 if (CASCManager.OfficialLookups.Contains(oldHash))
                 {
-                    Console.WriteLine("[ERROR] Attempted to override official name for " + fileDataID + ", skipping..\n\tNew: " + filename);
+                    //Console.WriteLine("[ERROR] Official name being overriden for " + fileDataID + ", old " + currentFileName + ", new: " + filename);
                     return;
                 }
 
@@ -69,8 +75,13 @@ namespace WoWNamingLib.Services
 
                     if (!forceUpdate)
                     {
-                        if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".m2"))
+                        if(!Namer.placeholderNames.Contains(fileDataID))
+                        {
+                            Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite " + currentFileName + " with " + filename);
                             return;
+                        }
+                        //if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".m2"))
+                        //    return;
 
                         if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
                             return;
