@@ -4,7 +4,7 @@ namespace WoWNamingLib.Namers
 {
     class CreatureDisplayInfo
     {
-        public static void Name()
+        public static void Name(uint overrideID = 0)
         {
             var cmdDB = Namer.LoadDBC("CreatureModelData");
             var cmdIDToFDIDMap = new Dictionary<uint, int>();
@@ -23,6 +23,9 @@ namespace WoWNamingLib.Namers
                     Console.WriteLine("!!! Nonexisting FDID for CDI " + cdiRow["ID"].ToString() + " CMD " + cdiRow["ModelID"].ToString());
                     continue;
                 }
+
+                if(overrideID != 0 && overrideID != modelFileDataID)
+                    continue;
 
                 if (!Namer.IDToNameLookup.TryGetValue(modelFileDataID, out var modelFileName))
                 {

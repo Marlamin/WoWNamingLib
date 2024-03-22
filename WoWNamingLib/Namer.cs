@@ -130,11 +130,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameCreatureDisplayInfo()
+        public static void NameCreatureDisplayInfo(uint filterByFDID = 0)
         {
             try
             {
-                CreatureDisplayInfo.Name();
+                CreatureDisplayInfo.Name(filterByFDID);
             }
             catch (Exception e)
             {
