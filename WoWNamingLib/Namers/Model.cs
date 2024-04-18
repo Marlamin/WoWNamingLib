@@ -466,7 +466,7 @@ namespace WoWNamingLib.Namers
 
                         if (encounterSpells.Contains(spellID))
                         {
-                            prefix = "10FX_";
+                            prefix = "11FX_";
 
                             // Figure out instance?
                             foreach (var jesEntry in journalEncounterSectionDB.Values)
@@ -824,7 +824,7 @@ namespace WoWNamingLib.Namers
 
                                         if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out string iconFileName))
                                         {
-                                            var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/", "").Replace(".blp", "").Trim();
+                                            var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/", "").Replace(".blp", "").Replace(" ", "").Trim();
 
                                             if (iconFileName.ToLower().Contains("questionmark") || iconFileName.ToLower() == "interface/icons/temp.blp")
                                                 continue;
@@ -1001,6 +1001,29 @@ namespace WoWNamingLib.Namers
                             switch (splitModelName[0])
                             {
                                 // DOODADS
+                                // 11.0
+                                case "11fx":
+                                    folder = "spells";
+                                    break;
+                                case "11ara":
+                                    folder = "world/expansion10/doodads/arathi";
+                                    break;
+                                case "11nrb":
+                                    folder = "world/expansion10/doodads/nerubian";
+                                    break;
+                                case "11xp":
+                                    folder = "world/expansion10/doodads";
+                                    break;
+                                case "11ung":
+                                    folder = "";
+                                    break;
+                                case "11rtl":
+                                    folder = "";
+                                    break;
+                                case "11eti":
+                                    folder = "";
+                                    break;
+
                                 // 10.0
                                 case "10xp":
                                     folder = "world/expansion09/doodads";
@@ -1282,7 +1305,7 @@ namespace WoWNamingLib.Namers
                                 {
                                     if (currentModelName.All(char.IsDigit))
                                     {
-                                        folder = "models/creature/unk_exp09_" + currentModelName;
+                                        folder = "models/creature/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName;
                                     }
                                     else
                                     {
@@ -1297,7 +1320,7 @@ namespace WoWNamingLib.Namers
                                 {
                                     if (currentModelName.All(char.IsDigit))
                                     {
-                                        folder = "models/world/unk_exp09_" + currentModelName.ToLower();
+                                        folder = "models/world/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
                                     }
                                     else
                                     {
@@ -1306,7 +1329,7 @@ namespace WoWNamingLib.Namers
                                 }
                                 else if (itemFDIDs.Contains(fdid))
                                 {
-                                    folder = "models/item/unk_exp09_" + currentModelName.ToLower();
+                                    folder = "models/item/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
                                 }
                                 else if (spellFDIDs.Contains(fdid))
                                 {
@@ -1316,12 +1339,12 @@ namespace WoWNamingLib.Namers
                                     }
                                     else
                                     {
-                                        folder = "models/spells/unk_exp09_" + currentModelName.ToLower();
+                                        folder = "models/spells/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
                                     }
                                 }
                                 else
                                 {
-                                    folder = "models/unknown/unk_exp09_" + currentModelName.ToLower();
+                                    folder = "models/unknown/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
                                 }
                             }
                         }

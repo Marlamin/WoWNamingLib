@@ -252,7 +252,11 @@ namespace WoWNamingLib.Namers
         {
             uint voVersion = 9999;
 
-            if (fileDataID > 5313885)
+            if (fileDataID > 5524626)
+            {
+                voVersion = 1100;
+            }
+            else if (fileDataID > 5313885)
             {
                 voVersion = 1025;
             }

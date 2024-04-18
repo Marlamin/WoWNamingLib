@@ -159,7 +159,7 @@ namespace WoWNamingLib.Namers
                     {
                         if (wmo.groupNames.Length != 0)
                         {
-                            Console.WriteLine(fdid + " has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)));
+                            Console.WriteLine(fdid + " (" + Path.GetFileNameWithoutExtension(wmoFilename) + ") has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)));
                         }
 
                         if (!string.IsNullOrEmpty(premapRenameName) && premapRenameName.ToLower().StartsWith("world/wmo/autogen-names/unknown-fdid/map-"))

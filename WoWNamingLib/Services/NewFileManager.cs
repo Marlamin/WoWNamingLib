@@ -13,6 +13,14 @@ namespace WoWNamingLib.Services
             newFiles = new Dictionary<int, string>();
         }
 
+        public static string GetExpansionForFileDataID(uint fileDataID)
+        {
+            if(fileDataID > 4559188)
+                return "exp10";
+            else
+                return "exp09";
+        }
+
         public static Dictionary<int, string> ReturnNewNames()
         {
             return newFiles;
@@ -56,6 +64,12 @@ namespace WoWNamingLib.Services
 
             if (Namer.IDToNameLookup.TryGetValue(fileDataID, out string currentFileName))
             {
+                if(currentFileName.ToLower().StartsWith("interface"))
+                {
+                    Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite interface file: " + currentFileName + " => " + filename);
+                    return;
+                }
+
                 var caseOnlyFix = currentFileName.ToLower() == filename.ToLower() && currentFileName != filename;
 
                 var oldHash = Hasher.ComputeHash(currentFileName);
@@ -65,7 +79,12 @@ namespace WoWNamingLib.Services
                     return;
                 }
 
-                if (currentFileName.Contains("exp09") && !filename.Contains("exp09") || currentFileName.All(char.IsDigit))
+                if (
+                    (
+                    (currentFileName.Contains("exp09") && !filename.Contains("exp09")) ||
+                    (currentFileName.Contains("exp10") && !filename.Contains("exp10"))
+                    )
+                     || currentFileName.All(char.IsDigit))
                     updateIfExists = true;
 
                 if (updateIfExists)
@@ -83,7 +102,7 @@ namespace WoWNamingLib.Services
                         //if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".m2"))
                         //    return;
 
-                        if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
+                        if (!currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
                             return;
 
                         //if (Program.IDToNameLookup[fileDataID].Contains("exp09") && filename.Contains("exp09"))
