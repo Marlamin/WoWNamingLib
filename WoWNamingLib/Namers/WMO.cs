@@ -7,7 +7,7 @@ namespace WoWNamingLib.Namers
 {
     class WMO
     {
-        public static void Name(bool fullRun = false, string overrideIDs = "")
+        public static void Name(bool fullRun = true, string overrideIDs = "")
         {
             var wmoList = new List<int>();
 
@@ -126,16 +126,18 @@ namespace WoWNamingLib.Namers
                         continue;
                     }
 
+                    var resetName = false;
                     var premapRenameName = "";
-                    if (!Namer.IDToNameLookup.TryGetValue(fdid, out var wmoFilename) || wmoFilename.ToLower().StartsWith("world/wmo/autogen-names/unknown-fdid/map-"))
+                    if (!Namer.IDToNameLookup.TryGetValue(fdid, out var wmoFilename) || wmoFilename.ToLower().StartsWith("world/wmo/autogen-names/unknown-fdid/map-") || wmoFilename.ToLower().StartsWith("models"))
                     {
                         premapRenameName = wmoFilename;
                         Console.WriteLine("WMO " + fdid + " is unnamed");
                         wmoFilename = "World/WMO/autogen-names/unknown/" + wmo.header.wmoID + ".wmo";
-                        NewFileManager.AddNewFile(fdid, wmoFilename);
+                        NewFileManager.AddNewFile(fdid, wmoFilename, true);
                     }
 
-                    var resetName = false;
+                    resetName = true;
+
                     if (wmoFilename.ToLower().StartsWith("world/wmo/autogen-names/unknown"))
                     {
                         if (wmoAreaTableMap.TryGetValue(wmo.header.wmoID, out var areaTableIDs))
@@ -155,13 +157,13 @@ namespace WoWNamingLib.Namers
                         }
                     }
 
+                    if (wmoFilename.Contains("autogen-names") && wmo.groupNames.Length != 0)
+                    {
+                        File.AppendAllText("groupNames.txt", fdid + " (" + Path.GetFileNameWithoutExtension(wmoFilename) + ") has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)) + "\n");
+                    }
+
                     if (wmoFilename.ToLower().StartsWith("world/wmo/autogen-names/unknown") || resetName)
                     {
-                        if (wmo.groupNames.Length != 0)
-                        {
-                            Console.WriteLine(fdid + " (" + Path.GetFileNameWithoutExtension(wmoFilename) + ") has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)));
-                        }
-
                         if (!string.IsNullOrEmpty(premapRenameName) && premapRenameName.ToLower().StartsWith("world/wmo/autogen-names/unknown-fdid/map-"))
                         {
                             Console.WriteLine("WMO " + premapRenameName + " has parent map " + premapRenameName.Split('-')[3].Split('/')[0]);

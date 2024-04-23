@@ -67,10 +67,10 @@ namespace WoWNamingLib.Namers
                     var files = tile.Value;
 
                     if (files.rootADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.rootADT))
-                        NewFileManager.AddNewFile(files.rootADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + ".adt");
+                        NewFileManager.AddNewFile(files.rootADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + ".adt", true);
 
                     if (files.obj0ADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.obj0ADT))
-                        NewFileManager.AddNewFile(files.obj0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj0.adt");
+                        NewFileManager.AddNewFile(files.obj0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj0.adt", true);
 
                     if (files.obj0ADT != 0 && int.TryParse(mapDirectory, out int wmapID) && wmapID > 2221)
                     {
@@ -102,10 +102,10 @@ namespace WoWNamingLib.Namers
                     }
 
                     if (files.obj1ADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.obj1ADT))
-                        NewFileManager.AddNewFile(files.obj1ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj1.adt");
+                        NewFileManager.AddNewFile(files.obj1ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj1.adt", true);
 
                     if (files.tex0ADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.tex0ADT))
-                        NewFileManager.AddNewFile(files.tex0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_tex0.adt");
+                        NewFileManager.AddNewFile(files.tex0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_tex0.adt", true);
 
                     // Tileset is pretty slow, only enable once per major patch
                     if (files.tex0ADT != 0 && int.TryParse(mapDirectory, out int mapID) && mapID > 2221)
@@ -172,16 +172,16 @@ namespace WoWNamingLib.Namers
                     }
 
                     if (files.lodADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.lodADT))
-                        NewFileManager.AddNewFile(files.lodADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_lod.adt");
+                        NewFileManager.AddNewFile(files.lodADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_lod.adt", true);
 
                     if (files.minimapTexture != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.minimapTexture))
-                        NewFileManager.AddNewFile(files.minimapTexture, "world/minimaps/" + mapDirectory + "/map" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp");
+                        NewFileManager.AddNewFile(files.minimapTexture, "world/minimaps/" + mapDirectory + "/map" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
 
                     if (files.mapTexture != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.mapTexture))
-                        NewFileManager.AddNewFile(files.mapTexture, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp");
+                        NewFileManager.AddNewFile(files.mapTexture, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
 
                     if (files.mapTextureN != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.mapTextureN))
-                        NewFileManager.AddNewFile(files.mapTextureN, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + "_n.blp");
+                        NewFileManager.AddNewFile(files.mapTextureN, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + "_n.blp", true);
                 }
 
                 //if (mapFiles.texFileDataID != 0)

@@ -1014,10 +1014,10 @@ namespace WoWNamingLib.Namers
                                 case "11xp":
                                     folder = "world/expansion10/doodads";
                                     break;
-                                case "11ung":
+                                case "11ung": // 
                                     folder = "";
                                     break;
-                                case "11rtl":
+                                case "11rtl": // Rootlands
                                     folder = "";
                                     break;
                                 case "11eti":
