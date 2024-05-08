@@ -235,7 +235,10 @@ namespace WoWNamingLib.Namers
             // SpellXSpellVisual::SpellVisualID => SpellID
 
             var svenMap = new Dictionary<uint, uint>();
-            if (fullRun)
+            
+            
+            // TODO - Spells disabled for now, lots of misnaming
+            if (false)
             {
                 try
                 {

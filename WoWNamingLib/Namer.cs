@@ -177,7 +177,7 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameVO(string creatureCacheLocation)
+        public static void NameVO(string creatureCacheLocation, Dictionary<string, List<uint>> textToSoundKitID)
         {
             var creatureNames = new Dictionary<uint, string>();
 
@@ -204,7 +204,7 @@ namespace WoWNamingLib
 
             try
             {
-                VO.Name(creatureNames);
+                VO.Name(creatureNames, textToSoundKitID);
             }
             catch (Exception e)
             {

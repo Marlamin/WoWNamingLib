@@ -8,12 +8,24 @@ namespace WoWNamingLib.Namers
         private static Dictionary<(uint ID, string name), List<string>> creatureVO = new();
         private static Dictionary<uint, string> creatureNames = new();
 
-        public static void Name(Dictionary<uint, string> creatureNames)
+        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID)
         {
             creatureVO.Clear();
             VO.creatureNames = creatureNames;
 
             // TODO: Parse scenescripts
+
+            try
+            {
+                foreach (var datamineLua in Directory.GetFiles(Path.Combine(Namer.wowDir, "_retail_", "WTF\\Account"), "Datamine_Data.lua", SearchOption.AllDirectories))
+                {
+                    ParseDatamineLua(datamineLua);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error parsing VO Wowhead LUA: " + e.Message);
+            }
 
             try
             {
@@ -39,43 +51,44 @@ namespace WoWNamingLib.Namers
                 Console.WriteLine("Error parsing VO Wowhead LUA: " + e.Message);
             }
 
-            var textToSoundKitID = new Dictionary<string, List<uint>>();
-
-            try
+            if (textToSoundKitID.Count == 0)
             {
-                var broadcastTextDB = Namer.LoadDBC("BroadcastText");
-                foreach (var broadcastText in broadcastTextDB.Values)
+                try
                 {
-                    var soundKits = (uint[])broadcastText["SoundKitID"];
-
-                    if (!string.IsNullOrEmpty(broadcastText["Text_lang"].ToString()))
+                    var broadcastTextDB = Namer.LoadDBC("BroadcastText");
+                    foreach (var broadcastText in broadcastTextDB.Values)
                     {
-                        if (soundKits[0] != 0)
-                        {
-                            if (!textToSoundKitID.ContainsKey(broadcastText["Text_lang"].ToString()))
-                                textToSoundKitID.Add(broadcastText["Text_lang"].ToString(), new List<uint>());
+                        var soundKits = (uint[])broadcastText["SoundKitID"];
 
-                            textToSoundKitID[broadcastText["Text_lang"].ToString()].Add(soundKits[0]);
+                        if (!string.IsNullOrEmpty(broadcastText["Text_lang"].ToString()))
+                        {
+                            if (soundKits[0] != 0)
+                            {
+                                if (!textToSoundKitID.ContainsKey(broadcastText["Text_lang"].ToString()))
+                                    textToSoundKitID.Add(broadcastText["Text_lang"].ToString(), new List<uint>());
+
+                                textToSoundKitID[broadcastText["Text_lang"].ToString()].Add(soundKits[0]);
+                            }
                         }
-                    }
 
-                    if (!string.IsNullOrEmpty(broadcastText["Text1_lang"].ToString()))
-                    {
-                        if (soundKits[1] != 0)
+                        if (!string.IsNullOrEmpty(broadcastText["Text1_lang"].ToString()))
                         {
-                            if (!textToSoundKitID.ContainsKey(broadcastText["Text1_lang"].ToString()))
-                                textToSoundKitID.Add(broadcastText["Text1_lang"].ToString(), new List<uint>());
+                            if (soundKits[1] != 0)
+                            {
+                                if (!textToSoundKitID.ContainsKey(broadcastText["Text1_lang"].ToString()))
+                                    textToSoundKitID.Add(broadcastText["Text1_lang"].ToString(), new List<uint>());
 
-                            textToSoundKitID[broadcastText["Text1_lang"].ToString()].Add(soundKits[1]);
+                                textToSoundKitID[broadcastText["Text1_lang"].ToString()].Add(soundKits[1]);
+                            }
                         }
                     }
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error parsing BroadcastText: " + e.Message);
+                }
             }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error parsing BroadcastText: " + e.Message);
-            }
-
+            
             var soundKitFDIDMap = new Dictionary<uint, List<int>>();
 
             try
@@ -138,6 +151,70 @@ namespace WoWNamingLib.Namers
             // AdventureArchivesMessageDB_9 -- NPC text in chat, manual like before :(
         }
 
+        private static void ParseDatamineLua(string filename)
+        {
+            var script = new Script();
+
+            var prepend = File.ReadAllText(filename);
+            var val = script.DoString(prepend + "\n return DatamineData");
+            var npcTable = val.Table.Get("Creature").ToObject<Table>();
+
+            if (npcTable == null)
+                return;
+
+            foreach (var key in npcTable.Keys)
+            {
+                var creatureID = (uint)key.Number;
+
+                string creatureName = "";
+
+                var creatureNameTable = npcTable.Get(key).ToObject<Table>().Get("Name").ToObject<Table>();
+                if (creatureNameTable != null)
+                    creatureName = creatureNameTable.Get("enUS").String;
+
+                if (string.IsNullOrEmpty(creatureName) && !creatureNames.TryGetValue(creatureID, out creatureName))
+                    continue;
+
+                var broadcastText = npcTable.Get(key).ToObject<Table>().Get("BroadcastText").ToObject<Table>();
+                if (broadcastText == null)
+                    continue;
+
+                var quotes = broadcastText.Get("enUS").ToObject<Table>();
+
+                if (quotes == null)
+                    continue;
+
+                if (!creatureVO.ContainsKey((creatureID, creatureName)))
+                    creatureVO.Add((creatureID, creatureName), new List<string>());
+
+                foreach (var quoteType in quotes.Keys)
+                {
+                    creatureVO[(creatureID, creatureName)].Add(quoteType.String);
+                }
+            }
+
+            var bcTable = val.Table.Get("BroadcastTextCache").ToObject<Table>();
+            if (bcTable == null)
+                return;
+
+            foreach (var key in bcTable.Keys)
+            {
+                var creatureName = key.String;
+                var bcEntries = bcTable.Get(key).ToObject<Table>();
+                if (bcEntries == null) continue;
+                foreach(var bcEntry in bcEntries.Keys)
+                {
+                    var text = bcEntry.String;
+
+                    // We don't have a creature ID here
+                    if (!creatureVO.ContainsKey((0, creatureName)))
+                        creatureVO.Add((0, creatureName), new List<string>());
+
+                    creatureVO[(0, creatureName)].Add(text);
+                }
+            }
+
+        }
         private static void ParseWoWDBLua(string filename)
         {
             var script = new Script();

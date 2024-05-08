@@ -16,7 +16,7 @@ namespace WoWNamingLib.Namers
                 return;
 
             if (!Namer.IDToNameLookup.ContainsKey((int)wdtFileDataID))
-                NewFileManager.AddNewFile(wdtFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdt");
+                NewFileManager.AddNewFile(wdtFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdt", true);
 
             using (var ms = new MemoryStream())
             {
@@ -35,22 +35,22 @@ namespace WoWNamingLib.Namers
                 var mapFiles = ProcessWDT(ms);
 
                 if (mapFiles.lgtFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.lgtFileDataID))
-                    NewFileManager.AddNewFile(mapFiles.lgtFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_lgt.wdt");
+                    NewFileManager.AddNewFile(mapFiles.lgtFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_lgt.wdt", true);
 
                 if (mapFiles.occFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.occFileDataID))
-                    NewFileManager.AddNewFile(mapFiles.occFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_occ.wdt");
+                    NewFileManager.AddNewFile(mapFiles.occFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_occ.wdt", true);
 
                 if (mapFiles.mpvFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.mpvFileDataID))
-                    NewFileManager.AddNewFile(mapFiles.mpvFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_mpv.wdt");
+                    NewFileManager.AddNewFile(mapFiles.mpvFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_mpv.wdt", true);
 
                 if (mapFiles.texFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.texFileDataID))
-                    NewFileManager.AddNewFile(mapFiles.texFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".tex");
+                    NewFileManager.AddNewFile(mapFiles.texFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".tex", true);
 
                 if (mapFiles.fogsFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.fogsFileDataID))
-                    NewFileManager.AddNewFile(mapFiles.fogsFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_fogs.wdt");
+                    NewFileManager.AddNewFile(mapFiles.fogsFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_fogs.wdt", true);
 
                 if (mapFiles.wdlFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.wdlFileDataID))
-                    NewFileManager.AddNewFile(mapFiles.wdlFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdl");
+                    NewFileManager.AddNewFile(mapFiles.wdlFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdl", true);
 
                 if (mapFiles.pd4FileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.pd4FileDataID))
                     Console.WriteLine("Found PD4!!!!!!!!!!!!!!! WDT FDID: " + wdtFileDataID + " pd4 fdid: " + mapFiles.pd4FileDataID);
