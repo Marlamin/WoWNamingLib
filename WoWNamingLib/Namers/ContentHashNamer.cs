@@ -95,7 +95,32 @@ namespace WoWNamingLib.Namers
             {"8aebd963e171ae2ed002ee14c69ef8f7", "10TI_Titan_Tyrhold_Device_Glow01" },
             {"de96935405fc279ed5f0cbca1c81d1a3", "Fire_Blurred_Mod2x_fixed" },
             {"b55d374701d2de568060667ec5cb32a6", "7FX_AlphaMask_Glow_DirtyYellow512" },
-            {"de380afdf17e77816756e6f2806a79c9", "7FX_AlphaMask_Glow_Donut2" }
+            {"de380afdf17e77816756e6f2806a79c9", "7FX_AlphaMask_Glow_Donut2" },
+            {"d899b19d022e77f320ac38236ee932bb", "8hu_KulTiras_Crate01" },
+            {"90e3b062c6f84233eba445d2fef89c63", "Bird_Condor_01" },
+            {"be0fa3ce84879fdcb0d58c397ff33ae0", "8FX_Painted_CloudScroll_02" },
+            {"bbe0941af7a3840fca805d3562a57d10", "9VL_Aspirants_Bird01" },
+            {"2415a422c177aa9232ab2f95fb14bed2", "9VL_Aspirants_Bird02" },
+            {"f9625772d9ce232275df29b8926e83f9", "10xp_fog02" },
+            {"8b17d34dc3804872b50c9b937775428b", "10xp_fogScroll02" },
+            {"8a3ea1137568e851bf4c014e5e43ac3d", "PORTALFRONT" },
+            {"ce9d1cda4856f26956ad4399e41f8467", "Cloud_Soft_Painterly_Alpha" },
+            {"130092560186e1ef2229f7e664327e12", "Gray_64" },
+            {"40fc9b8d820b6ca4574a42fccc7c070a", "11EA_Earthen_Special_AwakeningMachine02" },
+            {"e064f62cc18f7634f468dffc6f39e5e1", "Metal_Reflect" },
+            {"6099f1af1945cc5813015cceae6d80ca", "11EA_Earthen_Special_AwakeningMachine01" },
+            {"95c23d48aaa71ae1c076843c083d248b", "11EA_Earthen_Special_AwakeningMachine01_FX" },
+            {"21f7ea405c1d9324bf2d435fd24f3b00", "AlphaMask_VerticalGradient" },
+            {"ca2ae1e773a4129d4513b75c30a01a1f", "WispyMagic_Vert_Grey" },
+            {"f8e1c412b43b44489e561fae34ddecba", "8FX_Basic_Spark_Sheet" },
+            {"3f3e97fee08fb086cbcb189511e79a6a", "t_vfx_hero_aura_glob" },
+            {"c29cfef66f8922136f303d52380ac43b", "T_VFX_FLARE09" },
+            {"a61d438b3478430741d1467a09e88240", "T_VFX_HERO_AURA_01_DESAT" },
+            {"03f3f90ad33608a4e62049b8532fd9f8", "Flare1_smooth" },
+            {"710d764834c67cdb658ea2cd6416cc5a", "11EA_Earthen_GearBase01_Small" },
+            {"fb62f2d1aea342a728399ecd670c2365", "11EA_Earthen_Structure_Gear01" },
+            {"dfcdd97a62cfb86eab61bd869f78b110", "10TI_Titan_Raid_StormDoor_Glow" }
+
         };
 
         public static void Name(Dictionary<int, string> idToHashes)

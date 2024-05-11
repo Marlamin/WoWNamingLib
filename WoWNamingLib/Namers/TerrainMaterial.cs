@@ -18,6 +18,83 @@ namespace WoWNamingLib.Namers
                     NewFileManager.AddNewFile(envMapS, "tileset/terrain cube maps/tcm_" + tmRow["ID"] + "_s_" + envMapS + ".blp");
             }
 
+            var liquidTypeDB = Namer.LoadDBC("LiquidType");
+            var liquidTypeXTextureDB = Namer.LoadDBC("LiquidTypeXTexture");
+
+            var liquidTypeXTextureLookup = new Dictionary<int, List<(int FileDataID, int OrderIndex)>>();
+            foreach (var ltxRow in liquidTypeXTextureDB.Values)
+            {
+                if (!liquidTypeXTextureLookup.ContainsKey(int.Parse(ltxRow["LiquidTypeID"].ToString())))
+                    liquidTypeXTextureLookup.Add(int.Parse(ltxRow["LiquidTypeID"].ToString()), new List<(int FileDataID, int OrderIndex)>());
+
+                liquidTypeXTextureLookup[int.Parse(ltxRow["LiquidTypeID"].ToString())].Add(
+                    (int.Parse(ltxRow["FileDataID"].ToString()), int.Parse(ltxRow["OrderIndex"].ToString()))
+                );
+            }
+
+            foreach (var liquidTypeRow in liquidTypeDB.Values)
+            {
+                Console.WriteLine("Naming " + liquidTypeRow["Name"].ToString());
+
+                var liquidTypeID = int.Parse(liquidTypeRow["ID"].ToString());
+                var liquidType = liquidTypeRow["Name"].ToString();
+                var liquidTextureArray = (string[])liquidTypeRow["Texture"];
+                var frameCountArray = (byte[])liquidTypeRow["FrameCountTexture"];
+
+                if (!liquidTypeXTextureLookup.TryGetValue(liquidTypeID, out var liquidTypeXTextures))
+                    continue;
+
+                var orderIndex = 0;
+                for (var i = 0; i < 6; i++)
+                {
+                    // walk through the 6 textures
+                    var liquidTexture = liquidTextureArray[i];
+
+                    if (liquidTexture == "" || !liquidTexture.EndsWith(".blp"))
+                        continue;
+
+                    var frameCount = frameCountArray[i];
+                    if(frameCount > 1)
+                    {
+                        if (!liquidTexture.Contains("%d"))
+                        {
+                            Console.WriteLine("!!! FrameCount > 1 but no %d in texture name: " + liquidTexture);
+                            continue;
+                        }
+
+                        for(var j = 1; j < frameCount + 1; j++)
+                        {
+                            foreach(var liquidTypeXTexture in liquidTypeXTextures)
+                            {
+                                if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
+                                {
+                                    NewFileManager.AddNewFile(liquidTypeXTexture.FileDataID, liquidTexture.Replace("%d", j.ToString()));
+                                    Console.WriteLine(liquidTypeXTexture.OrderIndex + ": " + liquidTypeXTexture.FileDataID + ";" + liquidTexture.Replace("%d", j.ToString()));
+
+                                    break;
+                                }
+                            }
+                            orderIndex++;
+                        }
+                    }
+                    else
+                    {
+                        foreach (var liquidTypeXTexture in liquidTypeXTextures)
+                        {
+                            if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
+                            {
+                                NewFileManager.AddNewFile(liquidTypeXTexture.FileDataID, liquidTexture);
+                                Console.WriteLine(liquidTypeXTexture.OrderIndex + ": " + liquidTypeXTexture.FileDataID + ";" + liquidTexture);
+
+                                break;
+                            }
+                        }
+
+                        orderIndex++;
+                    }
+                }
+            }
+
             //if (fullrun)
             //{
             //    foreach (var file in Namer.IDToNameLookup.Where(x => x.Value.StartsWith("tileset") && x.Value.Contains(x.Key.ToString()) && !x.Value.Contains("terrain cube maps")))
