@@ -14,8 +14,15 @@ namespace WoWNamingLib.Services
 
             if (Namer.localProduct == "wow" && File.Exists(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin")))
             {
-                hotfixReader = new HotfixReader(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin"));
-                Console.WriteLine("Loaded hotfixes from " + hotfixReader.BuildId);
+                var htfxReader = new HotfixReader(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin"));
+
+                var buildIDInNamer = Namer.build.Split('.')[3];
+
+                if(htfxReader.BuildId == int.Parse(buildIDInNamer))
+                {
+                    hotfixReader = htfxReader;
+                    Console.WriteLine("Loaded hotfixes from " + hotfixReader.BuildId);
+                }
             }
         }
 

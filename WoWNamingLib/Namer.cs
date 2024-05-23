@@ -16,6 +16,7 @@ namespace WoWNamingLib
         public static string localProduct = "";
         public static string build = "";
         public static string wowDir = "";
+        public static string cacheDir = "";
 
         private static DBCManager? dbcManager;
 

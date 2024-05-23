@@ -24,7 +24,19 @@ namespace WoWNamingLib.Namers
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error parsing VO Wowhead LUA: " + e.Message);
+                Console.WriteLine("Error parsing VO Datamine LUA: " + e.Message);
+            }
+
+            try
+            {
+                foreach (var datamineLua in Directory.GetFiles(Namer.cacheDir, "Datamine_Data*", SearchOption.AllDirectories))
+                {
+                    ParseDatamineLua(datamineLua);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error parsing VO Datamine LUA: " + e.Message);
             }
 
             try
@@ -189,7 +201,7 @@ namespace WoWNamingLib.Namers
 
                 foreach (var quoteType in quotes.Keys)
                 {
-                    creatureVO[(creatureID, creatureName)].Add(quoteType.String);
+                    creatureVO[(creatureID, creatureName)].Add(quoteType.String.Replace("$PLAYER_NAME", "$n"));
                 }
             }
 
@@ -210,7 +222,7 @@ namespace WoWNamingLib.Namers
                     if (!creatureVO.ContainsKey((0, creatureName)))
                         creatureVO.Add((0, creatureName), new List<string>());
 
-                    creatureVO[(0, creatureName)].Add(text);
+                    creatureVO[(0, creatureName)].Add(text.Replace("$PLAYER_NAME", "$n"));
                 }
             }
 
@@ -229,7 +241,7 @@ namespace WoWNamingLib.Namers
 
             foreach (var key in npcTable.Keys)
             {
-                var creatureID = uint.Parse(key.String);
+                var creatureID = (uint)key.Number;
 
                 if (!creatureNames.TryGetValue(creatureID, out string creatureName))
                     continue;
@@ -247,7 +259,7 @@ namespace WoWNamingLib.Namers
                     var messages = quotes.Get(quoteType).ToObject<Table>();
                     foreach (var message in messages.Keys)
                     {
-                        creatureVO[(creatureID, creatureName)].Add(message.String);
+                        creatureVO[(creatureID, creatureName)].Add(message.String.Replace("$PLAYER_NAME", "$n"));
                     }
                 }
             }
@@ -286,7 +298,7 @@ namespace WoWNamingLib.Namers
                     var messages = quotes.Get(quoteType).ToObject<Table>();
                     foreach (var message in messages.Keys)
                     {
-                        creatureVO[(creatureID, creatureName)].Add(message.String);
+                        creatureVO[(creatureID, creatureName)].Add(message.String.Replace("$PLAYER_NAME", "$n"));
                     }
                 }
             }
