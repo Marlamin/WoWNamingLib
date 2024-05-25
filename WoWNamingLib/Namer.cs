@@ -370,11 +370,18 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameWMO()
+        public static void NameWMO(uint fileDataID = 0)
         {
             try
             {
-                WMO.Name();
+                if(fileDataID != 0)
+                {
+                    WMO.Name(true, fileDataID.ToString());
+                }
+                else
+                {
+                    WMO.Name();
+                }
             }
             catch (Exception e)
             {
