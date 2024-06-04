@@ -49,6 +49,7 @@ namespace WoWNamingLib
         public static void SetInitialListfile(ref Dictionary<int, string> listfile)
         {
             IDToNameLookup = new(listfile);
+            DB2ToIDLookup = new();
 
             foreach (var entry in IDToNameLookup)
             {
