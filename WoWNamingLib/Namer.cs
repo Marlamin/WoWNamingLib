@@ -56,7 +56,7 @@ namespace WoWNamingLib
                 var fileDataID = entry.Key;
                 var filename = entry.Value;
 
-                if (filename.EndsWith(".db2"))
+                if (filename.ToLower().EndsWith(".db2"))
                     DB2ToIDLookup.Add(Path.GetFileNameWithoutExtension(filename).ToLower(), fileDataID);
             }
 

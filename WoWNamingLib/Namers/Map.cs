@@ -232,6 +232,20 @@ namespace WoWNamingLib.Namers
                     NameMap(mapDirectory);
                 }
             }
+
+            if (mapDB.AvailableColumns.Contains("PreloadFileDataID"))
+            {
+                foreach (var entry in mapDB.Values)
+                {
+                    var mapDirectory = entry["Directory"].ToString();
+                    var preloadFileDataID = uint.Parse(entry["PreloadFileDataID"].ToString());
+
+                    if(preloadFileDataID == 0)
+                        continue;
+
+                    NewFileManager.AddNewFile(preloadFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_preload.wdt", true);
+                }
+            }
         }
 
         public struct MapFileDataIDs
