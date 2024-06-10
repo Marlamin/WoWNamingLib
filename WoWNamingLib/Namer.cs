@@ -22,6 +22,8 @@ namespace WoWNamingLib
 
         public static bool isInitialized = false;
 
+        public static Func<int, uint> GetAddedInPatch = (int fileDataID) => { return 0; };
+
         public static void SetCASC(ref CASCHandler handler, ref List<int> availableFDIDs)
         {
             CASCManager.InitializeCASC(ref handler);
@@ -31,6 +33,11 @@ namespace WoWNamingLib
         public static void SetProviders(IDBCProvider dbcProvider, IDBDProvider dbdProvider)
         {
             dbcManager = new DBCManager(dbcProvider, dbdProvider);
+        }
+
+        public static void SetGetExpansionFunction(Func<int, uint> function)
+        {
+            GetAddedInPatch = function;
         }
 
         public static void AddNewFile(uint fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)

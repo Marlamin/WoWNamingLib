@@ -15,10 +15,19 @@ namespace WoWNamingLib.Services
 
         public static string GetExpansionForFileDataID(uint fileDataID)
         {
-            if(fileDataID > 4559188)
-                return "exp10";
+            var upstreamVersion = Namer.GetAddedInPatch((int)fileDataID);
+            if (upstreamVersion == 0)
+            {
+                if (fileDataID > 4559188)
+                    return "exp10";
+                else
+                    return "exp09";
+            }
             else
-                return "exp09";
+            {
+                var expansionNum = (upstreamVersion / 10000) - 1;
+                return "exp" + expansionNum.ToString("D2");
+            }
         }
 
         public static Dictionary<int, string> ReturnNewNames()

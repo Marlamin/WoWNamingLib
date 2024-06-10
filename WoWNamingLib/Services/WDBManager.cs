@@ -377,11 +377,6 @@ namespace WoWNamingLib.Services
         {
             var entries = new Dictionary<string, Dictionary<string, string>>();
 
-            if (wdb.buildInfo.expansion == 1 || wdb.buildInfo.expansion == 2 || wdb.buildInfo.expansion == 3)
-            {
-                return entries;
-            }
-
             while (bin.BaseStream.Position < bin.BaseStream.Length)
             {
                 var id = bin.ReadUInt32().ToString();
@@ -416,6 +411,7 @@ namespace WoWNamingLib.Services
                 entries[id].Add("Name[3]", ds.GetString(Name3Length).Trim('\0'));
                 entries[id].Add("NameAlt[3]", ds.GetString(NameAlt3Length).Trim('\0'));
 
+                entries[id].Add("Leader", Leader.ToString());
                 entries[id].Add("Flags[0]", bin.ReadUInt32().ToString());
                 entries[id].Add("Flags[1]", bin.ReadUInt32().ToString());
 
@@ -460,7 +456,6 @@ namespace WoWNamingLib.Services
                     entries[id].Add("CreatureDifficultyID", bin.ReadUInt32().ToString());
                 }
 
-
                 entries[id].Add("UIWidgetParentSetID", bin.ReadUInt32().ToString());
 
                 if (wdb.buildInfo.expansion >= 9)
@@ -473,6 +468,7 @@ namespace WoWNamingLib.Services
                     entries[id].Add("BfA_Int_1", bin.ReadUInt32().ToString());
                     entries[id].Add("BfA_Int_2", bin.ReadUInt32().ToString());
                 }
+
                 entries[id].Add("Title", ds.GetString(TitleLength).Trim('\0'));
                 entries[id].Add("TitleAlt", ds.GetString(TitleAltLength).Trim('\0'));
 

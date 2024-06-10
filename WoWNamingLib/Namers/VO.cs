@@ -306,8 +306,8 @@ namespace WoWNamingLib.Namers
 
         private static void NameVO(string creatureName, int fileDataID)
         {
-            if (Namer.IDToNameLookup.ContainsKey(fileDataID))
-                return;
+            //if (!Namer.placeholderNames.Contains(fileDataID))
+            //    return;
 
             // var splitBuild = Program.build.Split('.');
             // voVersion = uint.Parse(splitBuild[0]) * 100 + uint.Parse(splitBuild[1]) * 10 + uint.Parse(splitBuild[2]);
@@ -339,6 +339,15 @@ namespace WoWNamingLib.Namers
         }
         private static uint makeVOVersion(int fileDataID)
         {
+            var upstreamVersion = Namer.GetAddedInPatch(fileDataID);
+            if (upstreamVersion != 0)
+            {
+                var major = upstreamVersion / 10000;
+                var minor = ((upstreamVersion - (major * 10000)) / 100);
+                var patch = upstreamVersion - (major * 10000) - (minor * 100);
+                return major * 100 + minor * 10 + patch;
+            }
+
             uint voVersion = 9999;
 
             if (fileDataID > 5524626)
