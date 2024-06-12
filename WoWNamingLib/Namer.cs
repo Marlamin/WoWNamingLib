@@ -186,31 +186,8 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameVO(string creatureCacheLocation, Dictionary<string, List<uint>> textToSoundKitID)
+        public static void NameVO(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID)
         {
-            var creatureNames = new Dictionary<uint, string>();
-
-            try
-            {
-                if (File.Exists(creatureCacheLocation))
-                {
-                    Console.WriteLine("Loading creature cache for model naming");
-                    var creatureWDB = WDBManager.LoadWDB(creatureCacheLocation);
-                    foreach (var entry in creatureWDB.entries)
-                    {
-                        creatureNames.Add(uint.Parse(entry.Key), entry.Value["Name[0]"]);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("creaturecache.wdb not found, skipping VO naming");
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error loading creaturecache.wdb: " + e.Message);
-            }
-
             try
             {
                 VO.Name(creatureNames, textToSoundKitID);
