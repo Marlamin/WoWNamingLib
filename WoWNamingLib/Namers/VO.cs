@@ -335,7 +335,7 @@ namespace WoWNamingLib.Namers
                     break;
             }
 
-            return creatureName.Replace(" ", "_");
+            return creatureName.Replace(",", "").Replace(" ", "_");
         }
         private static uint makeVOVersion(int fileDataID)
         {
