@@ -119,8 +119,8 @@ namespace WoWNamingLib.Namers
             {"03f3f90ad33608a4e62049b8532fd9f8", "Flare1_smooth" },
             {"710d764834c67cdb658ea2cd6416cc5a", "11EA_Earthen_GearBase01_Small" },
             {"fb62f2d1aea342a728399ecd670c2365", "11EA_Earthen_Structure_Gear01" },
-            {"dfcdd97a62cfb86eab61bd869f78b110", "10TI_Titan_Raid_StormDoor_Glow" }
-
+            {"dfcdd97a62cfb86eab61bd869f78b110", "10TI_Titan_Raid_StormDoor_Glow" },
+            {"960892f853cc9e661c4c77789608c150", "delete_me" }
         };
 
         public static void Name(Dictionary<int, string> idToHashes)

@@ -1235,7 +1235,12 @@ namespace WoWNamingLib.Namers
                                 case "crown":
                                 case "hand":
                                 case "quiver":
+                                case "collection":
                                 case "collections":
+                                case "flowercrown":
+                                case "mask":
+                                case "monocle":
+                                case "drustmask":
                                     folder = "item/objectcomponents/collections";
                                     break;
                                 case "cape":
