@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using WoWNamingLib.Services;
+﻿using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
 {
@@ -295,7 +292,7 @@ namespace WoWNamingLib.Namers
                                     {
                                         foreach (var soundFDID in soundFDIDs)
                                         {
-                                            if (Namer.IDToNameLookup.ContainsKey((int)soundFDID))
+                                            if (Namer.IDToNameLookup.ContainsKey((int)soundFDID) && !Namer.placeholderNames.Contains((int)soundFDID))
                                                 continue;
 
                                             if (mountToFDID.TryGetValue(mountID, out var mountFDID))
@@ -314,7 +311,20 @@ namespace WoWNamingLib.Namers
                                                 }
                                                 else
                                                 {
-                                                    Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
+                                                    if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
+                                                    {
+                                                        NewFileManager.AddNewFile(soundFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_unknown_" + soundFDID + ".ogg");
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + ") is still unnamed");
+                                                    }
+
+                                                    if (!Namer.IDToNameLookup.ContainsKey((int)mountFDID))
+                                                    {
+                                                        Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
+
+                                                    }
                                                 }
                                             }
                                             else
@@ -355,7 +365,7 @@ namespace WoWNamingLib.Namers
                             {
                                 foreach (var soundKitFDID in soundFileDataIDs)
                                 {
-                                    if (!Namer.IDToNameLookup.ContainsKey((int)soundKitFDID))
+                                    if (!Namer.IDToNameLookup.ContainsKey((int)soundKitFDID) || Namer.placeholderNames.Contains((int)soundKitFDID))
                                     {
                                         if (mountToFDID.TryGetValue(mountID, out var mountFDID))
                                         {
@@ -367,19 +377,43 @@ namespace WoWNamingLib.Namers
                                             switch (startEvent)
                                             {
                                                 case 1:
-                                                    castTime = "precast";
+                                                    castTime = "precaststart";
+                                                    break;
+                                                case 2:
+                                                    castTime = "precastend";
                                                     break;
                                                 case 3:
                                                     castTime = "cast";
+                                                    break;
+                                                case 4:
+                                                    castTime = "travelstart";
+                                                    break;
+                                                case 5:
+                                                    castTime = "travelend";
                                                     break;
                                                 case 6:
                                                     castTime = "impact";
                                                     break;
                                                 case 7:
-                                                    castTime = "aura";
+                                                    castTime = "aurastart";
+                                                    break;
+                                                case 8:
+                                                    castTime = "auraend";
+                                                    break;
+                                                case 9:
+                                                    castTime = "areatriggerstart";
+                                                    break;
+                                                case 10:
+                                                    castTime = "areatriggerend";
                                                     break;
                                                 case 11:
                                                     castTime = "channelstart";
+                                                    break;
+                                                case 12:
+                                                    castTime = "channelend";
+                                                    break;
+                                                case 13:
+                                                    castTime = "oneshot";
                                                     break;
                                                 default:
                                                     Console.WriteLine(" Start event " + startEvent + " needs supporting");

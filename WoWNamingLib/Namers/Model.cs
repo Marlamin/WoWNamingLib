@@ -15,7 +15,6 @@ namespace WoWNamingLib.Namers
 
         private static uint fileDataID;
         private static string currentModelName;
-
         private static string GetCFDSuffixedName(DBCDRow cfdRow, Dictionary<uint, string> racePrefix, string modelName)
         {
             if (!racePrefix.TryGetValue(uint.Parse(cfdRow["RaceID"].ToString()), out string miniComponentRace))
@@ -50,7 +49,7 @@ namespace WoWNamingLib.Namers
             }
         }
 
-        public static void Name(List<uint> fileDataIDs, bool forceFullRun = false)
+        public static void Name(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
         {
             var fullRun = forceFullRun;
             var m2s = fileDataIDs;
@@ -827,7 +826,7 @@ namespace WoWNamingLib.Namers
 
                                         if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out string iconFileName))
                                         {
-                                            var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/", "").Replace(".blp", "").Replace(" ", "").Trim();
+                                            var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/ivn_", "").Replace("interface/icons/", "").Replace(".blp", "").Replace(" ", "").Trim();
 
                                             if (iconFileName.ToLower().Contains("questionmark") || iconFileName.ToLower() == "interface/icons/temp.blp")
                                                 continue;
@@ -969,6 +968,13 @@ namespace WoWNamingLib.Namers
                         //{
                         //    currentModelName = Path.GetFileNameWithoutExtension(existingName);
                         //}
+                        else if(objectModelNames != null && objectModelNames.TryGetValue(fdid, out var objectName))
+                        {
+                            Console.WriteLine("Found object name " + objectName + " for FDID " + fdid);
+                            Namer.placeholderNames.Add((int)fdid);
+                            overrideName = true;
+                            currentModelName = objectName;
+                        }
                         else if (fdidToCreatureName.TryGetValue(fdid, out var creatureNames))
                         {
                             Console.WriteLine("Found creature names " + string.Join(", ", creatureNames) + " for FDID " + fdid);
@@ -1008,162 +1014,168 @@ namespace WoWNamingLib.Namers
                                 case "11fx":
                                     folder = "spells";
                                     break;
-                                case "11ara":
-                                    folder = "world/expansion10/doodads/arathi";
+                                case "11at":
+                                case "11ar":
+                                    folder = "World/Expansion10/Doodads/Arathor";
                                     break;
+                                case "11nb":
                                 case "11nrb":
-                                    folder = "world/expansion10/doodads/nerubian";
+                                    folder = "World/Expansion10/Doodads/Nerubian";
                                     break;
                                 case "11xp":
-                                    folder = "world/expansion10/doodads";
+                                    folder = "World/Expansion10/Doodads";
                                     break;
-                                case "11ung": // 
-                                    folder = "";
-                                    break;
-                                case "11rtl": // Rootlands
-                                    folder = "";
+                                case "11du":
+                                    folder = "World/Expansion10/Doodads/Dungeon";
                                     break;
                                 case "11eti":
-                                    folder = "";
+                                case "11ea":
+                                    folder = "World/Expansion10/Doodads/Earthen";
+                                    break;
+                                case "11ko":
+                                    folder = "World/Expansion10/Doodads/Kobold";
                                     break;
 
                                 // 10.0
                                 case "10xp":
-                                    folder = "world/expansion09/doodads";
+                                    folder = "World/Expansion09/Doodads";
                                     break;
                                 case "10hgl":
-                                    folder = "world/expansion09/doodads/highlands";
+                                    folder = "World/Expansion09/Doodads/highlands";
                                     break;
                                 case "10pm":
-                                    folder = "world/expansion09/doodads/primalist";
+                                    folder = "World/Expansion09/Doodads/primalist";
                                     break;
                                 case "10dg":
-                                    folder = "world/expansion09/doodads/dragon";
+                                    folder = "World/Expansion09/Doodads/dragon";
                                     break;
                                 case "10gl":
-                                    folder = "world/expansion09/doodads/gnoll";
+                                    folder = "World/Expansion09/Doodads/gnoll";
                                     break;
                                 case "10fx":
                                     folder = "spells";
                                     break;
                                 case "10gsl":
-                                    folder = "world/expansion09/doodads/grasslands";
+                                    folder = "World/Expansion09/Doodads/grasslands";
                                     break;
                                 case "10du":
-                                    folder = "world/expansion09/doodads/dungeon";
+                                    folder = "World/Expansion09/Doodads/dungeon";
                                     break;
                                 case "10ts":
-                                    folder = "world/expansion09/doodads/tuskarr";
+                                    folder = "World/Expansion09/Doodads/tuskarr";
                                     break;
                                 case "10can":
-                                    folder = "world/expansion09/doodads/volcanic";
+                                    folder = "World/Expansion09/Doodads/volcanic";
                                     break;
                                 case "10dj":
-                                    folder = "world/expansion09/doodads/djaradin";
+                                    folder = "World/Expansion09/Doodads/djaradin";
                                     break;
                                 case "10rq":
-                                    folder = "world/expansion09/doodads/reliquary";
+                                    folder = "World/Expansion09/Doodads/reliquary";
                                     break;
                                 case "10el":
-                                    folder = "world/expansion09/doodads/explorersleague";
+                                    folder = "World/Expansion09/Doodads/explorersleague";
                                     break;
                                 case "10ti":
-                                    folder = "world/expansion09/doodads/titan";
+                                    folder = "World/Expansion09/Doodads/titan";
                                     break;
                                 case "10ct":
-                                    folder = "world/expansion09/doodads/centaur";
+                                    folder = "World/Expansion09/Doodads/centaur";
                                     break;
                                 case "10gr":
-                                    folder = "world/expansion09/doodads/gorloc";
+                                    folder = "World/Expansion09/Doodads/gorloc";
                                     break;
                                 case "10be":
-                                    folder = "world/expansion09/doodads/bloodelf";
+                                    folder = "World/Expansion09/Doodads/bloodelf";
                                     break;
                                 case "10ne":
-                                    folder = "world/expansion09/doodads/nightelf";
+                                    folder = "World/Expansion09/Doodads/nightelf";
                                     break;
                                 case "10sp":
-                                    folder = "world/expansion09/doodads/spider";
+                                    folder = "World/Expansion09/Doodads/spider";
                                     break;
                                 case "10mp":
-                                    folder = "world/expansion09/doodads/molepeople";
+                                    folder = "World/Expansion09/Doodads/molepeople";
                                     break;
                                 case "10ed":
-                                    folder = "world/expansion09/doodads/emeralddream";
+                                    folder = "World/Expansion09/Doodads/emeralddream";
+                                    break;
+                                case "10oc":
+                                    folder = "World/Expansion09/Doodads/Orc";
                                     break;
                                 //10dks
 
                                 // 9.0
                                 case "9fx":
-                                    folder = "world/expansion08/doodads/fx";
+                                    folder = "World/Expansion08/Doodads/fx";
                                     break;
                                 case "9xp":
-                                    folder = "world/expansion08/doodads";
+                                    folder = "World/Expansion08/Doodads";
                                     break;
                                 case "9mal":
-                                    folder = "world/expansion08/doodads/maldraxxus";
+                                    folder = "World/Expansion08/Doodads/maldraxxus";
                                     break;
                                 case "9cas":
-                                    folder = "world/expansion08/doodads/castlezone";
+                                    folder = "World/Expansion08/Doodads/castlezone";
                                     break;
                                 case "9mw":
                                 case "9maw":
-                                    folder = "world/expansion08/doodads/maw";
+                                    folder = "World/Expansion08/Doodads/maw";
                                     break;
                                 case "9du":
-                                    folder = "world/expansion08/doodads/dungeon";
+                                    folder = "World/Expansion08/Doodads/dungeon";
                                     break;
                                 case "9bo":
-                                    folder = "world/expansion08/doodads/broker";
+                                    folder = "World/Expansion08/Doodads/broker";
                                     break;
                                 case "9mxt":
-                                    folder = "world/expansion08/doodads/korthia";
+                                    folder = "World/Expansion08/Doodads/korthia";
                                     break;
                                 case "9nc":
-                                    folder = "world/expansion08/doodads/necro";
+                                    folder = "World/Expansion08/Doodads/necro";
                                     break;
                                 case "9hu":
-                                    folder = "world/expansion08/doodads/human";
+                                    folder = "World/Expansion08/Doodads/human";
                                     break;
                                 case "9ob":
                                 case "9ori":
-                                    folder = "world/expansion08/doodads/oribos";
+                                    folder = "World/Expansion08/Doodads/oribos";
                                     break;
                                 case "9pln":
-                                    folder = "world/expansion08/doodads/babylonzone";
+                                    folder = "World/Expansion08/Doodads/babylonzone";
                                     break;
                                 case "9vm":
-                                    folder = "world/expansion08/doodads/vampire";
+                                    folder = "World/Expansion08/Doodads/vampire";
                                     break;
                                 case "9vl":
-                                    folder = "world/expansion08/doodads/valkyr";
+                                    folder = "World/Expansion08/Doodads/valkyr";
                                     break;
                                 case "9prg":
                                 case "9pg":
-                                    folder = "world/expansion08/doodads/progenitor";
+                                    folder = "World/Expansion08/Doodads/progenitor";
                                     break;
                                 case "9ard":
-                                    folder = "world/expansion08/doodads/ardenweald";
+                                    folder = "World/Expansion08/Doodads/ardenweald";
                                     break;
                                 case "9fa":
-                                    folder = "world/expansion08/doodads/fae";
+                                    folder = "World/Expansion08/Doodads/fae";
                                     break;
 
                                 // 8.0
                                 case "8fx":
-                                    folder = "world/expansion07/doodads/fx";
+                                    folder = "World/Expansion07/Doodads/fx";
                                     break;
                                 case "8riv":
-                                    folder = "world/expansion07/doodads/riverzone";
+                                    folder = "World/Expansion07/Doodads/riverzone";
                                     break;
                                 case "8xp":
-                                    folder = "world/expansion07/doodads";
+                                    folder = "World/Expansion07/Doodads";
                                     break;
                                 case "8bl":
-                                    folder = "world/expansion07/doodads/blackempire";
+                                    folder = "World/Expansion07/Doodads/blackempire";
                                     break;
                                 case "8nzo":
-                                    folder = "world/expansion07/doodads/nzothraid";
+                                    folder = "World/Expansion07/Doodads/nzothraid";
                                     break;
                                 case "8tr":
                                     // TODO
@@ -1171,7 +1183,7 @@ namespace WoWNamingLib.Namers
 
                                 // 7.0
                                 case "7vr":
-                                    folder = "world/expansion06/doodads/vrykul";
+                                    folder = "World/Expansion06/Doodads/vrykul";
                                     break;
                                 case "7ne":
                                 case "7nb":
@@ -1191,7 +1203,7 @@ namespace WoWNamingLib.Namers
 
                                 // 6.0
                                 case "6fx":
-                                    folder = "world/expansion05/doodads/fx";
+                                    folder = "World/Expansion05/Doodads/fx";
                                     break;
                                 case "6ar":
                                 case "6hu":
@@ -1232,6 +1244,9 @@ namespace WoWNamingLib.Namers
                                 case "robe":
                                 case "feet":
                                 case "boot":
+                                case "boots":
+                                case "glove":
+                                case "gloves":
                                 case "crown":
                                 case "hand":
                                 case "quiver":
@@ -1241,26 +1256,27 @@ namespace WoWNamingLib.Namers
                                 case "mask":
                                 case "monocle":
                                 case "drustmask":
-                                    folder = "item/objectcomponents/collections";
+                                case "tuskarrboots":
+                                    folder = "Item/ObjectComponents/collections";
                                     break;
                                 case "cape":
-                                    folder = "item/objectcomponents/cape";
+                                    folder = "Item/ObjectComponents/cape";
                                     break;
                                 case "helm":
                                 case "helmet":
-                                    folder = "item/objectcomponents/head";
+                                    folder = "Item/ObjectComponents/head";
                                     break;
                                 case "lshoulder":
                                 case "rshoulder":
                                 case "shoulder":
-                                    folder = "item/objectcomponents/shoulder";
+                                    folder = "Item/ObjectComponents/shoulder";
                                     break;
                                 case "buckler":
                                 case "shield":
-                                    folder = "item/objectcomponents/shield";
+                                    folder = "Item/ObjectComponents/shield";
                                     break;
                                 case "buckle":
-                                    folder = "item/objectcomponents/waist";
+                                    folder = "Item/ObjectComponents/waist";
                                     break;
                                 case "axe":
                                 case "bow":
@@ -1280,11 +1296,11 @@ namespace WoWNamingLib.Namers
                                 case "wand":
                                 case "misc":
                                 case "enchanting":
-                                    folder = "item/objectcomponents/weapon";
+                                    folder = "Item/ObjectComponents/weapon";
                                     break;
                                 case "arrow":
                                 case "bullet":
-                                    folder = "item/objectcomponents/ammo";
+                                    folder = "Item/ObjectComponents/ammo";
                                     break;
                                 default:
                                     if (!unkPrefixes.ContainsKey(splitModelName[0]))
@@ -1451,6 +1467,12 @@ namespace WoWNamingLib.Namers
                             {
                                 if (m2.textureFileDataIDs[i] == 0)
                                     continue;
+
+                                if(!Namer.placeholderNames.Contains((int)m2.textureFileDataIDs[i]))
+                                {
+                                    //Console.WriteLine("!!! Texture " + m2.textureFileDataIDs[i] + " not set as placeholder texture");
+                                    continue;
+                                }
 
                                 if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName))
                                     NewFileManager.AddNewFile(m2.textureFileDataIDs[i], folder + "/" + currentModelName + "_" + m2.textureFileDataIDs[i] + ".blp", overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName), forceOverrideName);

@@ -34,8 +34,6 @@ namespace WoWNamingLib.Namers
 
             foreach (var liquidTypeRow in liquidTypeDB.Values)
             {
-                Console.WriteLine("Naming " + liquidTypeRow["Name"].ToString());
-
                 var liquidTypeID = int.Parse(liquidTypeRow["ID"].ToString());
                 var liquidType = liquidTypeRow["Name"].ToString();
                 var liquidTextureArray = (string[])liquidTypeRow["Texture"];
@@ -69,8 +67,6 @@ namespace WoWNamingLib.Namers
                                 if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
                                 {
                                     NewFileManager.AddNewFile(liquidTypeXTexture.FileDataID, liquidTexture.Replace("%d", j.ToString()));
-                                    Console.WriteLine(liquidTypeXTexture.OrderIndex + ": " + liquidTypeXTexture.FileDataID + ";" + liquidTexture.Replace("%d", j.ToString()));
-
                                     break;
                                 }
                             }
@@ -84,8 +80,6 @@ namespace WoWNamingLib.Namers
                             if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
                             {
                                 NewFileManager.AddNewFile(liquidTypeXTexture.FileDataID, liquidTexture);
-                                Console.WriteLine(liquidTypeXTexture.OrderIndex + ": " + liquidTypeXTexture.FileDataID + ";" + liquidTexture);
-
                                 break;
                             }
                         }

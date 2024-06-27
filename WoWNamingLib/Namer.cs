@@ -318,11 +318,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameM2(uint fileDataID, bool forceFullRun = false)
+        public static void NameM2(uint fileDataID, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
         {
             try
             {
-                Model.Name([fileDataID], forceFullRun);
+                Model.Name([fileDataID], forceFullRun, objectModelNames);
                 ReloadPlaceholders();
             }
             catch (Exception e)
@@ -331,11 +331,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameM2s(List<uint> fileDataIDs, bool forceFullRun = false)
+        public static void NameM2s(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
         {
             try
             {
-                Model.Name(fileDataIDs, forceFullRun);
+                Model.Name(fileDataIDs, forceFullRun, objectModelNames);
             }
             catch (Exception e)
             {
