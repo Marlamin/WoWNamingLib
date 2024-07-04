@@ -102,7 +102,7 @@ namespace WoWNamingLib.Namers
                     Console.WriteLine("Error parsing BroadcastText: " + e.Message);
                 }
             }
-            
+
             var soundKitFDIDMap = new Dictionary<uint, List<int>>();
 
             try
@@ -226,7 +226,7 @@ namespace WoWNamingLib.Namers
                 var creatureName = key.String;
                 var bcEntries = bcTable.Get(key).ToObject<Table>();
                 if (bcEntries == null) continue;
-                foreach(var bcEntry in bcEntries.Keys)
+                foreach (var bcEntry in bcEntries.Keys)
                 {
                     var text = bcEntry.String;
 
@@ -323,9 +323,9 @@ namespace WoWNamingLib.Namers
 
             // var splitBuild = Program.build.Split('.');
             // voVersion = uint.Parse(splitBuild[0]) * 100 + uint.Parse(splitBuild[1]) * 10 + uint.Parse(splitBuild[2]);
-            if(addonName && creaturesToFDID.TryGetValue((uint)fileDataID, out var creatureFDIDName))
+            if (addonName && creaturesToFDID.TryGetValue((uint)fileDataID, out var creatureFDIDName))
             {
-                if(creatureFDIDName != creatureName)
+                if (creatureFDIDName != creatureName)
                 {
                     Console.WriteLine("Skipping " + fileDataID + ", not naming it " + creatureName + " as it's already named with " + creatureFDIDName);
                 }

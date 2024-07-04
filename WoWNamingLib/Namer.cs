@@ -1,7 +1,6 @@
 ﻿using CASCLib;
 using DBCD;
 using DBCD.Providers;
-using MoonSharp.Interpreter.Interop;
 using WoWNamingLib.Namers;
 using WoWNamingLib.Services;
 
@@ -365,7 +364,7 @@ namespace WoWNamingLib
         {
             try
             {
-                if(fileDataID != 0)
+                if (fileDataID != 0)
                 {
                     WMO.Name(true, fileDataID.ToString());
                 }
@@ -392,7 +391,7 @@ namespace WoWNamingLib
                 Console.WriteLine("Exception during content hash naming: " + e.Message);
             }
         }
-        
+
         public static string NameSingleVO(int fileDataID, string creatureName)
         {
             return VO.NameSingle(fileDataID, creatureName);
