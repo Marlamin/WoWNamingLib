@@ -7,11 +7,13 @@ namespace WoWNamingLib.Namers
     {
         private static Dictionary<(uint ID, string name), List<string>> creatureVO = new();
         private static Dictionary<uint, string> creatureNames = new();
+        private static Dictionary<uint, string> creaturesToFDID = new();
 
-        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID)
+        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID)
         {
             creatureVO.Clear();
             VO.creatureNames = creatureNames;
+            VO.creaturesToFDID = creaturesToFDID;
 
             // TODO: Parse scenescripts
 
@@ -155,6 +157,16 @@ namespace WoWNamingLib.Namers
                     }
                 }
             }
+
+            foreach (var creatureToFDID in creaturesToFDID)
+            {
+                NameVO(creatureToFDID.Value, (int)creatureToFDID.Key, false);
+            }
+        }
+
+        public static string NameSingle(int fileDataID, string creatureName)
+        {
+            return NameVO(creatureName, fileDataID, false);
         }
 
         private static void ParseAdventureArchivesLua(string filename)
@@ -304,20 +316,32 @@ namespace WoWNamingLib.Namers
             }
         }
 
-        private static void NameVO(string creatureName, int fileDataID)
+        private static string NameVO(string creatureName, int fileDataID, bool addonName = true)
         {
             //if (!Namer.placeholderNames.Contains(fileDataID))
             //    return;
 
             // var splitBuild = Program.build.Split('.');
             // voVersion = uint.Parse(splitBuild[0]) * 100 + uint.Parse(splitBuild[1]) * 10 + uint.Parse(splitBuild[2]);
+            if(addonName && creaturesToFDID.TryGetValue((uint)fileDataID, out var creatureFDIDName))
+            {
+                if(creatureFDIDName != creatureName)
+                {
+                    Console.WriteLine("Skipping " + fileDataID + ", not naming it " + creatureName + " as it's already named with " + creatureFDIDName);
+                }
+                return "";
+            }
+
             var cleanName = cleanCreatureName(creatureName);
 
             uint voVersion = makeVOVersion(fileDataID);
 
             var newFilename = "Sound/Creature/" + cleanName + "/VO_" + voVersion + "_" + cleanName + "_" + fileDataID + ".ogg";
 
+            Namer.SetCreatureNameForFDID(fileDataID, creatureName);
             NewFileManager.AddNewFile(fileDataID, newFilename);
+
+            return newFilename;
         }
 
         private static string cleanCreatureName(string creatureName)

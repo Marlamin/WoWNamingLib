@@ -1,6 +1,7 @@
 ﻿using CASCLib;
 using DBCD;
 using DBCD.Providers;
+using MoonSharp.Interpreter.Interop;
 using WoWNamingLib.Namers;
 using WoWNamingLib.Services;
 
@@ -23,6 +24,7 @@ namespace WoWNamingLib
         public static bool isInitialized = false;
 
         public static Func<int, uint> GetAddedInPatch = (int fileDataID) => { return 0; };
+        public static Func<int, string, bool> SetCreatureNameForFDID = (int fileDataID, string name) => { return false; };
 
         public static void SetCASC(ref CASCHandler handler, ref List<int> availableFDIDs)
         {
@@ -38,6 +40,10 @@ namespace WoWNamingLib
         public static void SetGetExpansionFunction(Func<int, uint> function)
         {
             GetAddedInPatch = function;
+        }
+        public static void SetSetCreatureNameForFDIDFunction(Func<int, string, bool> function)
+        {
+            SetCreatureNameForFDID = function;
         }
 
         public static void AddNewFile(uint fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
@@ -186,11 +192,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameVO(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID)
+        public static void NameVO(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID)
         {
             try
             {
-                VO.Name(creatureNames, textToSoundKitID);
+                VO.Name(creatureNames, textToSoundKitID, creaturesToFDID);
             }
             catch (Exception e)
             {
@@ -385,6 +391,11 @@ namespace WoWNamingLib
             {
                 Console.WriteLine("Exception during content hash naming: " + e.Message);
             }
+        }
+        
+        public static string NameSingleVO(int fileDataID, string creatureName)
+        {
+            return VO.NameSingle(fileDataID, creatureName);
         }
     }
 }
