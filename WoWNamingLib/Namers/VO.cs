@@ -332,6 +332,17 @@ namespace WoWNamingLib.Namers
                 return "";
             }
 
+            if(Namer.IDToNameLookup.TryGetValue(fileDataID, out var existingName))
+            {
+                if (!existingName.ToLower().Contains("/vo_"))
+                {
+                    Console.WriteLine("File " + fileDataID + " is no currently tagged as VO, leaving it alone");
+                    Console.WriteLine("\t existing name: " + existingName);
+                    Console.WriteLine("\t incoming creature name: " + creatureName);
+                    return "";
+                }
+            }
+
             var cleanName = cleanCreatureName(creatureName);
 
             uint voVersion = makeVOVersion(fileDataID);
@@ -339,7 +350,7 @@ namespace WoWNamingLib.Namers
             var newFilename = "Sound/Creature/" + cleanName + "/VO_" + voVersion + "_" + cleanName + "_" + fileDataID + ".ogg";
 
             Namer.SetCreatureNameForFDID(fileDataID, creatureName);
-            NewFileManager.AddNewFile(fileDataID, newFilename);
+            NewFileManager.AddNewFile(fileDataID, newFilename, true);
 
             return newFilename;
         }
