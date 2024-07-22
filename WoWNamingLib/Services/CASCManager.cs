@@ -59,9 +59,9 @@ namespace WoWNamingLib.Services
 
             var download = false;
 
-            if (File.Exists("listfile.txt"))
+            if (File.Exists("verified-listfile.csv"))
             {
-                var info = new FileInfo("listfile.txt");
+                var info = new FileInfo("verified-listfile.csv");
                 if (DateTime.Now.Subtract(TimeSpan.FromDays(1)) > info.LastWriteTime)
                 {
                     Console.WriteLine("Official listfile outdated, redownloading..");
@@ -75,13 +75,13 @@ namespace WoWNamingLib.Services
 
             if (download)
             {
-                var listfile = client.GetStringAsync("https://github.com/wowdev/wow-listfile/raw/master/listfile.txt").Result;
-                File.WriteAllText("listfile.txt", listfile);
+                var listfile = client.GetStringAsync("https://github.com/wowdev/wow-listfile/releases/latest/download/verified-listfile.csv").Result;
+                File.WriteAllText("verified-listfile.csv", listfile);
             }
 
-            foreach (var line in File.ReadAllLines("listfile.txt"))
+            foreach (var line in File.ReadAllLines("verified-listfile.csv"))
             {
-                var jenkinsHash = Hasher.ComputeHash(line);
+                var jenkinsHash = Hasher.ComputeHash(line.Split(';')[1]);
                 OfficialLookups.Add(jenkinsHash);
             }
 

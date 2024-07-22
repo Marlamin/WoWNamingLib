@@ -336,9 +336,9 @@ namespace WoWNamingLib.Namers
             {
                 if (!existingName.ToLower().Contains("/vo_"))
                 {
-                    Console.WriteLine("File " + fileDataID + " is no currently tagged as VO, leaving it alone");
-                    Console.WriteLine("\t existing name: " + existingName);
-                    Console.WriteLine("\t incoming creature name: " + creatureName);
+                    //Console.WriteLine("File " + fileDataID + " is not currently tagged as VO, leaving it alone");
+                    //Console.WriteLine("\t existing name: " + existingName);
+                    //Console.WriteLine("\t incoming creature name: " + creatureName);
                     return "";
                 }
             }
