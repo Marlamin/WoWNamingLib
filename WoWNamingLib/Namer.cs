@@ -97,6 +97,11 @@ namespace WoWNamingLib
                 {
                     placeholderNames.Add(fileDataID);
                 }
+
+                if (filename.EndsWith(".ogg") && filename.Substring(filename.Length - 10, 6).All(char.IsDigit))
+                {
+                    placeholderNames.Add(fileDataID);
+                }
             }
         }
 

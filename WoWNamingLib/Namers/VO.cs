@@ -323,6 +323,8 @@ namespace WoWNamingLib.Namers
 
             // var splitBuild = Program.build.Split('.');
             // voVersion = uint.Parse(splitBuild[0]) * 100 + uint.Parse(splitBuild[1]) * 10 + uint.Parse(splitBuild[2]);
+            var forceUpdate = false;
+
             if (addonName && creaturesToFDID.TryGetValue((uint)fileDataID, out var creatureFDIDName))
             {
                 if (creatureFDIDName != creatureName)
@@ -332,7 +334,13 @@ namespace WoWNamingLib.Namers
                 return "";
             }
 
-            if(Namer.IDToNameLookup.TryGetValue(fileDataID, out var existingName))
+            var cleanName = cleanCreatureName(creatureName);
+
+            uint voVersion = makeVOVersion(fileDataID);
+
+            var newFilename = "Sound/Creature/" + cleanName + "/VO_" + voVersion + "_" + cleanName + "_" + fileDataID + ".ogg";
+
+            if (Namer.IDToNameLookup.TryGetValue(fileDataID, out var existingName))
             {
                 if (!existingName.ToLower().Contains("/vo_"))
                 {
@@ -341,16 +349,29 @@ namespace WoWNamingLib.Namers
                     //Console.WriteLine("\t incoming creature name: " + creatureName);
                     return "";
                 }
+
+                // skip files that end in _xx.ogg or _xxx.ogg where x is a digit, thes were already named
+                var splitExistingName = existingName.Split('_');
+                if (splitExistingName.Length > 2)
+                {
+                    var lastPart = splitExistingName[^1].Replace(".ogg", "");
+                    if (lastPart == "f" || lastPart == "m" || lastPart == "rtc" || lastPart == "darkshore" || lastPart == "corruptedgamon") // don't ask
+                        return "";
+
+                    if ((lastPart.Length == 2 || lastPart.Length == 3) && lastPart.All(char.IsDigit))
+                        return "";
+                }
+
+                if(existingName.Equals(newFilename, StringComparison.CurrentCultureIgnoreCase) && existingName != newFilename)
+                {
+                    // Prefer new name with capitals
+                    forceUpdate = true;
+                }
             }
 
-            var cleanName = cleanCreatureName(creatureName);
-
-            uint voVersion = makeVOVersion(fileDataID);
-
-            var newFilename = "Sound/Creature/" + cleanName + "/VO_" + voVersion + "_" + cleanName + "_" + fileDataID + ".ogg";
-
             Namer.SetCreatureNameForFDID(fileDataID, creatureName);
-            NewFileManager.AddNewFile(fileDataID, newFilename, true);
+
+            NewFileManager.AddNewFile(fileDataID, newFilename, true, forceUpdate);
 
             return newFilename;
         }
@@ -370,7 +391,7 @@ namespace WoWNamingLib.Namers
                     break;
             }
 
-            return creatureName.Replace(",", "").Replace(" ", "_");
+            return creatureName.Replace(",", "").Replace(" ", "_").Replace("'", "");
         }
         private static uint makeVOVersion(int fileDataID)
         {
@@ -380,7 +401,14 @@ namespace WoWNamingLib.Namers
                 var major = upstreamVersion / 10000;
                 var minor = ((upstreamVersion - (major * 10000)) / 100);
                 var patch = upstreamVersion - (major * 10000) - (minor * 100);
-                return major * 100 + minor * 10 + patch;
+
+                var calculatedVOVersion = major * 100 + minor * 10 + patch;
+
+                // 8.2 is a very early case where we need to not override literally all the filenames
+                if (calculatedVOVersion == 820)
+                    return 82;
+
+                return calculatedVOVersion;
             }
 
             uint voVersion = 9999;
