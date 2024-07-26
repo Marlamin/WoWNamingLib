@@ -110,7 +110,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 // Cheat to do newer models first :>
-                //m2s.Reverse();
+                m2s.Reverse();
             }
 
             var soundKitFDIDMap = new Dictionary<uint, List<uint>>();
@@ -1404,12 +1404,12 @@ namespace WoWNamingLib.Namers
                         if (m2.skelFileID != 0)
                             Skel.Name(m2.skelFileID, currentModelName, folder, overrideName);
 
-                        if (currentModelName == "7XP_Waterfall_Top")
-                            Debugger.Break();
-
-                        var M2baseName = Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]);
-                        if (M2baseName.ToLower() != currentModelName.ToLower() && !folder.ToLower().StartsWith("item"))
-                            NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
+                        if (currentModelName != "7XP_Waterfall_Top" && currentModelName != "SpellVisualPlaceholder")
+                        {
+                            var M2baseName = Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]);
+                            if (M2baseName.ToLower() != currentModelName.ToLower() && !folder.ToLower().StartsWith("item"))
+                                NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
+                        }
 
                         for (var i = 0; i < m2.skinFileDataIDs.Length; i++)
                         {
@@ -1452,10 +1452,7 @@ namespace WoWNamingLib.Namers
                                     continue;
 
                                 if(!Namer.placeholderNames.Contains((int)m2.textureFileDataIDs[i]))
-                                {
-                                    //Console.WriteLine("!!! Texture " + m2.textureFileDataIDs[i] + " not set as placeholder texture");
                                     continue;
-                                }
 
                                 if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName))
                                     NewFileManager.AddNewFile(m2.textureFileDataIDs[i], folder + "/" + currentModelName + "_" + m2.textureFileDataIDs[i] + ".blp", overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName), forceOverrideName);
