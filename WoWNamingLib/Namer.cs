@@ -96,11 +96,13 @@ namespace WoWNamingLib
                     filename.Contains("tileset/unused"))
                 {
                     placeholderNames.Add(fileDataID);
+                    continue;
                 }
 
                 if (filename.EndsWith(".ogg") && filename.Substring(filename.Length - 10, 6).All(char.IsDigit))
                 {
                     placeholderNames.Add(fileDataID);
+                    continue;
                 }
             }
         }

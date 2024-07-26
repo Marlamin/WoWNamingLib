@@ -1389,23 +1389,6 @@ namespace WoWNamingLib.Namers
                             overrideName = true;
                         }
 
-                        if (currentModelName == "SpellVisualPlaceholder")
-                        {
-                            Console.WriteLine("Encountered SpellVisualPlaceholder " + fdid + " in folder " + folder + ", forcing rename");
-                            currentModelName = "SpellVisualPlaceholder_" + fdid;
-                            folder = "models/spells/svp_" + fdid;
-                            //forceOverrideName = true;
-                            //overrideName = true;
-                        }
-
-                        if (currentModelName == "7XP_Waterfall_Top")
-                        {
-                            Console.WriteLine("Encountered 7XP_Waterfall_Top " + fdid + " in folder " + folder + ", forcing rename");
-                            currentModelName = "7XP_Waterfall_Top_" + fdid;
-                            //forceOverrideName = true;
-                            //overrideName = true;
-                        }
-
                         if (overrideCheck(overrideName, fdid, forceOverrideName))
                             NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
 
