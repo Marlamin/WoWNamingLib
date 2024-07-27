@@ -73,13 +73,13 @@ namespace WoWNamingLib.Services
 
             if (Namer.IDToNameLookup.TryGetValue(fileDataID, out string currentFileName))
             {
-                if(currentFileName.ToLower().StartsWith("interface"))
+                if(currentFileName.StartsWith("interface", StringComparison.CurrentCultureIgnoreCase))
                 {
                     Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite interface file: " + currentFileName + " => " + filename);
                     return;
                 }
 
-                var caseOnlyFix = currentFileName.ToLower() == filename.ToLower() && currentFileName != filename;
+                var caseOnlyFix = currentFileName.Equals(filename, StringComparison.CurrentCultureIgnoreCase) && currentFileName != filename;
 
                 var oldHash = Hasher.ComputeHash(currentFileName);
                 if (CASCManager.OfficialLookups.Contains(oldHash))
@@ -118,7 +118,7 @@ namespace WoWNamingLib.Services
                         //    return;
                     }
 
-                    if (filename.ToLower().Contains("world/wmo") && currentFileName.ToLower().Contains("tileset"))
+                    if (filename.Contains("world/wmo", StringComparison.CurrentCultureIgnoreCase) && currentFileName.Contains("tileset", StringComparison.CurrentCultureIgnoreCase))
                     {
                         Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite tileset with WMO texture: " + currentFileName + " => " + filename);
                         return;

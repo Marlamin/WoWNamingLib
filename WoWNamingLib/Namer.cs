@@ -9,9 +9,9 @@ namespace WoWNamingLib
     public static class Namer
     {
         public static Dictionary<int, string> IDToNameLookup = new();
-        public static HashSet<int> placeholderNames = new();
-        public static Dictionary<string, int> DB2ToIDLookup = new();
-        public static List<uint> ForceRename = new();
+        public readonly static HashSet<int> placeholderNames = new();
+        public readonly static Dictionary<string, int> DB2ToIDLookup = new();
+        public readonly static List<uint> ForceRename = new();
 
         public static string localProduct = "";
         public static string build = "";
@@ -61,7 +61,7 @@ namespace WoWNamingLib
         public static void SetInitialListfile(ref Dictionary<int, string> listfile)
         {
             IDToNameLookup = new(listfile);
-            DB2ToIDLookup = new();
+            DB2ToIDLookup.Clear();
 
             foreach (var entry in IDToNameLookup)
             {

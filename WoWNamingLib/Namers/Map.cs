@@ -332,7 +332,7 @@ namespace WoWNamingLib.Namers
                         if (version != 1)
                         {
                             Console.WriteLine("Unsupported .TEX version: " + version);
-                            return Array.Empty<uint>();
+                            return [];
                         }
                         break;
                     case 'T' << 24 | 'X' << 16 | 'B' << 8 | 'T' << 0:
@@ -344,14 +344,13 @@ namespace WoWNamingLib.Namers
                             bin.ReadBytes(8);
                         }
                         return filedataids;
-                        break;
                     default:
                         bin.BaseStream.Position += chunkSize;
                         break;
                 }
             }
 
-            return Array.Empty<uint>();
+            return [];
         }
 
         public struct TexADT

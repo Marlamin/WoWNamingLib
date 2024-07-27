@@ -122,13 +122,13 @@ namespace WoWNamingLib.Namers
                 {
                     var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
                     var soundKitFileDataID = uint.Parse(soundKitEntry["FileDataID"].ToString());
-                    if (!soundKitFDIDMap.ContainsKey(soundKitID))
+                    if (!soundKitFDIDMap.TryGetValue(soundKitID, out List<uint>? FDIDs))
                     {
-                        soundKitFDIDMap.Add(soundKitID, new List<uint>() { soundKitFileDataID });
+                        soundKitFDIDMap.Add(soundKitID, [soundKitFileDataID]);
                     }
                     else
                     {
-                        soundKitFDIDMap[soundKitID].Add(soundKitFileDataID);
+                        FDIDs.Add(soundKitFileDataID);
                     }
                 }
             }
@@ -259,14 +259,14 @@ namespace WoWNamingLib.Namers
 
                         svkmaIDToSvenID.Add(svkmaEntry.ID, svenID);
 
-                        if (!svenToKit.ContainsKey(svenID))
+                        if (!svenToKit.TryGetValue(svenID, out List<uint>? kitIDs))
                         {
-                            svenToKit.Add(svenID, new List<uint>() { svkID });
+                            svenToKit.Add(svenID, [svkID]);
                         }
                         else
                         {
-                            if (!svenToKit[svenID].Contains(svkID))
-                                svenToKit[svenID].Add(svkID);
+                            if (!kitIDs.Contains(svkID))
+                                kitIDs.Add(svkID);
                         }
                     }
 
@@ -280,14 +280,14 @@ namespace WoWNamingLib.Namers
 
                         if (svkmaIDToSvenID.TryGetValue((int)spkmaID, out var svenID))
                         {
-                            if (!svenToKit.ContainsKey(svenID))
+                            if (!svenToKit.TryGetValue(svenID, out List<uint>? kitIDs))
                             {
-                                svenToKit.Add(svenID, new List<uint>() { svkID });
+                                svenToKit.Add(svenID, [svkID]);
                             }
                             else
                             {
-                                if (!svenToKit[svenID].Contains(svkID))
-                                    svenToKit[svenID].Add(svkID);
+                                if (!kitIDs.Contains(svkID))
+                                    kitIDs.Add(svkID);
                             }
                         }
                     }
@@ -305,10 +305,10 @@ namespace WoWNamingLib.Namers
                         if (svID == 0)
                             continue;
 
-                        if (!kitToVisual.ContainsKey(svkID))
-                            kitToVisual.Add(svkID, new List<uint>() { svID });
+                        if (!kitToVisual.TryGetValue(svkID, out List<uint>? svIDs))
+                            kitToVisual.Add(svkID, [svID]);
                         else
-                            kitToVisual[svkID].Add(svID);
+                            svIDs.Add(svID);
                     }
 
                     var spellVisualToSpell = new Dictionary<uint, List<uint>>();
@@ -317,10 +317,10 @@ namespace WoWNamingLib.Namers
                         var svID = uint.Parse(svToSpellEntry["SpellVisualID"].ToString());
                         var spellID = uint.Parse(svToSpellEntry["SpellID"].ToString());
 
-                        if (!spellVisualToSpell.ContainsKey(svID))
-                            spellVisualToSpell.Add(svID, new List<uint>() { spellID });
+                        if (!spellVisualToSpell.TryGetValue(svID, out List<uint>? spellIDs))
+                            spellVisualToSpell.Add(svID, [spellID]);
                         else
-                            spellVisualToSpell[svID].Add(spellID);
+                            spellIDs.Add(spellID);
                     }
 
                     var spellNameDB = Namer.LoadDBC("SpellName");
@@ -381,10 +381,10 @@ namespace WoWNamingLib.Namers
                                     spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + spellID + ")");
 
                                     var eventStart = svkToType[svkID];
-                                    if (!spellNames.ContainsKey(spellModelFDID))
+                                    if (!spellNames.TryGetValue(spellModelFDID, out List<SpellEntry>? spellEntries))
                                         spellNames.Add(spellModelFDID, new List<SpellEntry>() { new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart } });
                                     else
-                                        spellNames[spellModelFDID].Add(new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart });
+                                        spellEntries.Add(new SpellEntry() { SpellID = spellID, SpellName = spellName, EventStart = eventStart });
                                 }
                             }
                         }
@@ -423,10 +423,10 @@ namespace WoWNamingLib.Namers
                             var spellNameDict = new Dictionary<string, int>();
                             foreach (var name in spellNameList)
                             {
-                                if (!spellNameDict.ContainsKey(name.SpellName))
+                                if (!spellNameDict.TryGetValue(name.SpellName, out int value))
                                     spellNameDict.Add(name.SpellName, 1);
                                 else
-                                    spellNameDict[name.SpellName]++;
+                                    spellNameDict[name.SpellName] = ++value;
 
                                 if (encounterSpells.Contains(name.SpellID))
                                     spellNameDict[name.SpellName] = 99;
@@ -451,8 +451,7 @@ namespace WoWNamingLib.Namers
                             continue;
                         }
 
-                        if (!spellModelNames.ContainsKey(spellModelFDID))
-                            spellModelNames.Add(spellModelFDID, spellName);
+                        spellModelNames.TryAdd(spellModelFDID, spellName);
                     }
 
                     spellOutputLines.Add("## __ CALCULATED NAMES __ ##");
@@ -713,7 +712,7 @@ namespace WoWNamingLib.Namers
 
                         while (!nameSaved)
                         {
-                            if (!spellNamesClean.ContainsValue(calculatedName) && !Namer.IDToNameLookup.Values.Contains(calculatedName))
+                            if (!spellNamesClean.ContainsValue(calculatedName) && !Namer.IDToNameLookup.ContainsValue(calculatedName))
                             {
                                 spellNamesClean.Add(spellModelName.Key, calculatedName);
                                 nameSaved = true;
@@ -748,17 +747,20 @@ namespace WoWNamingLib.Namers
                     var mfdDict = new Dictionary<uint, List<uint>>();
 
                     var mfdDB = Namer.LoadDBC("ModelFileData");
+                    if(!mfdDB.AvailableColumns.Contains("FileDataID") || !mfdDB.AvailableColumns.Contains("ModelResourcesID"))
+                        throw new Exception("ModelFileData DBC does not contain a required column");
+
                     foreach (var mfdEntry in mfdDB.Values)
                     {
-                        var mfdID = uint.Parse(mfdEntry["ModelResourcesID"].ToString());
-                        var mfdFDID = uint.Parse(mfdEntry["FileDataID"].ToString());
-                        if (!mfdDict.ContainsKey(mfdID))
+                        var mfdID = uint.Parse(mfdEntry["ModelResourcesID"].ToString()!);
+                        var mfdFDID = uint.Parse(mfdEntry["FileDataID"].ToString()!);
+                        if (!mfdDict.TryGetValue(mfdID, out List<uint>? mfdFDIDs))
                         {
                             mfdDict.Add(mfdID, new List<uint>() { mfdFDID });
                         }
                         else
                         {
-                            mfdDict[mfdID].Add(mfdFDID);
+                            mfdFDIDs.Add(mfdFDID);
                         }
                     }
 
