@@ -446,20 +446,36 @@ namespace WoWNamingLib.Namers
 
 
             var soundAmbienceFlavorDB = Namer.LoadDBC("SoundAmbienceFlavor");
-            var soundAmbienceFlavorMap = new Dictionary<uint, List<(uint SoundKitIDDay, uint SoundKitIDNight)>>();
+            var soundAmbienceFlavorMap = new Dictionary<uint, List<(uint SoundKitIDDay, uint SoundKitIDNight, uint AmbienceID0, uint AmbienceID1)>>();
             foreach (var soundAmbienceFlavorRow in soundAmbienceFlavorDB.Values)
             {
                 var soundAmbienceID = uint.Parse(soundAmbienceFlavorRow["SoundAmbienceID"].ToString());
                 var soundKitIDDay = uint.Parse(soundAmbienceFlavorRow["SoundEntriesIDDay"].ToString());
                 var soundKitIDNight = uint.Parse(soundAmbienceFlavorRow["SoundEntriesIDNight"].ToString());
 
-                if (soundAmbienceFlavorMap.ContainsKey(soundAmbienceID))
+                if (soundAmbienceFlavorMap.TryGetValue(soundAmbienceID, out List<(uint SoundKitIDDay, uint SoundKitIDNight, uint AmbienceID0, uint AmbienceID1)>? current))
                 {
-                    soundAmbienceFlavorMap[soundAmbienceID].Add((soundKitIDDay, soundKitIDNight));
+                    current.Add((soundKitIDDay, soundKitIDNight, 0, 0));
                 }
                 else
                 {
-                    soundAmbienceFlavorMap.Add(soundAmbienceID, new List<(uint, uint)> { (soundKitIDDay, soundKitIDNight) });
+                    soundAmbienceFlavorMap.Add(soundAmbienceID, new List<(uint, uint, uint, uint)> { (soundKitIDDay, soundKitIDNight, 0, 0) });
+                }
+            }
+
+            var soundAmbienceDB = Namer.LoadDBC("SoundAmbience");
+            foreach (var soundAmbienceRow in soundAmbienceDB.Values)
+            {
+                var soundAmbienceID = uint.Parse(soundAmbienceRow["ID"].ToString());
+                var ambienceIDs = (uint[])soundAmbienceRow["AmbienceID"];
+
+                if (soundAmbienceFlavorMap.TryGetValue(soundAmbienceID, out List<(uint SoundKitIDDay, uint SoundKitIDNight, uint AmbienceID0, uint AmbienceID1)>? current))
+                {
+                    current.Add((0, 0, ambienceIDs[0], ambienceIDs[1]));
+                }
+                else
+                {
+                    soundAmbienceFlavorMap.Add(soundAmbienceID, new List<(uint, uint, uint, uint)> { (0, 0, ambienceIDs[0], ambienceIDs[1]) });
                 }
             }
 
@@ -473,7 +489,7 @@ namespace WoWNamingLib.Namers
                 {
                     foreach (var soundAmbience in soundAmbienceIDs)
                     {
-                        if (soundKitFDIDMap.TryGetValue(soundAmbience.SoundKitIDDay, out var soundDayFileIDs))
+                        if (soundAmbience.SoundKitIDDay != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.SoundKitIDDay, out var soundDayFileIDs))
                         {
                             foreach (var soundFile in soundDayFileIDs)
                             {
@@ -484,7 +500,7 @@ namespace WoWNamingLib.Namers
                             }
                         }
 
-                        if (soundKitFDIDMap.TryGetValue(soundAmbience.SoundKitIDNight, out var soundNightFileIDs))
+                        if (soundAmbience.SoundKitIDNight != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.SoundKitIDNight, out var soundNightFileIDs))
                         {
                             foreach (var soundFile in soundNightFileIDs)
                             {
@@ -494,8 +510,29 @@ namespace WoWNamingLib.Namers
                                 }
                             }
                         }
-                    }
 
+                        if (soundAmbience.AmbienceID0 != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.AmbienceID0, out var soundAmbID0s))
+                        {
+                            foreach (var soundFile in soundAmbID0s)
+                            {
+                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                                {
+                                    NewFileManager.AddNewFile(soundFile, "sound/ambience/zoneambience/amb_" + zoneName + "_" + soundFile + ".ogg");
+                                }
+                            }
+                        }
+
+                        if (soundAmbience.AmbienceID1 != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.AmbienceID1, out var soundAmbID1s))
+                        {
+                            foreach (var soundFile in soundAmbID1s)
+                            {
+                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                                {
+                                    NewFileManager.AddNewFile(soundFile, "sound/ambience/zoneambience/amb_" + zoneName + "_" + soundFile + ".ogg");
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
