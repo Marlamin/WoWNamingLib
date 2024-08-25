@@ -3,6 +3,7 @@ using DBCD;
 using DBCD.Providers;
 using WoWNamingLib.Namers;
 using WoWNamingLib.Services;
+using WoWNamingLib.Utils;
 
 namespace WoWNamingLib
 {
@@ -408,6 +409,17 @@ namespace WoWNamingLib
         public static string NameSingleVO(int fileDataID, string creatureName)
         {
             return VO.NameSingle(fileDataID, creatureName);
+        }
+
+        public static string GetSceneScriptDebug(uint packageID)
+        {
+            return SceneScriptParser.CompilePackage(packageID);
+        }
+
+        public static Dictionary<string, TimelineScene> GetSceneScriptCompiledDebug(uint packageID)
+        {
+            var script = SceneScriptParser.CompilePackage(packageID, "test", false);
+            return SceneScriptParser.ParseTimelineScript(script);
         }
     }
 }
