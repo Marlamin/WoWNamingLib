@@ -1,5 +1,7 @@
 ﻿using MoonSharp.Interpreter;
+using System.Reflection.Metadata.Ecma335;
 using WoWNamingLib.Services;
+using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
 {
@@ -9,13 +11,120 @@ namespace WoWNamingLib.Namers
         private static Dictionary<uint, string> creatureNames = new();
         private static Dictionary<uint, string> creaturesToFDID = new();
 
-        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID)
+        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID, Dictionary<uint, (uint, uint)> BCTextToSKitIDs)
         {
             creatureVO.Clear();
             VO.creatureNames = creatureNames;
             VO.creaturesToFDID = creaturesToFDID;
 
-            // TODO: Parse scenescripts
+            var sceneScriptDB = Namer.LoadDBC("SceneScript");
+            var sceneScriptTextDB = Namer.LoadDBC("SceneScriptText");
+            SceneScriptParser.DebugOutput = false;
+            foreach (var sceneScriptTextRow in sceneScriptTextDB.Values)
+            {
+                // Skip non-VO scenescripts
+                if (!sceneScriptTextRow["Name"].ToString()!.Contains("_VO") && !sceneScriptTextRow["Name"].ToString()!.Contains("_BroadcastText"))
+                    continue;
+
+                try
+                {
+                    var sceneScriptRow = sceneScriptDB[sceneScriptTextRow.ID];
+
+                    // Skip partial scenescripts (these are compiled in with the main one)
+                    if ((ushort)sceneScriptRow["FirstSceneScriptID"] != 0)
+                        continue;
+
+                    var parsedScript = SceneScriptParser.CompileScript(sceneScriptTextRow.ID);
+                    var timeline = SceneScriptParser.ParseTimelineScript(parsedScript);
+
+                    foreach (var script in timeline)
+                    {
+                        foreach (var actor in script.Value.actors)
+                        {
+                            if (actor.Value.properties.Appearance == null || actor.Value.properties.Appearance.Value.events == null)
+                            {
+                                Console.WriteLine("TODO: BroadcastText scene has no appearance info, likely targets actors, skipping..");
+                                continue;
+                            }
+
+                            var creatureID = actor.Value.properties.Appearance.Value.events.First().Value.creatureID.ID;
+                            if(creatureID == 0)
+                            {
+                                Console.WriteLine("TODO: Got creature ID 0, maybe check model ID instead, skipping for now");
+                                continue;
+                            }
+
+                            if (actor.Value.properties.BroadcastText != null)
+                            {
+                                if(!creatureNames.TryGetValue((uint)creatureID, out var creatureName))
+                                {
+                                    Console.WriteLine("Unknown creature name for SceneScript creature ID " + creatureID);
+                                    continue;
+                                }
+
+                                foreach (var broadcastTextEvent in actor.Value.properties.BroadcastText.Value.events)
+                                {
+                                    Console.WriteLine("bctext ID " + broadcastTextEvent.Value.broadcastTextID.ID + " for creature " + creatureID + " (" + creatureName + ")");
+
+                                    if(!BCTextToSKitIDs.TryGetValue((uint)broadcastTextEvent.Value.broadcastTextID.ID, out var soundKitIDs))
+                                    {
+                                        Console.WriteLine("Could not find SoundKitIDs for BroadcastTextID " + broadcastTextEvent.Value.broadcastTextID.ID + ", skipping..");
+                                        continue;
+                                    }
+
+                                    if (soundKitIDs.Item1 != 0)
+                                    {
+                                        foreach (var fileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitIDs.Item1))
+                                        {
+                                            NameVO(creatureName, fileDataID);
+                                        }
+                                    }
+
+                                    if(soundKitIDs.Item2 != 0)
+                                    {
+                                        foreach (var fileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitIDs.Item2))
+                                        {
+                                            NameVO(creatureName, fileDataID);
+                                        }
+                                    }
+                                }
+                            }
+
+                            //    if (actor.Value.properties.SoundKit == null)
+                            //        continue;
+
+                            //    foreach (var soundKitEvent in actor.Value.properties.SoundKit.Value.events)
+                            //    {
+                            //        if (doneSoundKits.Contains((uint)soundKitEvent.soundKitID))
+                            //            continue;
+
+                            //        var soundKitEntry = soundKitDB[(int)soundKitEvent.soundKitID];
+                            //        if ((int)soundKitEntry["SoundType"] != 28)
+                            //        {
+                            //            Console.WriteLine("SoundKitID " + (int)soundKitEvent.soundKitID + " is used as music in scenescript " + sceneScriptTextRow["Name"].ToString() + " but isn't tagged as music in SoundKit.db2, skipping..");
+                            //            continue;
+                            //        }
+
+                            //        foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID((uint)soundKitEvent.soundKitID))
+                            //        {
+                            //            if (Namer.IDToNameLookup.ContainsKey(soundFDID) && !Namer.placeholderNames.Contains(soundFDID))
+                            //                continue;
+
+                            //            NewFileManager.AddNewFile(soundFDID, "Sound/Music/" + GetFolderName(soundFDID) + "/SceneScript_unknown_" + sceneScriptTextRow.ID + "_" + soundFDID + ".mp3", Namer.placeholderNames.Contains(soundFDID));
+                            //        }
+
+                            //        doneSoundKits.Add((uint)soundKitEvent.soundKitID);
+                            //    }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error parsing SceneScript " + sceneScriptTextRow["Name"].ToString() + " (ID " + sceneScriptTextRow.ID + "): " + e.Message);
+                }
+            }
+
+            SceneScriptParser.DebugOutput = true;
 
             try
             {

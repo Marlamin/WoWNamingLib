@@ -205,11 +205,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameVO(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID)
+        public static void NameVO(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID, Dictionary<uint, (uint, uint)> BCTextToSKitIDs)
         {
             try
             {
-                VO.Name(creatureNames, textToSoundKitID, creaturesToFDID);
+                VO.Name(creatureNames, textToSoundKitID, creaturesToFDID, BCTextToSKitIDs);
             }
             catch (Exception e)
             {

@@ -73,7 +73,6 @@ namespace WoWNamingLib.Utils
             script.Append(sceneScriptTextRow["Script"]);
             while ((ushort)sceneScriptRow["NextSceneScriptID"] != 0)
             {
-
                 if (!sceneScriptDB.ContainsKey((ushort)sceneScriptRow["NextSceneScriptID"]))
                 {
                     script.Append("\n\n-- WoW.tools debug output: !!! SceneScript ID " + (ushort)sceneScriptRow["NextSceneScriptID"] + " not found, possibly encrypted\n\n");
@@ -163,6 +162,10 @@ local sceneInputData = {}
 
 function SceneTimelineAddFileData(name, table)
 sceneFileData[name] = table 
+end
+
+function SceneTimlineAddInputData(name, table)
+sceneInputData[name] = table 
 end
 
 function SceneTimelineAddInputData(name, table)
