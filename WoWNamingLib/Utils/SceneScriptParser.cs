@@ -211,11 +211,11 @@ end
                 }
                 catch (SyntaxErrorException e)
                 {
-                    Console.WriteLine(e.DecoratedMessage);
+                    Console.WriteLine("Syntax error during parsing SceneScript: " + e.DecoratedMessage);
                 }
                 catch (ScriptRuntimeException e)
                 {
-                    Console.WriteLine(e.DecoratedMessage);
+                    Console.WriteLine("Runtime error during running SceneScript: " + e.DecoratedMessage);
                 }
             }
             catch (ScriptRuntimeException ex)

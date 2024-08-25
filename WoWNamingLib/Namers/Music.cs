@@ -1,4 +1,5 @@
 ﻿using WoWNamingLib.Services;
+using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
 {
@@ -73,6 +74,66 @@ namespace WoWNamingLib.Namers
 
                 doneSoundKits.Add(soundID);
             }
+
+            var soundKitDB = Namer.LoadDBC("SoundKit");
+            var sceneScriptTextDB = Namer.LoadDBC("SceneScriptText");
+            SceneScriptParser.DebugOutput = false;
+            foreach (var sceneScriptTextRow in sceneScriptTextDB.Values)
+            {
+                // Note: This will work for now because music scenescripts usually arent long enough to have multiple parts
+
+                // Skip non-music scenescripts
+                if (!sceneScriptTextRow["Name"].ToString()!.Contains("Music"))
+                    continue;
+
+                var text = sceneScriptTextRow["Script"].ToString()!;
+
+                if (!text.Contains("SceneTimeline"))
+                    continue;
+
+                try
+                {
+                    var timeline = SceneScriptParser.ParseTimelineScript(text);
+
+                    foreach (var script in timeline)
+                    {
+                        foreach (var actor in script.Value.actors)
+                        {
+                            if (actor.Value.properties.SoundKit == null)
+                                continue;
+
+                            foreach (var soundKitEvent in actor.Value.properties.SoundKit.Value.events)
+                            {
+                                if (doneSoundKits.Contains((uint)soundKitEvent.soundKitID))
+                                    continue;
+
+                                var soundKitEntry = soundKitDB[(int)soundKitEvent.soundKitID];
+                                if ((int)soundKitEntry["SoundType"] != 28)
+                                {
+                                    Console.WriteLine("SoundKitID " + (int)soundKitEvent.soundKitID + " is used as music in scenescript " + sceneScriptTextRow["Name"].ToString() + " but isn't tagged as music in SoundKit.db2, skipping..");
+                                    continue;
+                                }
+
+                                foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID((uint)soundKitEvent.soundKitID))
+                                {
+                                    if (Namer.IDToNameLookup.ContainsKey(soundFDID) && !Namer.placeholderNames.Contains(soundFDID))
+                                        continue;
+
+                                    NewFileManager.AddNewFile(soundFDID, "Sound/Music/" + GetFolderName(soundFDID) + "/SceneScript_unknown_" + sceneScriptTextRow.ID  + "_" + soundFDID + ".mp3", Namer.placeholderNames.Contains(soundFDID));
+                                }
+
+                                doneSoundKits.Add((uint)soundKitEvent.soundKitID);
+                            }
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error parsing SceneScript " + sceneScriptTextRow["Name"].ToString() + " (ID " + sceneScriptTextRow.ID + "): " + e.Message);
+                }
+            }
+
+            SceneScriptParser.DebugOutput = true;
         }
     }
 }
