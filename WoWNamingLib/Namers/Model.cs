@@ -113,30 +113,6 @@ namespace WoWNamingLib.Namers
                 m2s.Reverse();
             }
 
-            var soundKitFDIDMap = new Dictionary<uint, List<uint>>();
-            try
-            {
-                var soundKitDB = Namer.LoadDBC("SoundKitEntry");
-
-                foreach (var soundKitEntry in soundKitDB.Values)
-                {
-                    var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
-                    var soundKitFileDataID = uint.Parse(soundKitEntry["FileDataID"].ToString());
-                    if (!soundKitFDIDMap.TryGetValue(soundKitID, out List<uint>? FDIDs))
-                    {
-                        soundKitFDIDMap.Add(soundKitID, [soundKitFileDataID]);
-                    }
-                    else
-                    {
-                        FDIDs.Add(soundKitFileDataID);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Can't load soundkit DB for model naming: " + e.Message);
-            }
-
             var skyboxFDIDs = new List<uint>();
             try
             {
@@ -820,7 +796,7 @@ namespace WoWNamingLib.Namers
 
                                         foreach (dynamic iaRow in itemAppearance.Values)
                                         {
-                                            if (uint.Parse(iaRow["ItemDisplayInfoID"].ToString()) == uint.Parse(idiEntry.ID.ToString()))
+                                            if (uint.Parse(iaRow["ItemDisplayInfoID"].ToString()) == uint.Parse(idiEntry["ID"].ToString()))
                                             {
                                                 iconFDID = uint.Parse(iaRow.DefaultIconFileDataID.ToString());
                                             }
@@ -1496,11 +1472,11 @@ namespace WoWNamingLib.Namers
                                     break;
                             }
 
-                            if (soundType != "" && soundKitFDIDMap.ContainsKey(ev.data))
+                            if (soundType != "")
                             {
-                                foreach (var soundKitFDID in soundKitFDIDMap[ev.data])
+                                foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(ev.data))
                                 {
-                                    if (overrideCheck(overrideName, soundKitFDID, forceOverrideName))
+                                    if (overrideCheck(overrideName, (uint)soundKitFDID, forceOverrideName))
                                     {
                                         NewFileManager.AddNewFile(soundKitFDID, "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg");
                                     }

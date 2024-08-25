@@ -1,54 +1,154 @@
-﻿using WoWNamingLib.Services;
+﻿using DBCD;
+using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
 {
     class Sound
     {
-        public static void Name(bool partialSuggestions = false)
+        private static Dictionary<uint, DBCD.DBCDRow> CSDMap = new();
+        private static IDBCDStorage CSDDB;
+        private static IDBCDStorage CSFDB;
+
+        private static void NameCSDSounds(uint csdID, uint modelFDID, uint displayID = 0)
         {
-            var soundKitDB = Namer.LoadDBC("SoundKitEntry");
-            var soundKitChildDB = Namer.LoadDBC("SoundKitChild");
-            var soundKitFDIDMap = new Dictionary<uint, List<uint>>();
-            foreach (var soundKitEntry in soundKitDB.Values)
-            {
-                var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
-                var soundKitFileDataID = uint.Parse(soundKitEntry["FileDataID"].ToString());
-                if (!soundKitFDIDMap.ContainsKey(soundKitID))
-                {
-                    soundKitFDIDMap.Add(soundKitID, new List<uint>() { soundKitFileDataID });
-                }
-                else
-                {
-                    soundKitFDIDMap[soundKitID].Add(soundKitFileDataID);
-                }
-            }
+            if (csdID == 0)
+                return;
 
-            // map parents
-            foreach (var soundKitChildEntry in soundKitChildDB.Values)
-            {
-                var parentSoundKitID = uint.Parse(soundKitChildEntry["ParentSoundKitID"].ToString());
+            if (!Namer.IDToNameLookup.TryGetValue((int)modelFDID, out var modelFilename))
+                return;
 
-                if (soundKitFDIDMap.TryGetValue(uint.Parse(soundKitChildEntry["SoundKitID"].ToString()), out var childFDIDs))
+            if (modelFilename.ToLower().StartsWith("character"))
+            {
+                if (displayID != 0)
                 {
-                    if (!soundKitFDIDMap.ContainsKey(parentSoundKitID))
+                    var cleanedCreatureName = Namer.GetCreatureNameByDisplayID((int)displayID).Replace(" ", "").Replace("'", "").Replace("-", "").Replace("\"", "");
+                    if (cleanedCreatureName == "")
                     {
-                        soundKitFDIDMap.Add(parentSoundKitID, childFDIDs);
+                        return;
                     }
                     else
                     {
-                        soundKitFDIDMap[parentSoundKitID].AddRange(childFDIDs);
+                        modelFilename = cleanedCreatureName;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Model " + modelFilename + " is a character model and CDI ID was not given, skipping..");
+                    return;
+                }
+            }
+
+            if (!CSDMap.TryGetValue(csdID, out var csdRow))
+            {
+                Console.WriteLine("Referenced CSD " + csdID + " does not exist");
+                return;
+            }
+
+            foreach (var col in CSDDB.AvailableColumns)
+            {
+                // Skip non-SoundKitIDs
+                if (col == "CreatureSoundDataIDPet" || col == "FidgetDelaySecondsMin" || col == "FidgetDelaySecondsMax" || col == "CreatureImpactType")
+                    continue;
+
+                var colType = csdRow[col].GetType();
+                var targetSDIDs = new List<uint>();
+
+                if (colType.IsArray && colType == typeof(uint[]))
+                {
+                    var csdArr = (uint[])csdRow[col];
+                    for (var i = 0; i < csdArr.Length; i++)
+                    {
+                        if (csdArr[i] == 0)
+                            continue;
+
+                        targetSDIDs.Add(csdArr[i]);
+                    }
+                }
+                else if (colType == typeof(int) || colType == typeof(uint))
+                {
+                    var soundKitID = uint.Parse(csdRow[col].ToString());
+                    if (soundKitID == 0)
+                        continue;
+
+                    targetSDIDs.Add(soundKitID);
+                }
+                else
+                {
+                    Console.WriteLine("Unhandled CSD col type: " + colType.ToString());
+                }
+
+                foreach (var targetSDID in targetSDIDs)
+                {
+                    foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(targetSDID))
+                    {
+                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                        {
+                            var soundType = CSDColToSoundType(col);
+                            NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
+                        }
                     }
                 }
             }
 
-            #region CreatureSounds
-            var csdDB = Namer.LoadDBC("CreatureSoundData");
-            var creatureSoundFidgetDB = Namer.LoadDBC("CreatureSoundFidget");
-
-            var csdMap = new Dictionary<uint, DBCD.DBCDRow>();
-            foreach (var csdEntry in csdDB.Values)
+            foreach (var creatureSoundFidget in CSFDB.Values)
             {
-                csdMap.Add(uint.Parse(csdEntry["ID"].ToString()), csdEntry);
+                if (csdID != uint.Parse(creatureSoundFidget["CreatureSoundDataID"].ToString()))
+                    continue;
+
+                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(creatureSoundFidget["Fidget"].ToString())))
+                {
+                    if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                    {
+                        NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_fidget" + creatureSoundFidget["Index"].ToString() + "_" + soundFileDataID + ".ogg");
+                    }
+                }
+            }
+        }
+        public static void Name(bool partialSuggestions = false)
+        {
+            #region UI sound naming
+            try
+            {
+                var luaFile = CASCManager.GetFileByID(5613600).Result; // Interface/AddOns/Blizzard_SharedXML/Mainline/SoundKitConstants.lua
+                var luaText = new StreamReader(luaFile).ReadToEnd();
+                foreach (var line in luaText.Split('\n'))
+                {
+                    var cleaned = line.Trim();
+                    if (!cleaned.EndsWith(','))
+                        continue;
+
+                    var splitLine = cleaned.Split('=');
+
+                    var uiSoundName = splitLine[0].Trim();
+                    var uiSoundKitID = splitLine[1].Trim().TrimEnd(',').Trim();
+
+                    var uiCounter = 0;
+                    foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(uiSoundKitID)))
+                    {
+                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                        {
+                            NewFileManager.AddNewFile(soundFileDataID, "Sound/UI/" + uiSoundName + "_" + uiCounter++ + "_" + soundFileDataID + ".ogg");
+                        }
+                    }
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            #endregion
+
+            #region CreatureSounds
+            if (CSDMap.Count == 0)
+            {
+                CSDDB = Namer.LoadDBC("CreatureSoundData");
+                CSFDB = Namer.LoadDBC("CreatureSoundFidget");
+
+                foreach (var csdEntry in CSDDB.Values)
+                {
+                    CSDMap.Add(uint.Parse(csdEntry["ID"].ToString()), csdEntry);
+                }
             }
 
             var cmdDB = Namer.LoadDBC("CreatureModelData");
@@ -60,101 +160,43 @@ namespace WoWNamingLib.Namers
                 var csdID = uint.Parse(cmdEntry["SoundID"].ToString());
 
                 cmdIDToFDIDMap.Add(uint.Parse(cmdEntry["ID"].ToString()), mFDID);
+            }
+
+            var creatureDisplayInfoDB = Namer.LoadDBC("CreatureDisplayInfo");
+            var cdiMap = new Dictionary<uint, DBCD.DBCDRow>();
+            var cdiToFDIDMap = new Dictionary<uint, uint>();
+            var cmdToCDIMap = new Dictionary<uint, uint>(); // only care about first occurence here really
+            foreach (var cdiRow in creatureDisplayInfoDB.Values)
+            {
+                var displayID = uint.Parse(cdiRow["ID"].ToString());
+                var modelID = uint.Parse(cdiRow["ModelID"].ToString());
+
+                cdiMap.Add(displayID, cdiRow);
+                if (cmdIDToFDIDMap.TryGetValue(modelID, out var fdid))
+                {
+                    cdiToFDIDMap.Add(displayID, fdid);
+                    NameCSDSounds(uint.Parse(cdiRow["SoundID"].ToString()), fdid, displayID);
+                }
+
+                cmdToCDIMap.TryAdd(modelID, displayID);
+            }
+
+            foreach (var cmdEntry in cmdDB.Values)
+            {
+                var cmdID = uint.Parse(cmdEntry["ID"].ToString());
+                var mFDID = uint.Parse(cmdEntry["FileDataID"].ToString());
+                var csdID = uint.Parse(cmdEntry["SoundID"].ToString());
 
                 if (mFDID == 0 || csdID == 0)
                     continue;
 
                 if (!Namer.IDToNameLookup.TryGetValue((int)mFDID, out var modelFilename))
-                {
-                    //Console.WriteLine("Referenced model FDID " + mFDID + " does not exist in listfile");
                     continue;
-                }
 
-                if (!csdMap.TryGetValue(csdID, out var csdRow))
-                {
-                    Console.WriteLine("Referenced CSD " + csdID + " does not exist");
-                    continue;
-                }
-
-                foreach (var col in csdDB.AvailableColumns)
-                {
-                    // Skip non-SoundKitIDs
-                    if (col == "CreatureSoundDataIDPet" || col == "FidgetDelaySecondsMin" || col == "FidgetDelaySecondsMax" || col == "CreatureImpactType")
-                        continue;
-
-                    var colType = csdRow[col].GetType();
-                    var targetSDIDs = new List<uint>();
-
-                    if (colType.IsArray && colType == typeof(uint[]))
-                    {
-                        var csdArr = (uint[])csdRow[col];
-                        for (var i = 0; i < csdArr.Length; i++)
-                        {
-                            if (csdArr[i] == 0)
-                                continue;
-
-                            targetSDIDs.Add(csdArr[i]);
-                        }
-                    }
-                    else if (colType == typeof(int) || colType == typeof(uint))
-                    {
-                        var soundKitID = uint.Parse(csdRow[col].ToString());
-                        if (soundKitID == 0)
-                            continue;
-
-                        targetSDIDs.Add(soundKitID);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Unhandled CSD col type: " + colType.ToString());
-                    }
-
-                    foreach (var targetSDID in targetSDIDs)
-                    {
-                        if (soundKitFDIDMap.TryGetValue(targetSDID, out var soundFileDataIDs))
-                        {
-                            foreach (var soundFileDataID in soundFileDataIDs)
-                            {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
-                                {
-                                    var soundType = CSDColToSoundType(col);
-                                    NewFileManager.AddNewFile(soundFileDataID, "sound/creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
-                                }
-                            }
-                        }
-                    }
-                }
-
-                foreach (var creatureSoundFidget in creatureSoundFidgetDB.Values)
-                {
-                    if (csdID != uint.Parse(creatureSoundFidget["CreatureSoundDataID"].ToString()))
-                        continue;
-
-                    if (soundKitFDIDMap.TryGetValue(uint.Parse(creatureSoundFidget["Fidget"].ToString()), out var soundFileDataIDs))
-                    {
-                        foreach (var soundFileDataID in soundFileDataIDs)
-                        {
-                            if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
-                            {
-                                NewFileManager.AddNewFile(soundFileDataID, "sound/creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_fidget" + creatureSoundFidget["Index"].ToString() + "_" + soundFileDataID + ".ogg");
-                            }
-                        }
-                    }
-                }
+                NameCSDSounds(csdID, mFDID, cmdToCDIMap.TryGetValue(cmdID, out var displayID) ? displayID : 0);
             }
+
             #endregion
-
-            var creatureDisplayInfoDB = Namer.LoadDBC("CreatureDisplayInfo");
-            var cdiMap = new Dictionary<uint, DBCD.DBCDRow>();
-            var cdiToFDIDMap = new Dictionary<uint, uint>();
-            foreach (var cdiRow in creatureDisplayInfoDB.Values)
-            {
-                cdiMap.Add(uint.Parse(cdiRow["ID"].ToString()), cdiRow);
-                if (cmdIDToFDIDMap.TryGetValue(uint.Parse(cdiRow["ModelID"].ToString()), out var fdid))
-                {
-                    cdiToFDIDMap.Add(uint.Parse(cdiRow["ID"].ToString()), fdid);
-                }
-            }
 
             var mountDB = Namer.LoadDBC("Mount");
             var spellXSpellVisualDB = Namer.LoadDBC("SpellXSpellVisual");
@@ -288,49 +330,46 @@ namespace WoWNamingLib.Namers
                                     if (effectType != 1 || effectRecID == 0)
                                         continue;
 
-                                    if (soundKitFDIDMap.TryGetValue(effectRecID, out var soundFDIDs))
+                                    foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(effectRecID))
                                     {
-                                        foreach (var soundFDID in soundFDIDs)
-                                        {
-                                            if (Namer.IDToNameLookup.ContainsKey((int)soundFDID) && !Namer.placeholderNames.Contains((int)soundFDID))
-                                                continue;
+                                        if (Namer.IDToNameLookup.ContainsKey((int)soundFDID) && !Namer.placeholderNames.Contains((int)soundFDID))
+                                            continue;
 
-                                            if (mountToFDID.TryGetValue(mountID, out var mountFDID))
+                                        if (mountToFDID.TryGetValue(mountID, out var mountFDID))
+                                        {
+                                            if (StateType.TryGetValue(objectEffectPackageRef.StateType, out var stateName))
                                             {
-                                                if (StateType.TryGetValue(objectEffectPackageRef.StateType, out var stateName))
+                                                if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
                                                 {
-                                                    if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
-                                                    {
-                                                        var animName = stateName.Replace("Anim", "").Replace("Movement", "").Replace("Transport", "").Replace(" ", "").Replace("-", "");
-                                                        NewFileManager.AddNewFile(soundFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_" + animName.ToLower() + "_" + soundFDID + ".ogg");
-                                                    }
-                                                    else
-                                                    {
-                                                        Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + ") is still unnamed");
-                                                    }
+                                                    var animName = stateName.Replace("Anim", "").Replace("Movement", "").Replace("Transport", "").Replace(" ", "").Replace("-", "");
+                                                    NewFileManager.AddNewFile(soundFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_" + animName.ToLower() + "_" + soundFDID + ".ogg");
                                                 }
                                                 else
                                                 {
-                                                    if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
-                                                    {
-                                                        NewFileManager.AddNewFile(soundFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_unknown_" + soundFDID + ".ogg");
-                                                    }
-                                                    else
-                                                    {
-                                                        Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + ") is still unnamed");
-                                                    }
-
-                                                    if (!Namer.IDToNameLookup.ContainsKey((int)mountFDID))
-                                                    {
-                                                        Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
-
-                                                    }
+                                                    Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + ") is still unnamed");
                                                 }
                                             }
                                             else
                                             {
-                                                Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has no attached FDID");
+                                                if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
+                                                {
+                                                    NewFileManager.AddNewFile(soundFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_unknown_" + soundFDID + ".ogg");
+                                                }
+                                                else
+                                                {
+                                                    Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + ") is still unnamed");
+                                                }
+
+                                                if (!Namer.IDToNameLookup.ContainsKey((int)mountFDID))
+                                                {
+                                                    Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
+
+                                                }
                                             }
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has no attached FDID");
                                         }
                                     }
                                 }
@@ -361,81 +400,78 @@ namespace WoWNamingLib.Namers
 
                         foreach (var spellVisualKitSoundEffect in spellVisualKitSoundEffects)
                         {
-                            if (soundKitFDIDMap.TryGetValue(spellVisualKitSoundEffect, out var soundFileDataIDs))
+                            foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(spellVisualKitSoundEffect))
                             {
-                                foreach (var soundKitFDID in soundFileDataIDs)
+                                if (!Namer.IDToNameLookup.ContainsKey((int)soundKitFDID) || Namer.placeholderNames.Contains((int)soundKitFDID))
                                 {
-                                    if (!Namer.IDToNameLookup.ContainsKey((int)soundKitFDID) || Namer.placeholderNames.Contains((int)soundKitFDID))
+                                    if (mountToFDID.TryGetValue(mountID, out var mountFDID))
                                     {
-                                        if (mountToFDID.TryGetValue(mountID, out var mountFDID))
+
+                                        var castTime = "precast";
+                                        var soundLoop = "loop";
+                                        var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString());
+
+                                        switch (startEvent)
                                         {
+                                            case 1:
+                                                castTime = "precaststart";
+                                                break;
+                                            case 2:
+                                                castTime = "precastend";
+                                                break;
+                                            case 3:
+                                                castTime = "cast";
+                                                break;
+                                            case 4:
+                                                castTime = "travelstart";
+                                                break;
+                                            case 5:
+                                                castTime = "travelend";
+                                                break;
+                                            case 6:
+                                                castTime = "impact";
+                                                break;
+                                            case 7:
+                                                castTime = "aurastart";
+                                                break;
+                                            case 8:
+                                                castTime = "auraend";
+                                                break;
+                                            case 9:
+                                                castTime = "areatriggerstart";
+                                                break;
+                                            case 10:
+                                                castTime = "areatriggerend";
+                                                break;
+                                            case 11:
+                                                castTime = "channelstart";
+                                                break;
+                                            case 12:
+                                                castTime = "channelend";
+                                                break;
+                                            case 13:
+                                                castTime = "oneshot";
+                                                break;
+                                            default:
+                                                Console.WriteLine(" Start event " + startEvent + " needs supporting");
+                                                break;
+                                        }
 
-                                            var castTime = "precast";
-                                            var soundLoop = "loop";
-                                            var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString());
+                                        if (spellVisualEvent["EndEvent"].ToString() == "13")
+                                            soundLoop = "oneshot";
 
-                                            switch (startEvent)
-                                            {
-                                                case 1:
-                                                    castTime = "precaststart";
-                                                    break;
-                                                case 2:
-                                                    castTime = "precastend";
-                                                    break;
-                                                case 3:
-                                                    castTime = "cast";
-                                                    break;
-                                                case 4:
-                                                    castTime = "travelstart";
-                                                    break;
-                                                case 5:
-                                                    castTime = "travelend";
-                                                    break;
-                                                case 6:
-                                                    castTime = "impact";
-                                                    break;
-                                                case 7:
-                                                    castTime = "aurastart";
-                                                    break;
-                                                case 8:
-                                                    castTime = "auraend";
-                                                    break;
-                                                case 9:
-                                                    castTime = "areatriggerstart";
-                                                    break;
-                                                case 10:
-                                                    castTime = "areatriggerend";
-                                                    break;
-                                                case 11:
-                                                    castTime = "channelstart";
-                                                    break;
-                                                case 12:
-                                                    castTime = "channelend";
-                                                    break;
-                                                case 13:
-                                                    castTime = "oneshot";
-                                                    break;
-                                                default:
-                                                    Console.WriteLine(" Start event " + startEvent + " needs supporting");
-                                                    break;
-                                            }
-
-                                            if (spellVisualEvent["EndEvent"].ToString() == "13")
-                                                soundLoop = "oneshot";
-
-                                            if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
-                                            {
-                                                NewFileManager.AddNewFile(soundKitFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_" + castTime + "_" + soundLoop + "_" + soundKitFDID + ".ogg");
-                                            }
-                                            else
-                                            {
-                                                Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + " is still unnamed");
-                                            }
+                                        if (Namer.IDToNameLookup.TryGetValue((int)mountFDID, out var mountFilename))
+                                        {
+                                            NewFileManager.AddNewFile(soundKitFDID, "sound/creature/" + Path.GetFileNameWithoutExtension(mountFilename) + "/" + Path.GetFileNameWithoutExtension(mountFilename) + "_" + castTime + "_" + soundLoop + "_" + soundKitFDID + ".ogg");
                                         }
                                         else
                                         {
-                                            Console.WriteLine(mountRow["Name_lang"].ToString() + " " + soundKitFDID);
+                                            Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + " is still unnamed");
                                         }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine(mountRow["Name_lang"].ToString() + " " + soundKitFDID);
                                     }
                                 }
                             }
@@ -489,9 +525,9 @@ namespace WoWNamingLib.Namers
                 {
                     foreach (var soundAmbience in soundAmbienceIDs)
                     {
-                        if (soundAmbience.SoundKitIDDay != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.SoundKitIDDay, out var soundDayFileIDs))
+                        if (soundAmbience.SoundKitIDDay != 0)
                         {
-                            foreach (var soundFile in soundDayFileIDs)
+                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.SoundKitIDDay))
                             {
                                 if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
                                 {
@@ -500,9 +536,9 @@ namespace WoWNamingLib.Namers
                             }
                         }
 
-                        if (soundAmbience.SoundKitIDNight != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.SoundKitIDNight, out var soundNightFileIDs))
+                        if (soundAmbience.SoundKitIDNight != 0)
                         {
-                            foreach (var soundFile in soundNightFileIDs)
+                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.SoundKitIDNight))
                             {
                                 if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
                                 {
@@ -511,9 +547,9 @@ namespace WoWNamingLib.Namers
                             }
                         }
 
-                        if (soundAmbience.AmbienceID0 != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.AmbienceID0, out var soundAmbID0s))
+                        if (soundAmbience.AmbienceID0 != 0)
                         {
-                            foreach (var soundFile in soundAmbID0s)
+                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.AmbienceID0))
                             {
                                 if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
                                 {
@@ -522,9 +558,9 @@ namespace WoWNamingLib.Namers
                             }
                         }
 
-                        if (soundAmbience.AmbienceID1 != 0 && soundKitFDIDMap.TryGetValue(soundAmbience.AmbienceID1, out var soundAmbID1s))
+                        if (soundAmbience.AmbienceID1 != 0)
                         {
-                            foreach (var soundFile in soundAmbID1s)
+                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.AmbienceID1))
                             {
                                 if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
                                 {
@@ -543,58 +579,70 @@ namespace WoWNamingLib.Namers
 
                 for (var i = 0; i < npcsArr.Length; i++)
                 {
-                    if (soundKitFDIDMap.TryGetValue(npcsArr[i], out var soundFileDataIDs))
+                    foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(npcsArr[i]))
                     {
-                        foreach (var soundFileDataID in soundFileDataIDs)
+                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                            foreach (var cdiRow in cdiMap.Values)
                             {
-                                foreach (var cdiRow in cdiMap.Values)
+                                if ((ushort)cdiRow["NPCSoundID"] != (int)npcSound["ID"])
                                 {
-                                    if ((ushort)cdiRow["NPCSoundID"] != (int)npcSound["ID"])
-                                    {
-                                        continue;
-                                    }
-
-                                    if (!cdiToFDIDMap.TryGetValue(uint.Parse(cdiRow["ID"].ToString()), out var mFDID))
-                                    {
-                                        continue;
-                                    }
-
-                                    if (!Namer.IDToNameLookup.TryGetValue((int)mFDID, out var modelFilename))
-                                    {
-                                        //Console.WriteLine("Referenced model FDID " + mFDID + " does not exist in listfile");
-                                        continue;
-                                    }
-
-                                    if (modelFilename.Contains("male_hd"))
-                                        continue;
-
-                                    var soundType = "UNK";
-                                    switch (i)
-                                    {
-                                        case 0:
-                                            soundType = "greetings";
-                                            break;
-                                        case 1:
-                                            soundType = "farewell";
-                                            break;
-                                        case 2:
-                                            soundType = "pissed";
-                                            break;
-                                    }
-
-                                    NewFileManager.AddNewFile(soundFileDataID, "sound/creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
+                                    continue;
                                 }
+
+                                if (!cdiToFDIDMap.TryGetValue(uint.Parse(cdiRow["ID"].ToString()), out var mFDID))
+                                {
+                                    continue;
+                                }
+
+                                if (!Namer.IDToNameLookup.TryGetValue((int)mFDID, out var modelFilename))
+                                {
+                                    //Console.WriteLine("Referenced model FDID " + mFDID + " does not exist in listfile");
+                                    continue;
+                                }
+
+                                if (modelFilename.Contains("male_hd"))
+                                    continue;
+
+                                var soundType = "UNK";
+                                switch (i)
+                                {
+                                    case 0:
+                                        soundType = "greetings";
+                                        break;
+                                    case 1:
+                                        soundType = "farewell";
+                                        break;
+                                    case 2:
+                                        soundType = "pissed";
+                                        break;
+                                }
+
+                                NewFileManager.AddNewFile(soundFileDataID, "sound/creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
                             }
                         }
                     }
                 }
             }
 
-            if (partialSuggestions)
+            var soundEmitterDB = Namer.LoadDBC("SoundEmitters");
+            foreach (var soundEmitter in soundEmitterDB.Values)
             {
+                var soundKitID = uint.Parse(soundEmitter["SoundEntriesID"].ToString());
+                var emitterName = soundEmitter["Name"].ToString().Replace("\\", "").Replace("/", "").Replace(" ", "").Replace(",", "_").Replace("'", "");
 
+                var soundCounter = 0;
+                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
+                {
+                    if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                    {
+                        NewFileManager.AddNewFile(soundFileDataID, "Sound/Emitters/" + emitterName + "_" + soundCounter++ + "_" + soundFileDataID + ".ogg");
+                    }
+                }
+            }
+
+            if (true)
+            {
                 // RTPC
                 var rtpcDB = Namer.LoadDBC("RTPC");
                 var rtpcToSoundKitMap = new Dictionary<uint, uint>();
@@ -611,14 +659,11 @@ namespace WoWNamingLib.Namers
                 {
                     if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()), out uint soundKitID))
                     {
-                        if (soundKitFDIDMap.TryGetValue(soundKitID, out var soundFileIDs))
+                        foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                         {
-                            foreach (var soundFile in soundFileIDs)
+                            if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
-                                {
-                                    Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
-                                }
+                                Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
                             }
                         }
                     }
@@ -664,66 +709,65 @@ namespace WoWNamingLib.Namers
 
                             foreach (var spellVisualKitSoundEffect in spellVisualKitSoundEffects)
                             {
-                                if (soundKitFDIDMap.TryGetValue(spellVisualKitSoundEffect, out var soundFileDataIDs))
+                                foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(spellVisualKitSoundEffect))
                                 {
-                                    foreach (var soundKitFDID in soundFileDataIDs)
+                                    if (Namer.IDToNameLookup.ContainsKey((int)soundKitFDID))
+                                        continue;
+
+                                    var castTime = "precast";
+                                    var soundLoop = "loop";
+                                    var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString());
+
+                                    switch (startEvent)
                                     {
-                                        if (!Namer.IDToNameLookup.ContainsKey((int)soundKitFDID))
-                                        {
-                                            var castTime = "precast";
-                                            var soundLoop = "loop";
-                                            var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString());
-
-                                            switch (startEvent)
-                                            {
-                                                case 1:
-                                                    castTime = "precaststart";
-                                                    break;
-                                                case 2:
-                                                    castTime = "precastend";
-                                                    break;
-                                                case 3:
-                                                    castTime = "cast";
-                                                    break;
-                                                case 4:
-                                                    castTime = "travelstart";
-                                                    break;
-                                                case 5:
-                                                    castTime = "travelend";
-                                                    break;
-                                                case 6:
-                                                    castTime = "impact";
-                                                    break;
-                                                case 7:
-                                                    castTime = "aurastart";
-                                                    break;
-                                                case 8:
-                                                    castTime = "auraend";
-                                                    break;
-                                                case 9:
-                                                    castTime = "areatriggerstart";
-                                                    break;
-                                                case 10:
-                                                    castTime = "areatriggerend";
-                                                    break;
-                                                case 11:
-                                                    castTime = "channelstart";
-                                                    break;
-                                                case 12:
-                                                    castTime = "channelend";
-                                                    break;
-                                                default:
-                                                    Console.WriteLine(" Start event " + startEvent + " needs supporting");
-                                                    break;
-                                            }
-
-                                            if (spellVisualEvent["EndEvent"].ToString() == "13")
-                                                soundLoop = "oneshot";
-
-                                            Console.WriteLine(spellID + " " + spellName + " " + soundKitFDID + " " + spellVisualKitSoundEffect + " " + castTime + " " + soundLoop);
-
-                                        }
+                                        case 1:
+                                            castTime = "precaststart";
+                                            break;
+                                        case 2:
+                                            castTime = "precastend";
+                                            break;
+                                        case 3:
+                                            castTime = "cast";
+                                            break;
+                                        case 4:
+                                            castTime = "travelstart";
+                                            break;
+                                        case 5:
+                                            castTime = "travelend";
+                                            break;
+                                        case 6:
+                                            castTime = "impact";
+                                            break;
+                                        case 7:
+                                            castTime = "aurastart";
+                                            break;
+                                        case 8:
+                                            castTime = "auraend";
+                                            break;
+                                        case 9:
+                                            castTime = "areatriggerstart";
+                                            break;
+                                        case 10:
+                                            castTime = "areatriggerend";
+                                            break;
+                                        case 11:
+                                            castTime = "channelstart";
+                                            break;
+                                        case 12:
+                                            castTime = "channelend";
+                                            break;
+                                        default:
+                                            Console.WriteLine(" Start event " + startEvent + " needs supporting");
+                                            break;
                                     }
+
+                                    if (spellVisualEvent["EndEvent"].ToString() == "13")
+                                        soundLoop = "oneshot";
+
+                                    var cleanSpellname = spellName.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("&", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
+
+                                    var filename = "Sound/Spell/" + cleanSpellname + "_" + castTime + "_" + soundLoop + "_" + soundKitFDID + ".ogg";
+                                    NewFileManager.AddNewFile(soundKitFDID, filename);
                                 }
                             }
                         }

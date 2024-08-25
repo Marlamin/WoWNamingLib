@@ -6,22 +6,6 @@ namespace WoWNamingLib.Namers
     {
         public static void Name()
         {
-            var soundKitDB = Namer.LoadDBC("SoundKitEntry");
-            var soundKitFDIDMap = new Dictionary<uint, List<uint>>();
-            foreach (var soundKitEntry in soundKitDB.Values)
-            {
-                var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
-                var soundKitFileDataID = uint.Parse(soundKitEntry["FileDataID"].ToString());
-                if (!soundKitFDIDMap.ContainsKey(soundKitID))
-                {
-                    soundKitFDIDMap.Add(soundKitID, new List<uint>() { soundKitFileDataID });
-                }
-                else
-                {
-                    soundKitFDIDMap[soundKitID].Add(soundKitFileDataID);
-                }
-            }
-
             var objectEffectPackageElemDB = Namer.LoadDBC("ObjectEffectPackageElem");
             var objectEffectPackageMap = new Dictionary<uint, List<(uint GroupID, uint StateType)>>();
             foreach (var oepeRow in objectEffectPackageElemDB.Values)
@@ -82,22 +66,19 @@ namespace WoWNamingLib.Namers
                                 if (effectType != 1 || effectRecID == 0)
                                     continue;
 
-                                if (soundKitFDIDMap.TryGetValue(effectRecID, out var soundFDIDs))
+                                foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(effectRecID))
                                 {
-                                    foreach (var soundFDID in soundFDIDs)
-                                    {
-                                        if (Namer.IDToNameLookup.ContainsKey((int)soundFDID))
-                                            continue;
+                                    if (Namer.IDToNameLookup.ContainsKey((int)soundFDID))
+                                        continue;
 
-                                        if (Sound.StateType.TryGetValue(objectEffectPackageRef.StateType, out var stateName))
-                                        {
-                                            var animName = stateName.Replace("Anim", "").Replace("Movement", "").Replace("Transport", "").Replace(" ", "").Replace("-", "");
-                                            NewFileManager.AddNewFile(soundFDID, "sound/doodad/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + animName.ToLower() + "_" + soundFDID + ".ogg");
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine("!!!! GO " + modelFileName + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
-                                        }
+                                    if (Sound.StateType.TryGetValue(objectEffectPackageRef.StateType, out var stateName))
+                                    {
+                                        var animName = stateName.Replace("Anim", "").Replace("Movement", "").Replace("Transport", "").Replace(" ", "").Replace("-", "");
+                                        NewFileManager.AddNewFile(soundFDID, "sound/doodad/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + animName.ToLower() + "_" + soundFDID + ".ogg");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("!!!! GO " + modelFileName + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
                                     }
                                 }
                             }

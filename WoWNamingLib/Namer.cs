@@ -24,6 +24,7 @@ namespace WoWNamingLib
 
         public static Func<int, uint> GetAddedInPatch = (int fileDataID) => { return 0; };
         public static Func<int, string, bool> SetCreatureNameForFDID = (int fileDataID, string name) => { return false; };
+        public static Func<int, string> GetCreatureNameByDisplayID = (int displayID) => { return ""; };
 
         public static void SetCASC(ref CASCHandler handler, ref List<int> availableFDIDs)
         {
@@ -43,6 +44,11 @@ namespace WoWNamingLib
         public static void SetSetCreatureNameForFDIDFunction(Func<int, string, bool> function)
         {
             SetCreatureNameForFDID = function;
+        }
+
+        public static void SetGetCreatureNameByDisplayIDFunction(Func<int, string> function)
+        {
+            GetCreatureNameByDisplayID = function;
         }
 
         public static void AddNewFile(uint fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)

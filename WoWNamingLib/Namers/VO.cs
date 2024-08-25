@@ -103,30 +103,6 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            var soundKitFDIDMap = new Dictionary<uint, List<int>>();
-
-            try
-            {
-                var soundKitDB = Namer.LoadDBC("SoundKitEntry");
-                foreach (var soundKitEntry in soundKitDB.Values)
-                {
-                    var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
-                    var soundKitFileDataID = int.Parse(soundKitEntry["FileDataID"].ToString());
-                    if (!soundKitFDIDMap.ContainsKey(soundKitID))
-                    {
-                        soundKitFDIDMap.Add(soundKitID, new List<int>() { soundKitFileDataID });
-                    }
-                    else
-                    {
-                        soundKitFDIDMap[soundKitID].Add(soundKitFileDataID);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error parsing SoundKit: " + e.Message);
-            }
-
             foreach (var creatureVOEntry in creatureVO)
             {
                 var creatureID = creatureVOEntry.Key.ID;
@@ -142,16 +118,9 @@ namespace WoWNamingLib.Namers
                         foreach (var soundKit in soundKits)
                         {
                             // Console.WriteLine("\t\t" + soundKit);
-                            if (soundKitFDIDMap.TryGetValue(soundKit, out var fileDataIDs))
+                            foreach (var fileDataID in SoundKitHelper.GetFDIDsByKitID(soundKit))
                             {
-                                foreach (var fileDataID in fileDataIDs)
-                                {
-                                    NameVO(creatureName, fileDataID);
-                                }
-                            }
-                            else
-                            {
-                                //  Console.WriteLine("\t\t\tNo file data ID found for sound kit " + soundKit);
+                                NameVO(creatureName, fileDataID);
                             }
                         }
                     }

@@ -1,5 +1,5 @@
 ﻿using DBCD.Providers;
-using DBFileReaderLib;
+using DBCD.IO;
 
 namespace WoWNamingLib.Services
 {

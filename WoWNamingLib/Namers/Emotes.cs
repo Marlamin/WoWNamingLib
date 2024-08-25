@@ -6,22 +6,6 @@ namespace WoWNamingLib.Namers
     {
         public static void Name()
         {
-            var soundKitDB = Namer.LoadDBC("SoundKitEntry");
-            var soundKitFDIDMap = new Dictionary<uint, List<int>>();
-            foreach (var soundKitEntry in soundKitDB.Values)
-            {
-                var soundKitID = uint.Parse(soundKitEntry["SoundKitID"].ToString());
-                var soundKitFileDataID = int.Parse(soundKitEntry["FileDataID"].ToString());
-                if (!soundKitFDIDMap.ContainsKey(soundKitID))
-                {
-                    soundKitFDIDMap.Add(soundKitID, new List<int>() { soundKitFileDataID });
-                }
-                else
-                {
-                    soundKitFDIDMap[soundKitID].Add(soundKitFileDataID);
-                }
-            }
-
             var chrRacesDB = Namer.LoadDBC("ChrRaces");
             var chrRaceMap = new Dictionary<int, string>();
             foreach (var chrRaceRow in chrRacesDB.Values)
@@ -47,23 +31,20 @@ namespace WoWNamingLib.Namers
                 var sexID = (byte)emotesTextSoundRow["SexID"];
                 var soundKitID = (uint)emotesTextSoundRow["SoundID"];
 
-                if (soundKitFDIDMap.TryGetValue(soundKitID, out var soundFDIDs))
+                foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                 {
-                    foreach (var soundFDID in soundFDIDs)
-                    {
-                        if (Namer.IDToNameLookup.ContainsKey(soundFDID))
-                            continue;
+                    if (Namer.IDToNameLookup.ContainsKey(soundFDID))
+                        continue;
 
-                        if (soundFDID == 0)
-                            continue;
+                    if (soundFDID == 0)
+                        continue;
 
-                        var sex = "male";
-                        if (sexID == 1)
-                            sex = "female";
+                    var sex = "male";
+                    if (sexID == 1)
+                        sex = "female";
 
-                        var emoteName = emoteNameMap[(int)emotesTextID];
-                        NewFileManager.AddNewFile(soundFDID, "sound/character/" + chrRaceMap[(int)raceID] + "_" + sex + "/vo_" + chrRaceMap[(int)raceID] + "_" + sex + "_" + emoteName + "_" + soundFDID + ".ogg");
-                    }
+                    var emoteName = emoteNameMap[(int)emotesTextID];
+                    NewFileManager.AddNewFile(soundFDID, "sound/character/" + chrRaceMap[(int)raceID] + "_" + sex + "/vo_" + chrRaceMap[(int)raceID] + "_" + sex + "_" + emoteName + "_" + soundFDID + ".ogg");
                 }
             }
 
@@ -147,35 +128,30 @@ namespace WoWNamingLib.Namers
                 var raceID = (byte)vocalUiSoundsRow["RaceID"];
                 for (int i = 0; i < normalSoundIDs.Length; i++)
                 {
-                    if (soundKitFDIDMap.TryGetValue(normalSoundIDs[i], out var soundFDIDs))
+                    foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(normalSoundIDs[i]))
                     {
-                        foreach (var soundFDID in soundFDIDs)
+                        if (Namer.IDToNameLookup.ContainsKey(soundFDID))
+                            continue;
+
+                        if (soundFDID == 0)
+                            continue;
+
+                        var sex = "male";
+                        if (i == 1)
+                            sex = "female";
+
+                        var vocalUIName = vocalUiNames[vocalUIEnum];
+                        if (vocalUIName.Contains(vocalUIName))
                         {
-                            if (Namer.IDToNameLookup.ContainsKey(soundFDID))
-                                continue;
-
-                            if (soundFDID == 0)
-                                continue;
-
-                            var sex = "male";
-                            if (i == 1)
-                                sex = "female";
-
-                            var vocalUIName = vocalUiNames[vocalUIEnum];
-                            if (vocalUIName.Contains(vocalUIName))
-                            {
-                                NewFileManager.AddNewFile(soundFDID, "sound/character/" + chrRaceMap[(int)raceID] + "_" + sex + "/vo_" + chrRaceMap[(int)raceID] + "_" + sex + "_" + vocalUIName + "_" + soundFDID + ".ogg");
-                            }
-                            else
-                            {
-                                Console.WriteLine("[Emotes] !!! Unknown vocal UI name for enum " + vocalUIEnum);
-                            }
+                            NewFileManager.AddNewFile(soundFDID, "sound/character/" + chrRaceMap[(int)raceID] + "_" + sex + "/vo_" + chrRaceMap[(int)raceID] + "_" + sex + "_" + vocalUIName + "_" + soundFDID + ".ogg");
+                        }
+                        else
+                        {
+                            Console.WriteLine("[Emotes] !!! Unknown vocal UI name for enum " + vocalUIEnum);
                         }
                     }
                 }
-
             }
-
         }
     }
 }
