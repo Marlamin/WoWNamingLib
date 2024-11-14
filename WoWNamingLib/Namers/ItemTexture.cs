@@ -1,4 +1,6 @@
-﻿using WoWNamingLib.Services;
+﻿using System.Diagnostics;
+using WoWNamingLib.Services;
+using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
 {
@@ -194,7 +196,7 @@ namespace WoWNamingLib.Namers
                     {
                         foreach (var fileDataID in fileDataIDs)
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey(fileDataID))
+                            if (!Namer.IDToNameLookup.ContainsKey(fileDataID) || Namer.placeholderNames.Contains(fileDataID))
                             {
                                 if (ctfdMap.TryGetValue((int)fileDataID, out var genderIndex))
                                 {
@@ -291,6 +293,7 @@ namespace WoWNamingLib.Namers
 
                 foreach (var idimmRow in itemDisplayInfoModelMatRes.Values)
                 {
+
                     var miniComponent = "";
                     var miniComponentGender = "u";
                     var materialResourcesID = (int)idimmRow["MaterialResourcesID"];
@@ -298,7 +301,7 @@ namespace WoWNamingLib.Namers
                     {
                         foreach (var fileDataID in fileDataIDs)
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey(fileDataID))
+                            if (!Namer.IDToNameLookup.ContainsKey(fileDataID) || Namer.placeholderNames.Contains(fileDataID))
                             {
                                 if (ctfdMap.TryGetValue((int)fileDataID, out var genderIndex))
                                 {
@@ -401,7 +404,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var fileDataID in fileDataIDs)
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey(fileDataID))
+                                if (!Namer.IDToNameLookup.ContainsKey(fileDataID) || Namer.placeholderNames.Contains(fileDataID))
                                 {
                                     foreach (var iaRow in itemAppearance.Values)
                                     {
