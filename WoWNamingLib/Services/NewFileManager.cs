@@ -1,5 +1,6 @@
 ﻿using CASCLib;
 using System.Data;
+using System.Diagnostics;
 
 namespace WoWNamingLib.Services
 {
@@ -73,15 +74,28 @@ namespace WoWNamingLib.Services
 
             if (Namer.IDToNameLookup.TryGetValue(fileDataID, out string currentFileName))
             {
-                if(currentFileName.StartsWith("interface", StringComparison.CurrentCultureIgnoreCase))
+                var oldHash = Hasher.ComputeHash(currentFileName);
+
+                if (currentFileName.StartsWith("interface", StringComparison.CurrentCultureIgnoreCase))
                 {
-                    Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite interface file: " + currentFileName + " => " + filename);
-                    return;
+                    var newHash = Hasher.ComputeHash(filename);
+
+                    if (fileDataID == 4238249)
+                        Debugger.Break();
+
+                    if(!CASCManager.OfficialLookups.Contains(oldHash) && CASCManager.OfficialLookups.Contains(newHash))
+                    {
+                        Console.WriteLine("Bypassing interface skip for " + fileDataID + ", lookup for newer file matches: " + currentFileName + " => " + filename);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite interface file: " + currentFileName + " => " + filename);
+                        return;
+                    }
                 }
 
                 var caseOnlyFix = currentFileName.Equals(filename, StringComparison.CurrentCultureIgnoreCase) && currentFileName != filename;
 
-                var oldHash = Hasher.ComputeHash(currentFileName);
                 if (CASCManager.OfficialLookups.Contains(oldHash))
                 {
                     //Console.WriteLine("[ERROR] Official name being overriden for " + fileDataID + ", old " + currentFileName + ", new: " + filename);

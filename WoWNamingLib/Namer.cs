@@ -88,6 +88,11 @@ namespace WoWNamingLib
             isInitialized = true;
         }
 
+        public static void MergeLookups(Dictionary<int, ulong> lookups)
+        {
+            CASCManager.MergeLookups(lookups);
+        }
+
         static void ReloadPlaceholders()
         {
             foreach (var entry in IDToNameLookup)

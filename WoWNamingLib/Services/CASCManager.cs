@@ -10,6 +10,7 @@ namespace WoWNamingLib.Services
         public static string BuildName;
         public static Jenkins96 Hasher = new Jenkins96();
         public static HashSet<ulong> OfficialLookups = new();
+        public static Dictionary<int, ulong> LookupMap = new();
 
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
@@ -53,6 +54,18 @@ namespace WoWNamingLib.Services
             BuildName = cascHandler.Config.BuildName;
         }
 
+        public static void MergeLookups(Dictionary<int, ulong> lookups)
+        {
+            foreach (var lookup in lookups)
+            {
+                if (!LookupMap.ContainsKey(lookup.Key))
+                    LookupMap.Add(lookup.Key, lookup.Value);
+
+                if(!OfficialLookups.Contains(lookup.Value))
+                    OfficialLookups.Add(lookup.Value);
+            }
+        }
+
         public static void LoadOfficialListfile()
         {
             Console.WriteLine("Loading official listfile..");
@@ -81,8 +94,15 @@ namespace WoWNamingLib.Services
 
             foreach (var line in File.ReadAllLines("verified-listfile.csv"))
             {
-                var jenkinsHash = Hasher.ComputeHash(line.Split(';')[1]);
-                OfficialLookups.Add(jenkinsHash);
+                var splitLine = line.Split(';');
+                var jenkinsHash = Hasher.ComputeHash(splitLine[1]);
+                var fdid = int.Parse(splitLine[0]);
+
+                if (!OfficialLookups.Contains(jenkinsHash))
+                    OfficialLookups.Add(jenkinsHash);
+
+                if(!LookupMap.ContainsKey(fdid))
+                    LookupMap.Add(fdid, jenkinsHash);
             }
 
             Console.WriteLine("Loaded " + OfficialLookups.Count + " files from official listfile!");
