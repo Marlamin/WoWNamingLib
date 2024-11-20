@@ -80,9 +80,6 @@ namespace WoWNamingLib.Services
                 {
                     var newHash = Hasher.ComputeHash(filename);
 
-                    if (fileDataID == 4238249)
-                        Debugger.Break();
-
                     if(!CASCManager.OfficialLookups.Contains(oldHash) && CASCManager.OfficialLookups.Contains(newHash))
                     {
                         Console.WriteLine("Bypassing interface skip for " + fileDataID + ", lookup for newer file matches: " + currentFileName + " => " + filename);
