@@ -66,6 +66,11 @@ namespace WoWNamingLib.Services
                         return;
                     }
                 }
+                else
+                {
+                    Console.WriteLine("No namehash found for FDID " + fileDataID + " even though we are on Classic, skipping..");
+                    return;
+                }
 
                 // Don't accept capital-only differences from Classic.
                 if (Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.IDToNameLookup[fileDataID].ToLower() == filename.ToLower())
