@@ -469,7 +469,7 @@ namespace WoWNamingLib.Namers
                     break;
             }
 
-            return creatureName.Replace(",", "").Replace(" ", "_").Replace("'", "");
+            return creatureName.Replace(",", "").Replace(" ", "_").Replace("'", "").Replace("\"", "");
         }
         private static uint makeVOVersion(int fileDataID)
         {
