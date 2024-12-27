@@ -12,7 +12,7 @@ namespace WoWNamingLib.Services
         {
             dbcd = new DBCD.DBCD(dbcProvider, dbdProvider);
 
-            if (Namer.localProduct == "wow" && File.Exists(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin")))
+            if (!string.IsNullOrEmpty(Namer.wowDir) && Namer.localProduct == "wow" && File.Exists(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin")))
             {
                 var htfxReader = new HotfixReader(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin"));
 

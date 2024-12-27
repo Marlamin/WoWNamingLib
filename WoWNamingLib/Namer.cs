@@ -67,6 +67,7 @@ namespace WoWNamingLib
 
         public static void SetInitialListfile(ref Dictionary<int, string> listfile)
         {
+            Console.WriteLine("Setting initial listfile..");
             IDToNameLookup = new(listfile);
             DB2ToIDLookup.Clear();
 
