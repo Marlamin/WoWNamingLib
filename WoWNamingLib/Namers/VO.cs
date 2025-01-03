@@ -1,5 +1,4 @@
 ﻿using MoonSharp.Interpreter;
-using System.Reflection.Metadata.Ecma335;
 using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
 
@@ -11,7 +10,7 @@ namespace WoWNamingLib.Namers
         private static Dictionary<uint, string> creatureNames = new();
         private static Dictionary<uint, string> creaturesToFDID = new();
 
-        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID, Dictionary<uint, (uint, uint)> BCTextToSKitIDs)
+        public static void Name(Dictionary<uint, string> creatureNames, Dictionary<string, List<uint>> textToSoundKitID, Dictionary<uint, string> creaturesToFDID, Dictionary<uint, (uint, uint)> BCTextToSKitIDs, bool overrideVO = true)
         {
             creatureVO.Clear();
             VO.creatureNames = creatureNames;
@@ -48,7 +47,7 @@ namespace WoWNamingLib.Namers
                             }
 
                             var creatureID = actor.Value.properties.Appearance.Value.events.First().Value.creatureID.ID;
-                            if(creatureID == 0)
+                            if (creatureID == 0)
                             {
                                 Console.WriteLine("TODO: Got creature ID 0, maybe check model ID instead, skipping for now");
                                 continue;
@@ -56,7 +55,7 @@ namespace WoWNamingLib.Namers
 
                             if (actor.Value.properties.BroadcastText != null)
                             {
-                                if(!creatureNames.TryGetValue((uint)creatureID, out var creatureName))
+                                if (!creatureNames.TryGetValue((uint)creatureID, out var creatureName))
                                 {
                                     Console.WriteLine("Unknown creature name for SceneScript creature ID " + creatureID);
                                     continue;
@@ -66,7 +65,7 @@ namespace WoWNamingLib.Namers
                                 {
                                     Console.WriteLine("bctext ID " + broadcastTextEvent.Value.broadcastTextID.ID + " for creature " + creatureID + " (" + creatureName + ")");
 
-                                    if(!BCTextToSKitIDs.TryGetValue((uint)broadcastTextEvent.Value.broadcastTextID.ID, out var soundKitIDs))
+                                    if (!BCTextToSKitIDs.TryGetValue((uint)broadcastTextEvent.Value.broadcastTextID.ID, out var soundKitIDs))
                                     {
                                         Console.WriteLine("Could not find SoundKitIDs for BroadcastTextID " + broadcastTextEvent.Value.broadcastTextID.ID + ", skipping..");
                                         continue;
@@ -76,15 +75,15 @@ namespace WoWNamingLib.Namers
                                     {
                                         foreach (var fileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitIDs.Item1))
                                         {
-                                            NameVO(creatureName, fileDataID);
+                                            NameVO(creatureName, fileDataID, true, overrideVO);
                                         }
                                     }
 
-                                    if(soundKitIDs.Item2 != 0)
+                                    if (soundKitIDs.Item2 != 0)
                                     {
                                         foreach (var fileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitIDs.Item2))
                                         {
-                                            NameVO(creatureName, fileDataID);
+                                            NameVO(creatureName, fileDataID, true, overrideVO);
                                         }
                                     }
                                 }
@@ -229,7 +228,7 @@ namespace WoWNamingLib.Namers
                             // Console.WriteLine("\t\t" + soundKit);
                             foreach (var fileDataID in SoundKitHelper.GetFDIDsByKitID(soundKit))
                             {
-                                NameVO(creatureName, fileDataID);
+                                NameVO(creatureName, fileDataID, true, overrideVO);
                             }
                         }
                     }
@@ -238,7 +237,7 @@ namespace WoWNamingLib.Namers
 
             foreach (var creatureToFDID in creaturesToFDID)
             {
-                NameVO(creatureToFDID.Value, (int)creatureToFDID.Key, false);
+                NameVO(creatureToFDID.Value, (int)creatureToFDID.Key, false, overrideVO);
             }
         }
 
@@ -394,7 +393,7 @@ namespace WoWNamingLib.Namers
             }
         }
 
-        private static string NameVO(string creatureName, int fileDataID, bool addonName = true)
+        private static string NameVO(string creatureName, int fileDataID, bool addonName = true, bool overrideVO = true)
         {
             //if (!Namer.placeholderNames.Contains(fileDataID))
             //    return;
@@ -440,7 +439,7 @@ namespace WoWNamingLib.Namers
                         return "";
                 }
 
-                if(existingName.Equals(newFilename, StringComparison.CurrentCultureIgnoreCase) && existingName != newFilename)
+                if (existingName.Equals(newFilename, StringComparison.CurrentCultureIgnoreCase) && existingName != newFilename)
                 {
                     // Prefer new name with capitals
                     forceUpdate = true;
@@ -449,7 +448,7 @@ namespace WoWNamingLib.Namers
 
             Namer.SetCreatureNameForFDID(fileDataID, creatureName);
 
-            NewFileManager.AddNewFile(fileDataID, newFilename, true, forceUpdate);
+            NewFileManager.AddNewFile(fileDataID, newFilename, overrideVO, forceUpdate);
 
             return newFilename;
         }
