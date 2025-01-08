@@ -1,6 +1,7 @@
 ﻿using CASCLib;
 using DBCD;
 using DBCD.Providers;
+using TACTSharp;
 using WoWNamingLib.Namers;
 using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
@@ -22,10 +23,18 @@ namespace WoWNamingLib
         private static DBCManager? dbcManager;
 
         public static bool isInitialized = false;
+        public static bool IsCASCLibInit = false;
+        public static bool IsTACTSharpInit = false;
 
         public static Func<int, uint> GetAddedInPatch = (int fileDataID) => { return 0; };
         public static Func<int, string, bool> SetCreatureNameForFDID = (int fileDataID, string name) => { return false; };
         public static Func<int, string> GetCreatureNameByDisplayID = (int displayID) => { return ""; };
+
+        public static void SetTACT(ref BuildInstance instance, ref List<int> availableFDIDs)
+        {
+            CASCManager.InitializeTACT(ref instance);
+            CASCManager.AvailableFDIDs = availableFDIDs;
+        }
 
         public static void SetCASC(ref CASCHandler handler, ref List<int> availableFDIDs)
         {

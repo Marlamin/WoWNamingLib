@@ -1,16 +1,20 @@
 ﻿using CASCLib;
+using DBDefsLib;
+using TACTSharp;
 
 namespace WoWNamingLib.Services
 {
     public static class CASCManager
     {
         private static HttpClient client = new HttpClient();
-        private static CASCHandler cascHandler;
         public static List<int> AvailableFDIDs = new();
         public static string BuildName;
         public static Jenkins96 Hasher = new Jenkins96();
         public static HashSet<ulong> OfficialLookups = new();
         public static Dictionary<int, ulong> LookupMap = new();
+
+        private static CASCHandler cascHandler;
+        private static BuildInstance buildInstance;
 
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
@@ -46,6 +50,14 @@ namespace WoWNamingLib.Services
         {
             var wrh = cascHandler.Root as WowRootHandler;
             return wrh.GetHashByFileDataId(filedataid);
+        }
+
+        public static void InitializeTACT(ref BuildInstance build)
+        {
+            CASCManager.buildInstance = build;
+
+            var splitName = build.BuildConfig.Values["build-name"][0].Replace("WOW-", "").Split("patch");
+            BuildName = splitName[1].Split("_")[0] + "." + splitName[0];
         }
 
         public static void InitializeCASC(ref CASCHandler cascHandler)

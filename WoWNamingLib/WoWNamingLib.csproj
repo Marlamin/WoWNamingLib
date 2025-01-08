@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\DBCD\DBCD\DBCD.csproj" />
     <ProjectReference Include="..\..\CascLib\CascLib\CascLib.csproj" />
+    <ProjectReference Include="..\..\TACTSharp\TACTSharp\TACTSharp.csproj" />
   </ItemGroup>
 
 </Project>
