@@ -26,10 +26,10 @@ namespace WoWNamingLib.Namers
             var emotesTextSoundDB = Namer.LoadDBC("EmotesTextSound");
             foreach (var emotesTextSoundRow in emotesTextSoundDB.Values)
             {
-                var emotesTextID = (int)emotesTextSoundRow["EmotesTextID"];
-                var raceID = (byte)emotesTextSoundRow["RaceID"];
-                var sexID = (byte)emotesTextSoundRow["SexID"];
-                var soundKitID = (uint)emotesTextSoundRow["SoundID"];
+                var emotesTextID = int.Parse(emotesTextSoundRow["EmotesTextID"].ToString());
+                var raceID = byte.Parse(emotesTextSoundRow["RaceID"].ToString());
+                var sexID = byte.Parse(emotesTextSoundRow["SexID"].ToString());
+                var soundKitID = uint.Parse(emotesTextSoundRow["SoundID"].ToString());
 
                 foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                 {
@@ -124,8 +124,8 @@ namespace WoWNamingLib.Namers
             foreach (var vocalUiSoundsRow in vocalUiSoundsDB.Values)
             {
                 var normalSoundIDs = ((uint[])vocalUiSoundsRow["NormalSoundID"]);
-                var vocalUIEnum = (byte)vocalUiSoundsRow["VocalUIEnum"];
-                var raceID = (byte)vocalUiSoundsRow["RaceID"];
+                var vocalUIEnum = byte.Parse(vocalUiSoundsRow["VocalUIEnum"].ToString());
+                var raceID = byte.Parse(vocalUiSoundsRow["RaceID"].ToString());
                 for (int i = 0; i < normalSoundIDs.Length; i++)
                 {
                     foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(normalSoundIDs[i]))

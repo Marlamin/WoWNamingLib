@@ -16,6 +16,8 @@ namespace WoWNamingLib.Services
         private static CASCHandler cascHandler;
         private static BuildInstance buildInstance;
 
+        private static Lock verifiedListfileLock = new();
+
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
             var file = cascHandler.OpenFile((int)filedataid);
@@ -84,37 +86,38 @@ namespace WoWNamingLib.Services
 
             var download = false;
 
-            if (File.Exists("verified-listfile.csv"))
+            lock (verifiedListfileLock)
             {
-                var info = new FileInfo("verified-listfile.csv");
-                if (DateTime.Now.Subtract(TimeSpan.FromDays(1)) > info.LastWriteTime)
+                if (File.Exists("verified-listfile.csv"))
                 {
-                    Console.WriteLine("Official listfile outdated, redownloading..");
+                    var info = new FileInfo("verified-listfile.csv");
+                    if (DateTime.Now.Subtract(TimeSpan.FromDays(1)) > info.LastWriteTime)
+                    {
+                        Console.WriteLine("Official listfile outdated, redownloading..");
+                        download = true;
+                    }
+                }
+                else
+                {
                     download = true;
                 }
-            }
-            else
-            {
-                download = true;
-            }
 
-            if (download)
-            {
-                var listfile = client.GetStringAsync("https://github.com/wowdev/wow-listfile/releases/latest/download/verified-listfile.csv").Result;
-                File.WriteAllText("verified-listfile.csv", listfile);
-            }
+                if (download)
+                {
+                    var listfile = client.GetStringAsync("https://github.com/wowdev/wow-listfile/releases/latest/download/verified-listfile.csv").Result;
+                    File.WriteAllText("verified-listfile.csv", listfile);
+                }
 
-            foreach (var line in File.ReadAllLines("verified-listfile.csv"))
-            {
-                var splitLine = line.Split(';');
-                var jenkinsHash = Hasher.ComputeHash(splitLine[1]);
-                var fdid = int.Parse(splitLine[0]);
+                foreach (var line in File.ReadAllLines("verified-listfile.csv"))
+                {
+                    var splitLine = line.Split(';');
+                    var jenkinsHash = Hasher.ComputeHash(splitLine[1]);
+                    var fdid = int.Parse(splitLine[0]);
 
-                if (!OfficialLookups.Contains(jenkinsHash))
                     OfficialLookups.Add(jenkinsHash);
 
-                if(!LookupMap.ContainsKey(fdid))
-                    LookupMap.Add(fdid, jenkinsHash);
+                    LookupMap.TryAdd(fdid, jenkinsHash);
+                }
             }
 
             Console.WriteLine("Loaded " + OfficialLookups.Count + " files from official listfile!");

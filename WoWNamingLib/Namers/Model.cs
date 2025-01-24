@@ -1458,14 +1458,14 @@ namespace WoWNamingLib.Namers
                                 }
                                 else if (spellFDIDs.Contains(fdid))
                                 {
-                                    if (spellNamesClean.ContainsKey(fdid))
-                                    {
+                                    //if (spellNamesClean.ContainsKey(fdid))
+                                    //{
 
-                                    }
-                                    else
-                                    {
+                                    //}
+                                    //else
+                                    //{
                                         folder = "models/spells/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
-                                    }
+                                    //}
                                 }
                                 else
                                 {

@@ -39,7 +39,7 @@ namespace WoWNamingLib.Namers
                     if (
                         textureVariationFDID != 0 &&
                             (
-                                !Namer.IDToNameLookup.ContainsKey(textureVariationFDID) ||
+                                Namer.placeholderNames.Contains(textureVariationFDID) ||
                                 Namer.IDToNameLookup[textureVariationFDID] == "creature/" + Path.GetFileNameWithoutExtension(modelFileName) + "/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + textureVariationFDID + ".blp"
                             )
                         )
