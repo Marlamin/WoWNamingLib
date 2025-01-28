@@ -131,12 +131,27 @@ namespace WoWNamingLib.Namers
         {
             foreach (var idToHash in idToHashes)
             {
+                if (!Namer.IDToNameLookup.ContainsKey(idToHash.Key))
+                {
+                    // maptexture_n
+                    if (idToHash.Value.Equals("93eb33c44532ea7e4f62666417beaa6a", StringComparison.CurrentCultureIgnoreCase))
+                        NewFileManager.AddNewFile(idToHash.Key, "unkmaps/maptextures/" + idToHash.Key + "_n.blp", true, true);
+
+                    // maptexture
+                    if (idToHash.Value.Equals("77beda3cb2c5709fc953c9d21e1d2414", StringComparison.CurrentCultureIgnoreCase))
+                        NewFileManager.AddNewFile(idToHash.Key, "unkmaps/maptextures/" + idToHash.Key + ".blp", true, true);
+
+                    // minimaps
+                    if(idToHash.Value.Equals("ef3ae8b80605064fadc0515b10c82ef2", StringComparison.CurrentCultureIgnoreCase))
+                        NewFileManager.AddNewFile(idToHash.Key, "unkmaps/minimaps/" + idToHash.Key + ".blp", true, true);
+                }
+
                 if (!knownHashes.TryGetValue(idToHash.Value.ToLower(), out var knownName))
                     continue;
 
                 if (Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentName))
                 {
-                    if (!string.IsNullOrEmpty(currentName) && !currentName.ToLower().StartsWith("models/unktextures"))
+                    if (!string.IsNullOrEmpty(currentName) && !currentName.StartsWith("models/unktextures", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var currentDir = Path.GetDirectoryName(currentName);
                         var newFilename = currentDir.Replace("\\", "/") + "/" + knownName + ".blp";
@@ -147,6 +162,11 @@ namespace WoWNamingLib.Namers
 
                 NewFileManager.AddNewFile(idToHash.Key, "models/unktextures/" + knownName + "_" + idToHash.Key + ".blp", true, true);
             }
+        }
+
+        private static bool overrideCheck(bool overrideName, uint fdid, bool forceOverride)
+        {
+            return fdid != 0 && (forceOverride || overrideName || !Namer.IDToNameLookup.ContainsKey((int)fdid) || Namer.placeholderNames.Contains((int)fdid));
         }
     }
 }

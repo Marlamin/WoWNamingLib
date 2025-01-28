@@ -1,4 +1,5 @@
 ﻿using DBCD;
+using System.Diagnostics;
 using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
@@ -1552,7 +1553,7 @@ namespace WoWNamingLib.Namers
                                 if (m2.textureFileDataIDs[i] == 0)
                                     continue;
 
-                                if (!Namer.placeholderNames.Contains((int)m2.textureFileDataIDs[i]))
+                                if (Namer.IDToNameLookup.ContainsKey((int)m2.textureFileDataIDs[i]) && !Namer.placeholderNames.Contains((int)m2.textureFileDataIDs[i]))
                                     continue;
 
                                 if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName))

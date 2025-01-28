@@ -127,7 +127,7 @@ namespace WoWNamingLib.Services
                         //if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".m2"))
                         //    return;
 
-                        if (!currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
+                        if (!currentFileName.StartsWith("models") && !currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
                             return;
 
                         //if (Program.IDToNameLookup[fileDataID].Contains("exp09") && filename.Contains("exp09"))
