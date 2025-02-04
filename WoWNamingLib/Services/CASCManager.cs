@@ -9,7 +9,7 @@ namespace WoWNamingLib.Services
         private static HttpClient client = new HttpClient();
         public static List<int> AvailableFDIDs = new();
         public static string BuildName;
-        public static Jenkins96 Hasher = new Jenkins96();
+        public static CASCLib.Jenkins96 Hasher = new CASCLib.Jenkins96();
         public static HashSet<ulong> OfficialLookups = new();
         public static Dictionary<int, ulong> LookupMap = new();
 
