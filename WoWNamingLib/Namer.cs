@@ -47,6 +47,11 @@ namespace WoWNamingLib
             dbcManager = new DBCManager(dbcProvider, dbdProvider);
         }
 
+        public static void SetProviders(IDBCProvider dbcProvider, Stream bdbdStream)
+        {
+            dbcManager = new DBCManager(dbcProvider, bdbdStream);
+        }
+
         public static void SetGetExpansionFunction(Func<int, uint> function)
         {
             GetAddedInPatch = function;

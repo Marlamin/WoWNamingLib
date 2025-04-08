@@ -11,14 +11,24 @@ namespace WoWNamingLib.Services
         public DBCManager(IDBCProvider dbcProvider, IDBDProvider dbdProvider)
         {
             dbcd = new DBCD.DBCD(dbcProvider, dbdProvider);
+            InitHotfixes();
+        }
 
+        public DBCManager(IDBCProvider dbcProvider, Stream bdbdStream)
+        {
+            dbcd = new DBCD.DBCD(dbcProvider, bdbdStream);
+            InitHotfixes();
+        }
+
+        private void InitHotfixes()
+        {
             if (!string.IsNullOrEmpty(Namer.wowDir) && Namer.localProduct == "wow" && File.Exists(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin")))
             {
                 var htfxReader = new HotfixReader(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin"));
 
                 var buildIDInNamer = Namer.build.Split('.')[3];
 
-                if(htfxReader.BuildId == int.Parse(buildIDInNamer))
+                if (htfxReader.BuildId == int.Parse(buildIDInNamer))
                 {
                     hotfixReader = htfxReader;
                     Console.WriteLine("Loaded hotfixes from " + hotfixReader.BuildId);
