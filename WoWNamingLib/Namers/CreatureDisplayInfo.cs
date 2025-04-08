@@ -40,7 +40,7 @@ namespace WoWNamingLib.Namers
                         textureVariationFDID != 0 &&
                             (
                                 Namer.placeholderNames.Contains(textureVariationFDID) ||
-                                Namer.IDToNameLookup[textureVariationFDID] == "creature/" + Path.GetFileNameWithoutExtension(modelFileName) + "/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + textureVariationFDID + ".blp"
+                                (Namer.IDToNameLookup.TryGetValue(textureVariationFDID, out var currentName) && currentName == "creature/" + Path.GetFileNameWithoutExtension(modelFileName) + "/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + textureVariationFDID + ".blp")
                             )
                         )
                         NewFileManager.AddNewFile(textureVariationFDID, Path.GetDirectoryName(modelFileName) + "/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + textureVariationFDID + ".blp", true);

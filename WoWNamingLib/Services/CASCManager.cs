@@ -1,5 +1,7 @@
 ﻿using CASCLib;
 using DBDefsLib;
+using System.Reflection.Metadata.Ecma335;
+using System.Xml.Linq;
 using TACTSharp;
 
 namespace WoWNamingLib.Services
@@ -20,9 +22,17 @@ namespace WoWNamingLib.Services
 
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
-            var file = cascHandler.OpenFile((int)filedataid);
-            if (file == null)
-                throw new Exception("Unable to open file " + filedataid);
+            Stream file = null;
+            if(cascHandler == null)
+            {
+                return new MemoryStream(buildInstance.OpenFileByFDID(filedataid));
+            }
+            else
+            {
+                file = cascHandler.OpenFile((int)filedataid);
+                if (file == null)
+                    throw new Exception("Unable to open file " + filedataid);
+            }
 
             return file;
         }
@@ -34,24 +44,61 @@ namespace WoWNamingLib.Services
 
         public static async Task<Stream> GetFileByName(string name)
         {
-            var file = cascHandler.OpenFile(name);
-            if (file == null)
-                throw new Exception("Unable to open file " + name);
+            Stream file = null;
+            if(cascHandler == null)
+            {
+                using (var jenkins = new TACTSharp.Jenkins96())
+                {
+                    file = new MemoryStream(buildInstance.OpenFileByFDID(buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
+                }
+            }
+            else
+            {
+                file = cascHandler.OpenFile(name);
+                if (file == null)
+                    throw new Exception("Unable to open file " + name);
+            }
 
             return file;
         }
 
         public static async Task<int> GetFileDataIDByName(string name)
         {
-            var wrh = cascHandler.Root as WowRootHandler;
-            var hash = Hasher.ComputeHash(name);
-            return wrh.GetFileDataIdByHash(hash);
+            if(cascHandler == null)
+            {
+                using (var jenkins = new TACTSharp.Jenkins96())
+                {
+                    var entries = buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name));
+                    if (entries.Count == 0)
+                        return 0;
+                    return (int)entries[0].fileDataID;
+                }
+            }
+            else
+            {
+                var wrh = cascHandler.Root as WowRootHandler;
+                var hash = Hasher.ComputeHash(name);
+                return wrh.GetFileDataIdByHash(hash);
+            }
         }
 
         public static async Task<ulong> GetHashByFileDataID(int filedataid)
         {
-            var wrh = cascHandler.Root as WowRootHandler;
-            return wrh.GetHashByFileDataId(filedataid);
+            if(cascHandler == null)
+            {
+                using (var jenkins = new TACTSharp.Jenkins96())
+                {
+                    var entries = buildInstance.Root.GetEntriesByFDID((uint)filedataid);
+                    if (entries.Count == 0)
+                        return 0;
+                    return entries[0].lookup;
+                }
+            }
+            else
+            {
+                var wrh = cascHandler.Root as WowRootHandler;
+                return wrh.GetHashByFileDataId(filedataid);
+            }
         }
 
         public static void InitializeTACT(ref BuildInstance build)
