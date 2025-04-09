@@ -104,9 +104,7 @@ namespace WoWNamingLib.Services
         public static void InitializeTACT(ref BuildInstance build)
         {
             CASCManager.buildInstance = build;
-
-            var splitName = build.BuildConfig.Values["build-name"][0].Replace("WOW-", "").Split("patch");
-            BuildName = splitName[1].Split("_")[0] + "." + splitName[0];
+            BuildName = build.BuildConfig.Values["build-name"][0];
         }
 
         public static void InitializeCASC(ref CASCHandler cascHandler)
