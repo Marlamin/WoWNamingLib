@@ -38,14 +38,14 @@ namespace WoWNamingLib.Services
 
         public DBCD.IDBCDStorage Load(string name)
         {
-            if (cache.ContainsKey(name))
-                return cache[name];
+            if (cache.TryGetValue(name, out DBCD.IDBCDStorage? value))
+                return value;
 
             var db = dbcd.Load(name, Namer.build);
             if (hotfixReader != null)
                 db.ApplyingHotfixes(hotfixReader);
 
-            cache.Add(name, db);
+            cache.TryAdd(name, db);
 
             if (db.Count == 0)
                 Console.WriteLine("[WARN] No records found in " + name + "!");

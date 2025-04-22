@@ -656,7 +656,7 @@ namespace WoWNamingLib.Namers
                 {
                     if (!spellNamesClean.ContainsValue(calculatedName) && !Namer.IDToNameLookup.ContainsValue(calculatedName))
                     {
-                        spellNamesClean.Add(spellModelName.Key, calculatedName);
+                        spellNamesClean.TryAdd(spellModelName.Key, calculatedName);
                         nameSaved = true;
                     }
                     else
