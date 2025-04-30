@@ -97,8 +97,26 @@ namespace WoWNamingLib.Services
             else
             {
                 var wrh = cascHandler.Root as WowRootHandler;
-                return wrh.GetHashByFileDataId(filedataid);
+                var cascLibLookup = wrh.GetHashByFileDataId(filedataid);
+
+                // Check if this is a fake CASCLib lookup
+                if (cascLibLookup == ComputeFakeCASCLibHash(filedataid))
+                    return 0;
+                else
+                    return cascLibLookup;
             }
+        }
+
+        public static ulong ComputeFakeCASCLibHash(int fileDataId)
+        {
+            ulong baseOffset = 0xCBF29CE484222325UL;
+
+            for (int i = 0; i < 4; i++)
+            {
+                baseOffset = 0x100000001B3L * ((((uint)fileDataId >> (8 * i)) & 0xFF) ^ baseOffset);
+            }
+
+            return baseOffset;
         }
 
         public static void InitializeTACT(ref BuildInstance build)
@@ -125,20 +143,21 @@ namespace WoWNamingLib.Services
             }
         }
 
-        public static void LoadOfficialListfile()
+        public static void LoadOfficialLookups()
         {
-            Console.WriteLine("Loading official listfile..");
+            Console.WriteLine("Loading official lookups..");
 
             var download = false;
+            var filename = "lookup.csv";
 
             lock (verifiedListfileLock)
             {
-                if (File.Exists("verified-listfile.csv"))
+                if (File.Exists(filename))
                 {
-                    var info = new FileInfo("verified-listfile.csv");
+                    var info = new FileInfo(filename);
                     if (DateTime.Now.Subtract(TimeSpan.FromDays(1)) > info.LastWriteTime)
                     {
-                        Console.WriteLine("Official listfile outdated, redownloading..");
+                        Console.WriteLine("Official lookups outdated, redownloading..");
                         download = true;
                     }
                 }
@@ -149,15 +168,15 @@ namespace WoWNamingLib.Services
 
                 if (download)
                 {
-                    var listfile = client.GetStringAsync("https://github.com/wowdev/wow-listfile/releases/latest/download/verified-listfile.csv").Result;
-                    File.WriteAllText("verified-listfile.csv", listfile);
+                    var listfile = client.GetStringAsync("https://raw.githubusercontent.com/wowdev/wow-listfile/refs/heads/master/meta/lookup.csv").Result;
+                    File.WriteAllText(filename, listfile);
                 }
 
-                foreach (var line in File.ReadAllLines("verified-listfile.csv"))
+                foreach (var line in File.ReadAllLines(filename))
                 {
                     var splitLine = line.Split(';');
-                    var jenkinsHash = Hasher.ComputeHash(splitLine[1]);
                     var fdid = int.Parse(splitLine[0]);
+                    var jenkinsHash = Convert.ToUInt64(splitLine[1], 16);
 
                     OfficialLookups.Add(jenkinsHash);
 
@@ -165,7 +184,7 @@ namespace WoWNamingLib.Services
                 }
             }
 
-            Console.WriteLine("Loaded " + OfficialLookups.Count + " files from official listfile!");
+            Console.WriteLine("Loaded " + OfficialLookups.Count + " official lookups!");
         }
     }
 }

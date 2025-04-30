@@ -1513,22 +1513,25 @@ namespace WoWNamingLib.Namers
                                 NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
                         }
 
-                        for (var i = 0; i < m2.skinFileDataIDs.Length; i++)
+                        if(m2.skinFileDataIDs != null)
                         {
-                            if (i > (m2.nViews - 1))
+                            for (var i = 0; i < m2.skinFileDataIDs.Length; i++)
                             {
-                                if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
+                                if (i > (m2.nViews - 1))
                                 {
-                                    NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + "_lod" + (i - m2.nViews + 1).ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
-                                    //Console.WriteLine("parent fdid for " + m2.skinFileDataIDs[i]  + " is " + fdid);
+                                    if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
+                                    {
+                                        NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + "_lod" + (i - m2.nViews + 1).ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
+                                        //Console.WriteLine("parent fdid for " + m2.skinFileDataIDs[i]  + " is " + fdid);
+                                    }
                                 }
-                            }
-                            else
-                            {
-                                if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
+                                else
                                 {
-                                    NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + i.ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
-                                    // Console.WriteLine("parent fdid for " + m2.skinFileDataIDs[i] + " is " + fdid);
+                                    if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
+                                    {
+                                        NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + i.ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
+                                        // Console.WriteLine("parent fdid for " + m2.skinFileDataIDs[i] + " is " + fdid);
+                                    }
                                 }
                             }
                         }

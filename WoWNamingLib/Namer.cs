@@ -25,6 +25,7 @@ namespace WoWNamingLib
         public static bool isInitialized = false;
         public static bool IsCASCLibInit = false;
         public static bool IsTACTSharpInit = false;
+        public static bool AllowCaseRenames = false;
 
         public static Func<int, uint> GetAddedInPatch = (int fileDataID) => { return 0; };
         public static Func<int, string, bool> SetCreatureNameForFDID = (int fileDataID, string name) => { return false; };
@@ -98,7 +99,7 @@ namespace WoWNamingLib
 
             IDToNameLookup = new(listfile.Where(x => x.Value != ""));
 
-            CASCManager.LoadOfficialListfile();
+            CASCManager.LoadOfficialLookups();
 
             isInitialized = true;
         }

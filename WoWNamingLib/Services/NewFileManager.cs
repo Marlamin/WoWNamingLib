@@ -53,56 +53,44 @@ namespace WoWNamingLib.Services
             if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357 || fileDataID == 2887301 || fileDataID == 3557051)
                 return;
 
-            if (CASCManager.BuildName.Contains("Classic"))
-            {
-                // Check filehashes on classic
-                var hashByFDID = CASCManager.GetHashByFileDataID((int)fileDataID).Result;
-                if (hashByFDID != 0)
-                {
-                    var hash = Hasher.ComputeHash(filename);
-                    if (hashByFDID != hash)
-                    {
-                        Console.WriteLine("Hash mismatch for " + fileDataID + ": " + filename);
-                        return;
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("No namehash found for FDID " + fileDataID + " even though we are on Classic, skipping..");
-                    return;
-                }
+            var newLookup = Hasher.ComputeHash(filename);
 
-                // Don't accept capital-only differences from Classic.
-                if (Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.IDToNameLookup[fileDataID].ToLower() == filename.ToLower())
+            // Retrieve lookup from lookup.csv.
+            if (CASCManager.LookupMap.TryGetValue(fileDataID, out var cachedLookup))
+            {
+                if(newLookup != cachedLookup)
+                {
+                    Console.WriteLine("Incoming filename " + filename + " for FDID " + fileDataID + " does not match known lookup " + cachedLookup.ToString("X16") + ", skipping.");
                     return;
+                }
             }
 
-            if (Namer.IDToNameLookup.TryGetValue(fileDataID, out string currentFileName))
+            // Retrieve lookup from CASC.
+            var hashByFDID = CASCManager.GetHashByFileDataID((int)fileDataID).Result;
+            if (hashByFDID != 0)
+            {
+                if (hashByFDID != newLookup)
+                {
+                    Console.WriteLine("Hash mismatch for " + fileDataID + ": " + filename);
+                    return;
+                }
+
+                if(cachedLookup != hashByFDID)
+                {
+                    Console.WriteLine("!!! CASC-sourced lookup for file " + fileDataID + " does not match known lookup from listfile repo (" + hashByFDID.ToString("X16") + " != " + cachedLookup.ToString("X16") + " )!");
+                }
+            }
+
+            if (Namer.IDToNameLookup.TryGetValue(fileDataID, out var currentFileName))
             {
                 var oldHash = Hasher.ComputeHash(currentFileName);
 
-                if (currentFileName.StartsWith("interface", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    var newHash = Hasher.ComputeHash(filename);
-
-                    if(!CASCManager.OfficialLookups.Contains(oldHash) && CASCManager.OfficialLookups.Contains(newHash))
-                    {
-                        Console.WriteLine("Bypassing interface skip for " + fileDataID + ", lookup for newer file matches: " + currentFileName + " => " + filename);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite interface file: " + currentFileName + " => " + filename);
-                        return;
-                    }
-                }
-
-                var caseOnlyFix = currentFileName.Equals(filename, StringComparison.CurrentCultureIgnoreCase) && currentFileName != filename;
-
-                if (CASCManager.OfficialLookups.Contains(oldHash))
-                {
-                    //Console.WriteLine("[ERROR] Official name being overriden for " + fileDataID + ", old " + currentFileName + ", new: " + filename);
+                var caseOnlyFix = currentFileName.Equals(filename, StringComparison.OrdinalIgnoreCase) && !currentFileName.Equals(filename, StringComparison.Ordinal);
+                if (!Namer.AllowCaseRenames && caseOnlyFix)
                     return;
-                }
+
+                if (cachedLookup != newLookup)
+                    return;
 
                 if (
                     (
@@ -124,14 +112,9 @@ namespace WoWNamingLib.Services
                             Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite " + currentFileName + " with " + filename);
                             return;
                         }
-                        //if (!currentFileName.Contains("exp09") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".m2"))
-                        //    return;
 
                         if (!currentFileName.StartsWith("models") && !currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
                             return;
-
-                        //if (Program.IDToNameLookup[fileDataID].Contains("exp09") && filename.Contains("exp09"))
-                        //    return;
                     }
 
                     if (filename.Contains("world/wmo", StringComparison.CurrentCultureIgnoreCase) && currentFileName.Contains("tileset", StringComparison.CurrentCultureIgnoreCase))
