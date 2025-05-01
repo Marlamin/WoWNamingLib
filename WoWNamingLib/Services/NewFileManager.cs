@@ -89,7 +89,7 @@ namespace WoWNamingLib.Services
                 if (!Namer.AllowCaseRenames && caseOnlyFix)
                     return;
 
-                if (cachedLookup != newLookup)
+                if (cachedLookup != 0 && cachedLookup != newLookup)
                     return;
 
                 if (

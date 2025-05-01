@@ -1405,13 +1405,13 @@ namespace WoWNamingLib.Namers
                                     folder = "Item/ObjectComponents/ammo";
                                     break;
                                 default:
-                                    if (!unkPrefixes.ContainsKey(splitModelName[0]))
+                                    if (!unkPrefixes.TryGetValue(splitModelName[0], out int prefixCount))
                                     {
                                         unkPrefixes.Add(splitModelName[0], 1);
                                     }
                                     else
                                     {
-                                        unkPrefixes[splitModelName[0]]++;
+                                        unkPrefixes[splitModelName[0]] = ++prefixCount;
                                     }
                                     if (!int.TryParse(splitModelName[0], out _))
                                     {
@@ -1578,38 +1578,39 @@ namespace WoWNamingLib.Namers
 
                         // TODO: Particles?
 
-
-                        for (var i = 0; i < m2.events.Length; i++)
+                        if(m2.events != null)
                         {
-                            var ev = m2.events[i];
-                            var soundType = "";
-                            switch (ev.identifier)
+                            for (var i = 0; i < m2.events.Length; i++)
                             {
-                                case "$CSD":
-                                    soundType = "csd";
-                                    break;
-                                case "$DSL":
-                                    soundType = "loop";
-                                    break;
-                                case "$DSO":
-                                    soundType = "oneshot";
-                                    break;
-                                case "$SND":
-                                    soundType = "custom";
-                                    break;
-                            }
-
-                            if (soundType != "")
-                            {
-                                foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(ev.data))
+                                var ev = m2.events[i];
+                                var soundType = "";
+                                switch (ev.identifier)
                                 {
-                                    if (overrideCheck(overrideName, (uint)soundKitFDID, forceOverrideName))
+                                    case "$CSD":
+                                        soundType = "csd";
+                                        break;
+                                    case "$DSL":
+                                        soundType = "loop";
+                                        break;
+                                    case "$DSO":
+                                        soundType = "oneshot";
+                                        break;
+                                    case "$SND":
+                                        soundType = "custom";
+                                        break;
+                                }
+
+                                if (soundType != "")
+                                {
+                                    foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(ev.data))
                                     {
-                                        NewFileManager.AddNewFile(soundKitFDID, "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg");
+                                        if (overrideCheck(overrideName, (uint)soundKitFDID, forceOverrideName))
+                                        {
+                                            NewFileManager.AddNewFile(soundKitFDID, "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg");
+                                        }
                                     }
                                 }
                             }
-
                         }
                     }
                     catch (Exception e)
