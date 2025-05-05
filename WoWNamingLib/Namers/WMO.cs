@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
@@ -128,7 +129,8 @@ namespace WoWNamingLib.Namers
 
                     var resetName = false;
                     var premapRenameName = "";
-                    if (!Namer.IDToNameLookup.TryGetValue(fdid, out var wmoFilename) || wmoFilename.ToLower().StartsWith("world/wmo/autogen-names/unknown-fdid/map-") || wmoFilename.ToLower().StartsWith("models"))
+
+                    if (!Namer.IDToNameLookup.TryGetValue(fdid, out var wmoFilename) || wmoFilename.StartsWith("world/wmo/autogen-names/unknown-fdid/map-", StringComparison.OrdinalIgnoreCase) || wmoFilename.ToLower().StartsWith("models"))
                     {
                         premapRenameName = wmoFilename;
                         Console.WriteLine("WMO " + fdid + " is unnamed");
@@ -138,7 +140,7 @@ namespace WoWNamingLib.Namers
 
                     resetName = true;
 
-                    if (wmoFilename.ToLower().StartsWith("world/wmo/autogen-names/unknown"))
+                    if (wmoFilename.StartsWith("world/wmo/autogen-names/unknown", StringComparison.OrdinalIgnoreCase))
                     {
                         if (wmoAreaTableMap.TryGetValue(wmo.header.wmoID, out var areaTableIDs))
                         {
@@ -162,9 +164,9 @@ namespace WoWNamingLib.Namers
                     //    File.AppendAllText("groupNames.txt", fdid + " (" + Path.GetFileNameWithoutExtension(wmoFilename) + ") has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)) + "\n");
                     //}
 
-                    if (wmoFilename.StartsWith("world/wmo/autogen-names/unknown", StringComparison.CurrentCultureIgnoreCase) || resetName)
+                    if (wmoFilename.StartsWith("world/wmo/autogen-names/unknown", StringComparison.OrdinalIgnoreCase) || resetName)
                     {
-                        if (!string.IsNullOrEmpty(premapRenameName) && premapRenameName.ToLower().StartsWith("world/wmo/autogen-names/unknown-fdid/map-"))
+                        if (!string.IsNullOrEmpty(premapRenameName) && premapRenameName.StartsWith("world/wmo/autogen-names/unknown-fdid/map-", StringComparison.OrdinalIgnoreCase))
                         {
                             Console.WriteLine("WMO " + premapRenameName + " has parent map " + premapRenameName.Split('-')[3].Split('/')[0]);
                             var parentMap = uint.Parse(premapRenameName.Split('-')[3].Split('/')[0]);
