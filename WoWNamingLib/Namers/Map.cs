@@ -1,4 +1,6 @@
-﻿using WoWNamingLib.Services;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
@@ -218,6 +220,8 @@ namespace WoWNamingLib.Namers
                 throw new Exception("One of the required columns (Directory or WdtFileDataID) is missing, can't continue map naming.");
             }
 
+            var namedMaps = new List<string>();
+
             foreach (var entry in mapDB.Values)
             {
                 var mapDirectory = entry["Directory"].ToString();
@@ -225,12 +229,40 @@ namespace WoWNamingLib.Namers
                 if (mapDB.AvailableColumns.Contains("WdtFileDataID"))
                 {
                     var wdtFileDataID = uint.Parse(entry["WdtFileDataID"].ToString());
-                    NameMap(mapDirectory, wdtFileDataID);
+                    NameMap(mapDirectory!, wdtFileDataID);
                 }
                 else
                 {
-                    NameMap(mapDirectory);
+                    NameMap(mapDirectory!);
                 }
+
+                namedMaps.Add(mapDirectory!.ToLower());
+            }
+
+            Console.WriteLine("Scanning listfile for named WDTs not in map DB2..");
+            var bannedExts = new List<string>() { "_fogs.wdt", "_lgt.wdt", "_occ.wdt", "_mpv.wdt", "_preload.wdt" };
+            foreach(var entry in Namer.IDToNameLookup)
+            {
+                if (!entry.Value.EndsWith(".wdt"))
+                    continue;
+
+                var banned = false;
+
+                foreach (var bannedExt in bannedExts)
+                    if (entry.Value.EndsWith(bannedExt))
+                        banned = true;
+
+                if (banned)
+                    continue;
+
+                var mapDirectory = Path.GetFileNameWithoutExtension(entry.Value).ToLower();
+                if (namedMaps.Contains(mapDirectory))
+                    continue;
+
+                Console.WriteLine("Naming listfile-only WDT " + entry.Key + " (" + entry.Value + ")");
+                NameMap(mapDirectory, (uint)entry.Key);
+
+                namedMaps.Add(mapDirectory);
             }
 
             if (mapDB.AvailableColumns.Contains("PreloadFileDataID"))
