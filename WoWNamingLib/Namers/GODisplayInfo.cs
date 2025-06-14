@@ -14,14 +14,10 @@ namespace WoWNamingLib.Namers
                 var objectEffectGroupID = uint.Parse(oepeRow["ObjectEffectGroupID"].ToString());
                 var stateType = uint.Parse(oepeRow["StateType"].ToString());
 
-                if (!objectEffectPackageMap.ContainsKey(objectEffectPackageID))
-                {
+                if (!objectEffectPackageMap.TryGetValue(objectEffectPackageID, out List<(uint GroupID, uint StateType)>? objectEffectGroupStates))
                     objectEffectPackageMap.Add(objectEffectPackageID, new List<(uint GroupID, uint StateType)>() { (objectEffectGroupID, stateType) });
-                }
                 else
-                {
-                    objectEffectPackageMap[objectEffectPackageID].Add((objectEffectGroupID, stateType));
-                }
+                    objectEffectGroupStates.Add((objectEffectGroupID, stateType));
             }
 
             var objectEffectGroupMap = new Dictionary<uint, List<DBCD.DBCDRow>>();
@@ -30,14 +26,10 @@ namespace WoWNamingLib.Namers
             foreach (var oeRow in objectEffectDB.Values)
             {
                 var objectEffectGroupID = uint.Parse(oeRow["ObjectEffectGroupID"].ToString());
-                if (!objectEffectGroupMap.ContainsKey(objectEffectGroupID))
-                {
+                if (!objectEffectGroupMap.TryGetValue(objectEffectGroupID, out List<DBCD.DBCDRow>? objectEffectGroup))
                     objectEffectGroupMap.Add(objectEffectGroupID, new List<DBCD.DBCDRow>() { oeRow });
-                }
                 else
-                {
-                    objectEffectGroupMap[objectEffectGroupID].Add(oeRow);
-                }
+                    objectEffectGroup.Add(oeRow);
             }
 
             var gameObjectDisplayInfoDB = Namer.LoadDBC("GameObjectDisplayInfo");
@@ -68,13 +60,10 @@ namespace WoWNamingLib.Namers
 
                                 foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(effectRecID))
                                 {
-                                    if (Namer.IDToNameLookup.ContainsKey((int)soundFDID))
-                                        continue;
-
                                     if (Sound.StateType.TryGetValue(objectEffectPackageRef.StateType, out var stateName))
                                     {
                                         var animName = stateName.Replace("Anim", "").Replace("Movement", "").Replace("Transport", "").Replace(" ", "").Replace("-", "");
-                                        NewFileManager.AddNewFile(soundFDID, "sound/doodad/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + animName.ToLower() + "_" + soundFDID + ".ogg");
+                                        NewFileManager.AddNewFile(soundFDID, "Sound/Doodad/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + animName.ToLower() + "_" + soundFDID + ".ogg", modelFileName.Contains(goModelFDID.ToString()));
                                     }
                                     else
                                     {

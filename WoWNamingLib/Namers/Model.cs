@@ -1605,9 +1605,7 @@ namespace WoWNamingLib.Namers
                                     foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(ev.data))
                                     {
                                         if (overrideCheck(overrideName, (uint)soundKitFDID, forceOverrideName))
-                                        {
-                                            NewFileManager.AddNewFile(soundKitFDID, "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg");
-                                        }
+                                            NewFileManager.AddNewFile(soundKitFDID, "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg", true);
                                     }
                                 }
                             }
