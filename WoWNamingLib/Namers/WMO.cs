@@ -159,10 +159,10 @@ namespace WoWNamingLib.Namers
                         }
                     }
 
-                    //if (wmoFilename.Contains("autogen-names") && wmo.groupNames.Length != 0)
-                    //{
-                    //    File.AppendAllText("groupNames.txt", fdid + " (" + Path.GetFileNameWithoutExtension(wmoFilename) + ") has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)) + "\n");
-                    //}
+                    if (wmoFilename.Contains("autogen-names") && wmo.groupNames.Length != 0)
+                    {
+                        File.AppendAllText("groupNames.txt", fdid + " (" + Path.GetFileNameWithoutExtension(wmoFilename) + ") has group names: " + string.Join(", ", wmo.groupNames.Select(x => x.name)) + "\n");
+                    }
 
                     if (wmoFilename.StartsWith("world/wmo/autogen-names/unknown", StringComparison.OrdinalIgnoreCase) || resetName)
                     {

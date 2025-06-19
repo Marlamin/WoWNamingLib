@@ -15,21 +15,26 @@ namespace WoWNamingLib.Namers
                 var tfdMap = new Dictionary<int, List<int>>();
 
                 var textureFileData = Namer.LoadDBC("TextureFileData");
+                if (!textureFileData.AvailableColumns.Contains("UsageType") || !textureFileData.AvailableColumns.Contains("MaterialResourcesID") || !textureFileData.AvailableColumns.Contains("FileDataID"))
+                {
+                    Console.WriteLine("TextureFileData is missing UsageType, MaterialResourcesID or FileDataID columns");
+                    return;
+                }
 
                 foreach (var tfdRow in textureFileData.Values)
                 {
-                    var usageType = uint.Parse(tfdRow["UsageType"].ToString());
-                    var materialResourcesID = int.Parse(tfdRow["MaterialResourcesID"].ToString());
+                    var usageType = uint.Parse(tfdRow["UsageType"].ToString()!);
+                    var materialResourcesID = int.Parse(tfdRow["MaterialResourcesID"].ToString()!);
 
                     if (usageType == 0)
                     {
                         if (tfdMap.ContainsKey(materialResourcesID))
                         {
-                            tfdMap[materialResourcesID].Add(int.Parse(tfdRow["FileDataID"].ToString()));
+                            tfdMap[materialResourcesID].Add(int.Parse(tfdRow["FileDataID"].ToString()!));
                         }
                         else
                         {
-                            tfdMap.TryAdd(materialResourcesID, new List<int>() { int.Parse(tfdRow["FileDataID"].ToString()) });
+                            tfdMap.TryAdd(materialResourcesID, new List<int>() { int.Parse(tfdRow["FileDataID"].ToString()!) });
                         }
                     }
                 }
@@ -41,9 +46,9 @@ namespace WoWNamingLib.Namers
                     var fileDataID = int.Parse(mfdRow["FileDataID"].ToString());
                     var modelResourcesID = uint.Parse(mfdRow["ModelResourcesID"].ToString());
 
-                    if (mfdMap.ContainsKey(modelResourcesID))
+                    if (mfdMap.TryGetValue(modelResourcesID, out List<int>? currentList))
                     {
-                        mfdMap[modelResourcesID].Add(fileDataID);
+                        currentList.Add(fileDataID);
                     }
                     else
                     {
@@ -60,15 +65,30 @@ namespace WoWNamingLib.Namers
 
                 var itemAppearance = Namer.LoadDBC("ItemAppearance");
                 var chrRaces = Namer.LoadDBC("ChrRaces");
+                if(!chrRaces.AvailableColumns.Contains("ClientPrefix"))
+                {
+                    Console.WriteLine("ChrRaces is missing ClientPrefix column");
+                    return;
+                }
 
                 var stupidItemExtensions = new List<string>();
                 foreach (var raceRow in chrRaces.Values)
                 {
-                    var clientPrefix = raceRow["ClientPrefix"].ToString().ToLower();
+                    var clientPrefix = raceRow["ClientPrefix"].ToString()!.ToLower();
                     stupidItemExtensions.Add(clientPrefix + "m.m2");
                     stupidItemExtensions.Add(clientPrefix + "_m.m2");
                     stupidItemExtensions.Add(clientPrefix + "f.m2");
                     stupidItemExtensions.Add(clientPrefix + "_f.m2");
+                }
+
+                var itemAppearanceIDIToIconMap = new Dictionary<uint, int>();
+                foreach (dynamic iaRow in itemAppearance.Values)
+                {
+                    var idiID = uint.Parse(iaRow.ItemDisplayInfoID.ToString());
+                    if (idiID == 0)
+                        continue;
+
+                    itemAppearanceIDIToIconMap.TryAdd(idiID, int.Parse(iaRow.DefaultIconFileDataID.ToString()));
                 }
 
                 foreach (dynamic idiRow in itemDisplayInfo.Values)
@@ -232,7 +252,7 @@ namespace WoWNamingLib.Namers
                                         if (modelResourcesID == 0)
                                             continue;
 
-                                        if (mfdMap.TryGetValue(modelResourcesID, out List<int> M2FileDataIDs))
+                                        if (mfdMap.TryGetValue(modelResourcesID, out var M2FileDataIDs))
                                         {
                                             for (int j = 0; j < M2FileDataIDs.Count; j++)
                                             {
@@ -264,14 +284,13 @@ namespace WoWNamingLib.Namers
 
                                 if (!named)
                                 {
-                                    foreach (var iaRow in itemAppearance.Values)
-                                    {
-                                        if (int.Parse(iaRow["ItemDisplayInfoID"].ToString()) != int.Parse(idimrRow["ItemDisplayInfoID"].ToString()))
-                                            continue;
+                                    itemAppearanceIDIToIconMap.TryGetValue(uint.Parse(idimrRow["ItemDisplayInfoID"].ToString()), out var iconFDID);
 
-                                        if (Namer.IDToNameLookup.TryGetValue(int.Parse(iaRow["DefaultIconFileDataID"].ToString()), out var iconFilename))
+                                    if(iconFDID != 0)
+                                    {
+                                        if (Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconFilename))
                                         {
-                                            if (iconFilename.ToLower().Contains("questionmark") || iconFilename.ToLower() == "interface/icons/temp.blp")
+                                            if (iconFilename.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFilename.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase))
                                                 continue;
 
                                             iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");
@@ -293,11 +312,10 @@ namespace WoWNamingLib.Namers
 
                 foreach (var idimmRow in itemDisplayInfoModelMatRes.Values)
                 {
-
                     var miniComponent = "";
                     var miniComponentGender = "u";
                     var materialResourcesID = (int)idimmRow["MaterialResourcesID"];
-                    if (tfdMap.TryGetValue(materialResourcesID, out List<int> fileDataIDs))
+                    if (tfdMap.TryGetValue(materialResourcesID, out var fileDataIDs))
                     {
                         foreach (var fileDataID in fileDataIDs)
                         {
@@ -327,6 +345,7 @@ namespace WoWNamingLib.Namers
                                 }
 
                                 var named = false;
+                                var textureFolder = "";
 
                                 if (idiMap.TryGetValue(int.Parse(idimmRow["ItemDisplayInfoID"].ToString()), out var idiRow))
                                 {
@@ -337,13 +356,13 @@ namespace WoWNamingLib.Namers
                                         if (modelResourcesID == 0)
                                             continue;
 
-                                        if (mfdMap.TryGetValue(modelResourcesID, out List<int> M2FileDataIDs))
+                                        if (mfdMap.TryGetValue(modelResourcesID, out var M2FileDataIDs))
                                         {
                                             for (int j = 0; j < M2FileDataIDs.Count; j++)
                                             {
                                                 if (Namer.IDToNameLookup.TryGetValue(M2FileDataIDs[j], out var filename))
                                                 {
-                                                    var textureFolder = Path.GetDirectoryName(filename);
+                                                    textureFolder = Path.GetDirectoryName(filename);
                                                     var textureFilename = Path.GetFileName(filename);
                                                     foreach (var stupidExtension in stupidItemExtensions)
                                                     {
@@ -368,22 +387,24 @@ namespace WoWNamingLib.Namers
                                     }
                                 }
 
-                                //if (!named)
-                                //{
-                                //    foreach (var iaRow in itemAppearance.Values)
-                                //    {
-                                //        if (int.Parse(iaRow["ItemDisplayInfoID"].ToString()) != int.Parse(idimmRow["ItemDisplayInfoID"].ToString()))
-                                //            continue;
+                                if (!named && !string.IsNullOrEmpty(textureFolder))
+                                {
+                                    itemAppearanceIDIToIconMap.TryGetValue(uint.Parse(idimmRow["ItemDisplayInfoID"].ToString()), out var iconFDID);
 
-                                //        if (Namer.IDToNameLookup.TryGetValue(uint.Parse(iaRow["DefaultIconFileDataID"].ToString()), out var iconFilename))
-                                //        {
-                                //            iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");
-                                //            iconFilename = textureFolder + "/" + iconFilename + "_" + miniComponent + miniComponentGender + "_" + fileDataID + ".blp";
-                                //            NewFileManager.AddNewFile(fileDataID, iconFilename);
-                                //            named = true;
-                                //        }
-                                //    }
-                                //}
+                                    if (iconFDID != 0)
+                                    {
+                                        if (Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconFilename))
+                                        {
+                                            if (iconFilename.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFilename.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase))
+                                                continue;
+
+                                            iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");
+                                            iconFilename = textureFolder + "/" + iconFilename + "_" + miniComponent + miniComponentGender + "_" + fileDataID + ".blp";
+                                            NewFileManager.AddNewFile(fileDataID, iconFilename);
+                                            named = true;
+                                        }
+                                    }
+                                }
 
                                 if (!named)
                                 {
@@ -396,22 +417,20 @@ namespace WoWNamingLib.Namers
 
                 foreach (var idiRow in itemDisplayInfo.Values)
                 {
-                    var itemDisplayInfoID = int.Parse(idiRow["ID"].ToString());
+                    var itemDisplayInfoID = int.Parse(idiRow["ID"].ToString()!);
                     for (int i = 0; i < 2; i++)
                     {
                         var mrID = ((int[])idiRow["ModelMaterialResourcesID"])[i];
-                        if (tfdMap.TryGetValue(mrID, out List<int> fileDataIDs))
+                        if (tfdMap.TryGetValue(mrID, out var fileDataIDs))
                         {
                             foreach (var fileDataID in fileDataIDs)
                             {
                                 if (!Namer.IDToNameLookup.ContainsKey(fileDataID) || Namer.placeholderNames.Contains(fileDataID))
                                 {
-                                    foreach (var iaRow in itemAppearance.Values)
+                                    var iconFDID = 0;
+                                    if(itemAppearanceIDIToIconMap.TryGetValue((uint)itemDisplayInfoID, out iconFDID))
                                     {
-                                        if (int.Parse(iaRow["ItemDisplayInfoID"].ToString()) != itemDisplayInfoID)
-                                            continue;
-
-                                        if (Namer.IDToNameLookup.TryGetValue(int.Parse(iaRow["DefaultIconFileDataID"].ToString()), out var iconFilename))
+                                        if (Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconFilename))
                                         {
                                             iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");
                                             if (iconFilename.Substring(0, 4) == "cape")

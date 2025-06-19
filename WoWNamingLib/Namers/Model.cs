@@ -669,7 +669,7 @@ namespace WoWNamingLib.Namers
                 spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
             }
 
-            File.WriteAllLines("spellnames.txt", spellOutputLines);
+            //File.WriteAllLines("spellnames.txt", spellOutputLines);
         }
         public static void Name(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
         {
@@ -682,9 +682,12 @@ namespace WoWNamingLib.Namers
             if (fullRun)
             {
                 var mfd = Namer.LoadDBC("ModelFileData");
+                if(!mfd.AvailableColumns.Contains("FileDataID"))
+                    throw new Exception("ModelFileData is missing a required column");
+
                 foreach (var entry in mfd.Values)
                 {
-                    m2s.Add(uint.Parse(entry["FileDataID"].ToString()));
+                    m2s.Add(uint.Parse(entry["FileDataID"].ToString()!));
                 }
 
                 // Load model.blob
@@ -755,10 +758,12 @@ namespace WoWNamingLib.Namers
             try
             {
                 var godDB = Namer.LoadDBC("GameObjectDisplayInfo");
+                if (!godDB.AvailableColumns.Contains("FileDataID"))
+                    throw new Exception("GameObjectDisplayInfo is missing a required column");
 
                 foreach (var godEntry in godDB.Values)
                 {
-                    var goFDID = uint.Parse(godEntry["FileDataID"].ToString());
+                    var goFDID = uint.Parse(godEntry["FileDataID"].ToString()!);
                     gameobjectFDIDs.Add(goFDID);
                 }
             }
@@ -774,28 +779,33 @@ namespace WoWNamingLib.Namers
             try
             {
                 var cmdDB = Namer.LoadDBC("CreatureModelData");
+                if(!cmdDB.AvailableColumns.Contains("FileDataID") || !cmdDB.AvailableColumns.Contains("ID"))
+                    throw new Exception("CreatureModelData is missing a required column");
 
                 foreach (var cmdEntry in cmdDB.Values)
                 {
-                    var cmdFDID = uint.Parse(cmdEntry["FileDataID"].ToString());
-                    var cmdID = uint.Parse(cmdEntry["ID"].ToString());
+                    var cmdFDID = uint.Parse(cmdEntry["FileDataID"].ToString()!);
+                    var cmdID = uint.Parse(cmdEntry["ID"].ToString()!);
                     cmdToFDID.Add(cmdID, cmdFDID);
                     creatureFDIDs.Add(cmdFDID);
                 }
 
-                var creatureDisplayInfoDB = Namer.LoadDBC("CreatureDisplayInfo");
-                foreach (var cdiEntry in creatureDisplayInfoDB.Values)
-                {
-                    var cdiID = uint.Parse(cdiEntry["ID"].ToString());
-                    var modelID = uint.Parse(cdiEntry["ModelID"].ToString());
-                    //if (Namer.displayIDToCreatureName.TryGetValue(cdiID, out var name))
-                    //{
-                    //    if (!fdidToCreatureName.ContainsKey(cmdToFDID[modelID]))
-                    //    {
-                    //        fdidToCreatureName.Add(cmdToFDID[modelID], name);
-                    //    }
-                    //}
-                }
+                //var creatureDisplayInfoDB = Namer.LoadDBC("CreatureDisplayInfo");
+                //if (!creatureDisplayInfoDB.AvailableColumns.Contains("ID") || !creatureDisplayInfoDB.AvailableColumns.Contains("ModelID"))
+                //    throw new Exception("CreatureDisplayInfo is missing a required column");
+
+                //foreach (var cdiEntry in creatureDisplayInfoDB.Values)
+                //{
+                //    var cdiID = uint.Parse(cdiEntry["ID"].ToString()!);
+                //    var modelID = uint.Parse(cdiEntry["ModelID"].ToString()!);
+                //    //if (Namer.displayIDToCreatureName.TryGetValue(cdiID, out var name))
+                //    //{
+                //    //    if (!fdidToCreatureName.ContainsKey(cmdToFDID[modelID]))
+                //    //    {
+                //    //        fdidToCreatureName.Add(cmdToFDID[modelID], name);
+                //    //    }
+                //    //}
+                //}
             }
             catch (Exception e)
             {
@@ -881,6 +891,16 @@ namespace WoWNamingLib.Namers
                             itemFDIDs.Add(cfdFDID);
                     }
 
+                    var itemAppearanceIDIToIconMap = new Dictionary<uint, uint>();
+                    foreach (dynamic iaRow in itemAppearance.Values)
+                    {
+                        var idiID = uint.Parse(iaRow.ItemDisplayInfoID.ToString());
+                        if (idiID == 0)
+                            continue;
+
+                        itemAppearanceIDIToIconMap.TryAdd(idiID, uint.Parse(iaRow.DefaultIconFileDataID.ToString()));
+                    }
+
                     foreach (var idiEntry in idiDB.Values)
                     {
                         for (int i = 0; i < 2; i++)
@@ -918,19 +938,14 @@ namespace WoWNamingLib.Namers
                                     {
                                         uint iconFDID = 0;
 
-                                        foreach (dynamic iaRow in itemAppearance.Values)
-                                        {
-                                            if (uint.Parse(iaRow["ItemDisplayInfoID"].ToString()) == uint.Parse(idiEntry["ID"].ToString()))
-                                            {
-                                                iconFDID = uint.Parse(iaRow.DefaultIconFileDataID.ToString());
-                                            }
-                                        }
+                                        if (itemAppearanceIDIToIconMap.TryGetValue(uint.Parse(idiEntry["ID"].ToString()!), out var iconFDIDFromMap))
+                                            iconFDID = iconFDIDFromMap;
 
                                         if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out string iconFileName))
                                         {
                                             var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/ivn_", "").Replace("interface/icons/", "").Replace(".blp", "").Replace(" ", "").Trim();
 
-                                            if (iconFileName.ToLower().Contains("questionmark") || iconFileName.ToLower() == "interface/icons/temp.blp")
+                                            if (iconFileName.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFileName.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase))
                                                 continue;
 
                                             Console.WriteLine("!!! Unnamed item M2 " + itemM2FDID + " has an icon with name " + cleanedName);
@@ -1682,14 +1697,30 @@ namespace WoWNamingLib.Namers
         private static M2Model ParseM2(MemoryStream ms)
         {
             var model = new M2Model();
+            var m3ChunkNames = new List<uint>() {
+                'M' << 0 | '3' << 8 | 'D' << 16 | 'T' << 24,  // "M3DT"
+                'M' << 0 | '3' << 8 | 'S' << 16 | 'I' << 24,  // "M3SI"
+                'M' << 0 | '3' << 8 | 'S' << 16 | 'T' << 24,  // "M3ST"
+                'M' << 0 | 'E' << 8 | 'S' << 16 | '3' << 24,  // "MES3"
+                'M' << 0 | '3' << 8 | 'C' << 16 | 'L' << 24,  // "M3CL"
+                'M' << 0 | '3' << 8 | 'S' << 16 | 'V' << 24,  // "M3SV"
+                'M' << 0 | '3' << 8 | 'X' << 16 | 'F' << 24   // "M3XF"
+            };
 
             using (var bin = new BinaryReader(ms))
             {
                 while (bin.BaseStream.Position < bin.BaseStream.Length)
                 {
                     var chunkName = bin.ReadUInt32();
-                    var chunkSize = bin.ReadUInt32();
 
+                    if(m3ChunkNames.Contains(chunkName))
+                    {
+                        // This is a M3 file, not M2
+                        throw new Exception("M3 files are not supported yet!");
+                    }
+
+                    var chunkSize = bin.ReadUInt32();
+                    
                     if (chunkName == 0)
                         throw new Exception("M2 is encrypted");
 
