@@ -133,13 +133,16 @@ namespace WoWNamingLib.Services
 
         public static void MergeLookups(Dictionary<int, ulong> lookups)
         {
-            foreach (var lookup in lookups)
+            lock (verifiedListfileLock)
             {
-                if (!LookupMap.ContainsKey(lookup.Key))
-                    LookupMap.Add(lookup.Key, lookup.Value);
+                foreach (var lookup in lookups)
+                {
+                    if (!LookupMap.ContainsKey(lookup.Key))
+                        LookupMap.Add(lookup.Key, lookup.Value);
 
-                if(!OfficialLookups.Contains(lookup.Value))
-                    OfficialLookups.Add(lookup.Value);
+                    if (!OfficialLookups.Contains(lookup.Value))
+                        OfficialLookups.Add(lookup.Value);
+                }
             }
         }
 

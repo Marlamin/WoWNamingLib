@@ -57,19 +57,32 @@ namespace WoWNamingLib.Namers
             var svenMap = new Dictionary<uint, uint>();
 
             var svkmaDB = Namer.LoadDBC("SpellVisualKitModelAttach");
+            if (!svkmaDB.AvailableColumns.Contains("SpellVisualEffectNameID") || !svkmaDB.AvailableColumns.Contains("ParentSpellVisualKitID"))
+                throw new Exception("SpellVisualKitModelAttach DB2 does not contain SpellVisualEffectNameID or ParentSpellVisualKitID columns");
+
             var svkeDB = Namer.LoadDBC("SpellVisualKitEffect");
+            if (!svkeDB.AvailableColumns.Contains("EffectType") || !svkeDB.AvailableColumns.Contains("Effect") || !svkeDB.AvailableColumns.Contains("ParentSpellVisualKitID"))
+                throw new Exception("SpellVisualKitEffect DB2 does not contain EffectType, Effect or ParentSpellVisualKitID columns");
+
             var sveDB = Namer.LoadDBC("SpellVisualEvent");
-            var svenDB = Namer.LoadDBC("SpellVisualEffectName");
+            if (!sveDB.AvailableColumns.Contains("SpellVisualKitID") || !sveDB.AvailableColumns.Contains("SpellVisualID") || !sveDB.AvailableColumns.Contains("StartEvent"))
+                throw new Exception("SpellVisualEvent DB2 does not contain SpellVisualKitID, SpellVisualID or StartEvent columns");
+
             var svToSpellDB = Namer.LoadDBC("SpellXSpellVisual");
+            if (!svToSpellDB.AvailableColumns.Contains("SpellVisualID") || !svToSpellDB.AvailableColumns.Contains("SpellID"))
+                throw new Exception("SpellXSpellVisual DB2 does not contain SpellVisualID or SpellID columns");
+
             var spellVisualDB = Namer.LoadDBC("SpellVisual");
+            if (!spellVisualDB.AvailableColumns.Contains("SpellVisualMissileSetID") || !spellVisualDB.AvailableColumns.Contains("HostileSpellVisualID") || !spellVisualDB.AvailableColumns.Contains("CasterSpellVisualID") || !spellVisualDB.AvailableColumns.Contains("LowViolenceSpellVisualID") || !spellVisualDB.AvailableColumns.Contains("ReducedUnexpectedCameraMovementSpellVisualID"))
+                throw new Exception("SpellVisual DB2 does not contain SpellVisualID, SpellVisualMissileSetID, HostileSpellVisualID, CasterSpellVisualID, LowViolenceSpellVisualID or ReducedUnexpectedCameraMovementSpellVisualID columns");
 
             var svenToKit = new Dictionary<uint, List<uint>>();
             var svkmaIDToSvenID = new Dictionary<int, uint>();
 
             foreach (var svkmaEntry in svkmaDB.Values)
             {
-                var svenID = uint.Parse(svkmaEntry["SpellVisualEffectNameID"].ToString());
-                var svkID = uint.Parse(svkmaEntry["ParentSpellVisualKitID"].ToString());
+                var svenID = uint.Parse(svkmaEntry["SpellVisualEffectNameID"].ToString()!);
+                var svkID = uint.Parse(svkmaEntry["ParentSpellVisualKitID"].ToString()!);
 
                 svkmaIDToSvenID.Add(svkmaEntry.ID, svenID);
 
@@ -86,15 +99,15 @@ namespace WoWNamingLib.Namers
 
             foreach (var svkeEntry in svkeDB.Values)
             {
-                if (uint.Parse(svkeEntry["EffectType"].ToString()) != 2)
+                if (uint.Parse(svkeEntry["EffectType"].ToString()!) != 2)
                     continue;
 
-                var spkmaID = uint.Parse(svkeEntry["Effect"].ToString());
-                var svkID = uint.Parse(svkeEntry["ParentSpellVisualKitID"].ToString());
+                var spkmaID = uint.Parse(svkeEntry["Effect"].ToString()!);
+                var svkID = uint.Parse(svkeEntry["ParentSpellVisualKitID"].ToString()!);
 
                 if (svkmaIDToSvenID.TryGetValue((int)spkmaID, out var svenID))
                 {
-                    if (!svenToKit.TryGetValue(svenID, out List<uint>? kitIDs))
+                    if (!svenToKit.TryGetValue(svenID, out var kitIDs))
                     {
                         svenToKit.Add(svenID, [svkID]);
                     }
@@ -112,16 +125,16 @@ namespace WoWNamingLib.Namers
 
             foreach (var sveEntry in sveDB.Values)
             {
-                var svkID = uint.Parse(sveEntry["SpellVisualKitID"].ToString());
-                var svID = uint.Parse(sveEntry["SpellVisualID"].ToString());
+                var svkID = uint.Parse(sveEntry["SpellVisualKitID"].ToString()!);
+                var svID = uint.Parse(sveEntry["SpellVisualID"].ToString()!);
 
                 if (!svkToType.ContainsKey(svkID))
-                    svkToType.Add(svkID, uint.Parse(sveEntry["StartEvent"].ToString()));
+                    svkToType.Add(svkID, uint.Parse(sveEntry["StartEvent"].ToString()!));
 
                 if (svID == 0)
                     continue;
 
-                if (!kitToVisual.TryGetValue(svkID, out List<uint>? svIDs))
+                if (!kitToVisual.TryGetValue(svkID, out var svIDs))
                     kitToVisual.Add(svkID, [svID]);
                 else
                     svIDs.Add(svID);
@@ -130,8 +143,8 @@ namespace WoWNamingLib.Namers
             var spellVisualToSpell = new Dictionary<uint, List<(uint spellID, string context)>> ();
             foreach (var svToSpellEntry in svToSpellDB.Values)
             {
-                var svID = uint.Parse(svToSpellEntry["SpellVisualID"].ToString());
-                var spellID = uint.Parse(svToSpellEntry["SpellID"].ToString());
+                var svID = uint.Parse(svToSpellEntry["SpellVisualID"].ToString()!);
+                var spellID = uint.Parse(svToSpellEntry["SpellID"].ToString()!);
 
                 if (!spellVisualToSpell.TryGetValue(svID, out List<(uint, string)>? spellIDs))
                     spellVisualToSpell.Add(svID, [(spellID, "main")]);
@@ -143,7 +156,7 @@ namespace WoWNamingLib.Namers
                 {
                     if (spellVisualDB.AvailableColumns.Contains("SpellVisualMissileSetID"))
                     {
-                        var spellMissileSetID = uint.Parse(svRecord["SpellVisualMissileSetID"].ToString());
+                        var spellMissileSetID = uint.Parse(svRecord["SpellVisualMissileSetID"].ToString()!);
                         if (!spellMissileToSpell.TryGetValue(spellMissileSetID, out List<uint>? missileSpellIDs))
                             spellMissileToSpell.Add(spellMissileSetID, [spellID]);
                         else
@@ -152,7 +165,7 @@ namespace WoWNamingLib.Namers
 
                     if (spellVisualDB.AvailableColumns.Contains("HostileSpellVisualID"))
                     {
-                        var hostileSVID = uint.Parse(svRecord["HostileSpellVisualID"].ToString());
+                        var hostileSVID = uint.Parse(svRecord["HostileSpellVisualID"].ToString()!);
                         if (hostileSVID != 0)
                         {
                             if (!spellVisualToSpell.TryGetValue(hostileSVID, out List<(uint, string)>? hostileSpellIDs))
@@ -164,7 +177,7 @@ namespace WoWNamingLib.Namers
 
                     if (spellVisualDB.AvailableColumns.Contains("CasterSpellVisualID"))
                     {
-                        var casterSVID = uint.Parse(svRecord["CasterSpellVisualID"].ToString());
+                        var casterSVID = uint.Parse(svRecord["CasterSpellVisualID"].ToString()!);
                         if (casterSVID != 0)
                         {
                             if (!spellVisualToSpell.TryGetValue(casterSVID, out List<(uint, string)>? casterSpellIDs))
@@ -176,7 +189,7 @@ namespace WoWNamingLib.Namers
 
                     if (spellVisualDB.AvailableColumns.Contains("LowViolenceSpellVisualID"))
                     {
-                        var lvSVID = uint.Parse(svRecord["LowViolenceSpellVisualID"].ToString());
+                        var lvSVID = uint.Parse(svRecord["LowViolenceSpellVisualID"].ToString()!);
                         if (lvSVID != 0)
                         {
                             if (!spellVisualToSpell.TryGetValue(lvSVID, out List<(uint, string)>? lvSpellIDs))
@@ -188,7 +201,7 @@ namespace WoWNamingLib.Namers
 
                     if (spellVisualDB.AvailableColumns.Contains("ReducedUnexpectedCameraMovementSpellVisualID"))
                     {
-                        var redSVID = uint.Parse(svRecord["ReducedUnexpectedCameraMovementSpellVisualID"].ToString());
+                        var redSVID = uint.Parse(svRecord["ReducedUnexpectedCameraMovementSpellVisualID"].ToString()!);
                         if (redSVID != 0)
                         {
                             if (!spellVisualToSpell.TryGetValue(redSVID, out List<(uint, string)>? redSpellIDs))
@@ -201,26 +214,33 @@ namespace WoWNamingLib.Namers
             }
 
             var spellNameDB = Namer.LoadDBC("SpellName");
+            if (!spellNameDB.AvailableColumns.Contains("ID") || !spellNameDB.AvailableColumns.Contains("Name_lang"))
+                throw new Exception("SpellName DB2 does not contain ID or Name_lang columns");
+
             var spellToSpellName = new Dictionary<uint, string>();
             foreach (var spellNameEntry in spellNameDB.Values)
             {
-                var spellID = uint.Parse(spellNameEntry["ID"].ToString());
-                var spellName = spellNameEntry["Name_lang"].ToString();
+                var spellID = uint.Parse(spellNameEntry["ID"].ToString()!);
+                var spellName = spellNameEntry["Name_lang"].ToString()!;
                 spellToSpellName.Add(spellID, spellName);
             }
 
+            var svenDB = Namer.LoadDBC("SpellVisualEffectName");
+            if(!svenDB.AvailableColumns.Contains("ModelFileDataID") || !svenDB.AvailableColumns.Contains("Type"))
+                throw new Exception("SpellVisualEffectName DB2 does not contain ModelFileDataID or Type columns");
+
             foreach (var svenEntry in svenDB.Values)
             {
-                var svenFDID = uint.Parse(svenEntry["ModelFileDataID"].ToString());
+                var svenFDID = uint.Parse(svenEntry["ModelFileDataID"].ToString()!);
                 if (svenFDID == 0)
                     continue;
 
-                if (uint.Parse(svenEntry["Type"].ToString()) != 0)
+                if (uint.Parse(svenEntry["Type"].ToString()!) != 0)
                     continue;
 
                 if (Namer.placeholderNames.Contains((int)svenFDID) || !Namer.IDToNameLookup.ContainsKey((int)svenFDID))
                 {
-                    svenMap.Add(uint.Parse(svenEntry["ID"].ToString()), svenFDID);
+                    svenMap.Add(uint.Parse(svenEntry["ID"].ToString()!), svenFDID);
                     spellFDIDs.Add(svenFDID);
                 }
             }
@@ -278,11 +298,14 @@ namespace WoWNamingLib.Namers
             }
 
             var spellMissileDB = Namer.LoadDBC("SpellVisualMissile");
+            if (!spellMissileDB.AvailableColumns.Contains("SpellVisualMissileSetID") || !spellMissileDB.AvailableColumns.Contains("SpellVisualEffectNameID"))
+                throw new Exception("SpellVisualMissile DB2 does not contain SpellVisualMissileSetID or SpellVisualEffectNameID columns");
+
             var spellMissileSetToSVEN = new Dictionary<uint, List<uint>>();
             foreach(var spellMissileEntry in spellMissileDB.Values)
             {
-                var spellMissileSetID = uint.Parse(spellMissileEntry["SpellVisualMissileSetID"].ToString());
-                var svenID = uint.Parse(spellMissileEntry["SpellVisualEffectNameID"].ToString());
+                var spellMissileSetID = uint.Parse(spellMissileEntry["SpellVisualMissileSetID"].ToString()!);
+                var svenID = uint.Parse(spellMissileEntry["SpellVisualEffectNameID"].ToString()!);
                 if (!spellMissileSetToSVEN.TryGetValue(spellMissileSetID, out List<uint>? svenIDs))
                     spellMissileSetToSVEN.Add(spellMissileSetID, [svenID]);
                 else
@@ -315,19 +338,25 @@ namespace WoWNamingLib.Namers
             }
             
             var spellClassOptionDB = Namer.LoadDBC("SpellClassOptions");
+            if (!spellClassOptionDB.AvailableColumns.Contains("SpellID") || !spellClassOptionDB.AvailableColumns.Contains("SpellClassSet"))
+                throw new Exception("SpellClassOptions DB2 does not contain SpellID or SpellClassSet columns");
+
             var classSpells = new List<uint>();
             foreach (var scoEntry in spellClassOptionDB.Values)
             {
-                var spellID = uint.Parse(scoEntry["SpellID"].ToString());
+                var spellID = uint.Parse(scoEntry["SpellID"].ToString()!);
                 if (!classSpells.Contains(spellID))
                     classSpells.Add(spellID);
             }
 
             var journalEncounterSectionDB = Namer.LoadDBC("JournalEncounterSection");
+            if (!journalEncounterSectionDB.AvailableColumns.Contains("SpellID") || !journalEncounterSectionDB.AvailableColumns.Contains("JournalEncounterID"))
+                throw new Exception("JournalEncounterSection DB2 does not contain SpellID or JournalEncounterID columns");
+
             var encounterSpells = new List<uint>();
             foreach (var jesEntry in journalEncounterSectionDB.Values)
             {
-                var spellID = uint.Parse(jesEntry["SpellID"].ToString());
+                var spellID = uint.Parse(jesEntry["SpellID"].ToString()!);
                 if (!encounterSpells.Contains(spellID))
                     encounterSpells.Add(spellID);
             }
@@ -382,6 +411,8 @@ namespace WoWNamingLib.Namers
 
             var journalInstanceDB = Namer.LoadDBC("JournalInstance");
             var journalEncounterDB = Namer.LoadDBC("JournalEncounter");
+            if (!journalInstanceDB.AvailableColumns.Contains("ID") || !journalInstanceDB.AvailableColumns.Contains("Name_lang"))
+                throw new Exception("JournalInstance DB2 does not contain ID or Name_lang columns");
 
             foreach (var spellModelName in spellModelNames)
             {
@@ -396,23 +427,23 @@ namespace WoWNamingLib.Namers
                     // Figure out instance?
                     foreach (var jesEntry in journalEncounterSectionDB.Values)
                     {
-                        var jesSpellID = uint.Parse(jesEntry["SpellID"].ToString());
+                        var jesSpellID = uint.Parse(jesEntry["SpellID"].ToString()!);
                         if (jesSpellID != spellID)
                             continue;
 
-                        var jesEncounterID = uint.Parse(jesEntry["JournalEncounterID"].ToString());
+                        var jesEncounterID = uint.Parse(jesEntry["JournalEncounterID"].ToString()!);
                         foreach (var jeEntry in journalEncounterDB.Values)
                         {
                             if (jeEntry.ID != jesEncounterID)
                                 continue;
 
-                            var jeInstanceID = uint.Parse(jeEntry["JournalInstanceID"].ToString());
+                            var jeInstanceID = uint.Parse(jeEntry["JournalInstanceID"].ToString()!);
                             foreach (var jiEntry in journalInstanceDB.Values)
                             {
                                 if (jiEntry.ID != jeInstanceID)
                                     continue;
 
-                                var jiName = jiEntry["Name_lang"].ToString();
+                                var jiName = jiEntry["Name_lang"].ToString()!;
                                 var jiNameClean = jiName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
                                 switch (jiNameClean)
                                 {
@@ -452,7 +483,7 @@ namespace WoWNamingLib.Namers
                                         break;
                                 }
 
-                                var jeName = jeEntry["Name_lang"].ToString();
+                                var jeName = jeEntry["Name_lang"].ToString()!;
                                 var jeNameClean = jeName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
                                 switch (jeNameClean)
                                 {
@@ -541,11 +572,11 @@ namespace WoWNamingLib.Namers
                     prefix = "CFX_";
                     foreach (var scoEntry in spellClassOptionDB.Values)
                     {
-                        var scoSpellID = uint.Parse(scoEntry["SpellID"].ToString());
+                        var scoSpellID = uint.Parse(scoEntry["SpellID"].ToString()!);
                         if (scoSpellID != spellID)
                             continue;
 
-                        var classSet = uint.Parse(scoEntry["SpellClassSet"].ToString());
+                        var classSet = uint.Parse(scoEntry["SpellClassSet"].ToString()!);
 
                         switch (classSet)
                         {
@@ -858,7 +889,7 @@ namespace WoWNamingLib.Namers
 
                     var mfdDB = Namer.LoadDBC("ModelFileData");
                     if (!mfdDB.AvailableColumns.Contains("FileDataID") || !mfdDB.AvailableColumns.Contains("ModelResourcesID"))
-                        throw new Exception("ModelFileData DBC does not contain a required column");
+                        throw new Exception("ModelFileData does not contain a required column");
 
                     foreach (var mfdEntry in mfdDB.Values)
                     {
@@ -876,6 +907,9 @@ namespace WoWNamingLib.Namers
 
 
                     var cfdDB = Namer.LoadDBC("ComponentModelFileData");
+                    if (!cfdDB.AvailableColumns.Contains("ID"))
+                        throw new Exception("ComponentModelFileData does not contain a required column");
+
                     var idiDB = Namer.LoadDBC("ItemDisplayInfo");
                     var chrRaces = Namer.LoadDBC("ChrRaces");
                     var racePrefix = new Dictionary<uint, string>();
@@ -886,7 +920,7 @@ namespace WoWNamingLib.Namers
 
                     foreach (var cfdEntry in cfdDB.Values)
                     {
-                        var cfdFDID = uint.Parse(cfdEntry["ID"].ToString());
+                        var cfdFDID = uint.Parse(cfdEntry["ID"].ToString()!);
                         if (!itemFDIDs.Contains(cfdFDID))
                             itemFDIDs.Add(cfdFDID);
                     }
@@ -941,7 +975,7 @@ namespace WoWNamingLib.Namers
                                         if (itemAppearanceIDIToIconMap.TryGetValue(uint.Parse(idiEntry["ID"].ToString()!), out var iconFDIDFromMap))
                                             iconFDID = iconFDIDFromMap;
 
-                                        if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out string iconFileName))
+                                        if (iconFDID != 0 && iconFDID != 136235 && Namer.IDToNameLookup.TryGetValue((int)iconFDID, out var iconFileName))
                                         {
                                             var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/ivn_", "").Replace("interface/icons/", "").Replace(".blp", "").Replace(" ", "").Trim();
 
@@ -1068,7 +1102,7 @@ namespace WoWNamingLib.Namers
                         {
                             currentModelName = m2.name;
                         }
-                        else if (Namer.IDToNameLookup.TryGetValue((int)fdid, out string existingName) && !Namer.placeholderNames.Contains((int)fdid))
+                        else if (Namer.IDToNameLookup.TryGetValue((int)fdid, out var existingName) && !Namer.placeholderNames.Contains((int)fdid))
                         {
                             currentModelName = Path.GetFileNameWithoutExtension(existingName);
                         }
@@ -1491,7 +1525,7 @@ namespace WoWNamingLib.Namers
                         }
                         else
                         {
-                            folder = Path.GetDirectoryName(Namer.IDToNameLookup[(int)fdid]).Replace("\\", "/");
+                            folder = Path.GetDirectoryName(Namer.IDToNameLookup[(int)fdid])!.Replace("\\", "/");
                         }
 
                         //if (Namer.ForceRename.Contains(fdid) && Namer.IDToNameLookup.TryGetValue(fileDataID, out var existingFolder))
