@@ -18,6 +18,9 @@ namespace WoWNamingLib.Namers
         private static List<uint> spellFDIDs = [];
         private static uint fileDataID;
         private static string currentModelName;
+        private static bool spellsLoaded = false;
+        private static Lock spellLock = new Lock();
+
         private static string GetCFDSuffixedName(DBCDRow cfdRow, Dictionary<uint, string> racePrefix, string modelName)
         {
             if (!racePrefix.TryGetValue(uint.Parse(cfdRow["RaceID"].ToString()), out string miniComponentRace))
@@ -54,6 +57,14 @@ namespace WoWNamingLib.Namers
 
         public static void LoadSpellMap()
         {
+            spellLock.Enter();
+
+            if(spellsLoaded)
+            {
+                spellLock.Exit();
+                return;
+            }
+
             var svenMap = new Dictionary<uint, uint>();
 
             var svkmaDB = Namer.LoadDBC("SpellVisualKitModelAttach");
@@ -701,6 +712,9 @@ namespace WoWNamingLib.Namers
             }
 
             //File.WriteAllLines("spellnames.txt", spellOutputLines);
+
+            spellsLoaded = true;
+            spellLock.Exit();
         }
         public static void Name(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
         {
