@@ -127,26 +127,28 @@ namespace WoWNamingLib.Namers
             {"70c0c61a41975993215d5140f110132f", "7FX_Flipbook_Lighting_Stylized_Yellow_A" }
         };
 
-        public static void Name(Dictionary<int, string> idToHashes)
+        public static void Name(Dictionary<int, byte[]> idToHashes)
         {
             foreach (var idToHash in idToHashes)
             {
+                var contenthash = Convert.ToHexStringLower(idToHash.Value);
+
                 if (!Namer.IDToNameLookup.ContainsKey(idToHash.Key))
                 {
                     // maptexture_n
-                    if (idToHash.Value.Equals("93eb33c44532ea7e4f62666417beaa6a", StringComparison.CurrentCultureIgnoreCase))
+                    if (contenthash.Equals("93eb33c44532ea7e4f62666417beaa6a", StringComparison.CurrentCultureIgnoreCase))
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/maptextures/" + idToHash.Key + "_n.blp", true, true);
 
                     // maptexture
-                    if (idToHash.Value.Equals("77beda3cb2c5709fc953c9d21e1d2414", StringComparison.CurrentCultureIgnoreCase))
+                    if (contenthash.Equals("77beda3cb2c5709fc953c9d21e1d2414", StringComparison.CurrentCultureIgnoreCase))
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/maptextures/" + idToHash.Key + ".blp", true, true);
 
                     // minimaps
-                    if(idToHash.Value.Equals("ef3ae8b80605064fadc0515b10c82ef2", StringComparison.CurrentCultureIgnoreCase))
+                    if(contenthash.Equals("ef3ae8b80605064fadc0515b10c82ef2", StringComparison.CurrentCultureIgnoreCase))
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/minimaps/" + idToHash.Key + ".blp", true, true);
                 }
 
-                if (!knownHashes.TryGetValue(idToHash.Value.ToLower(), out var knownName))
+                if (!knownHashes.TryGetValue(contenthash, out var knownName))
                     continue;
 
                 if (Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentName))

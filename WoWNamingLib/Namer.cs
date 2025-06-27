@@ -414,7 +414,7 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameByContentHashes(Dictionary<int, string> idToHashes)
+        public static void NameByContentHashes(Dictionary<int, byte[]> idToHashes)
         {
             try
             {

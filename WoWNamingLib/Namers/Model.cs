@@ -256,7 +256,7 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            var spellOutputLines = new List<string>();
+            //var spellOutputLines = new List<string>();
 
             foreach (var svenEntry in svenMap)
             {
@@ -266,17 +266,17 @@ namespace WoWNamingLib.Namers
                 if (!svenToKit.TryGetValue(svenID, out var svkIDs))
                     continue;
 
-                spellOutputLines.Add(spellModelFDID + " (SpellVisualEffectName ID " + svenID + ")");
+             //   spellOutputLines.Add(spellModelFDID + " (SpellVisualEffectName ID " + svenID + ")");
                 foreach (var svkID in svkIDs)
                 {
-                    spellOutputLines.Add("\t SpellKitVisualID " + svkID);
+                //    spellOutputLines.Add("\t SpellKitVisualID " + svkID);
 
                     if (!kitToVisual.TryGetValue(svkID, out var svIDs))
                         continue;
 
                     foreach (var svID in svIDs)
                     {
-                        spellOutputLines.Add("\t\t SpellVisualID " + svID);
+                 //       spellOutputLines.Add("\t\t SpellVisualID " + svID);
 
                         if (!spellVisualToSpell.TryGetValue(svID, out var svInfos))
                             continue;
@@ -286,7 +286,7 @@ namespace WoWNamingLib.Namers
                             if (!spellToSpellName.TryGetValue(svInfo.spellID, out var spellName))
                                 continue;
 
-                            spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + svInfo.spellID + ", context " + svInfo.context + ")");
+                    //        spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + svInfo.spellID + ", context " + svInfo.context + ")");
 
                             var eventStart = svkToType[svkID];
                             if(svInfo.context == "main")
@@ -418,7 +418,7 @@ namespace WoWNamingLib.Namers
                 spellModelNames.TryAdd(spellModelFDID, spellName);
             }
 
-            spellOutputLines.Add("## __ CALCULATED NAMES __ ##");
+            //spellOutputLines.Add("## __ CALCULATED NAMES __ ##");
 
             var journalInstanceDB = Namer.LoadDBC("JournalInstance");
             var journalEncounterDB = Namer.LoadDBC("JournalEncounter");
@@ -708,7 +708,7 @@ namespace WoWNamingLib.Namers
                     }
                 }
 
-                spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
+               // spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
             }
 
             //File.WriteAllLines("spellnames.txt", spellOutputLines);
