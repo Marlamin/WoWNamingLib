@@ -124,7 +124,8 @@ namespace WoWNamingLib.Namers
             {"27a5cf74e293f52a39cad45d189bddd9", "7fx_alphamask_liquid_puddle" },
             {"7c003b9f310f56cc4b61c0165554d5f8", "7fx_heroaura_fire_noedge" },
             {"29aa5ad5f33b538b72d4660afd6cfcb1", "lightning_large_02_v3" },
-            {"70c0c61a41975993215d5140f110132f", "7FX_Flipbook_Lighting_Stylized_Yellow_A" }
+            {"70c0c61a41975993215d5140f110132f", "7FX_Flipbook_Lighting_Stylized_Yellow_A" },
+            {"f7e45e1641ab26790a3f3f99ae84a577", "grey128" }
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes)
