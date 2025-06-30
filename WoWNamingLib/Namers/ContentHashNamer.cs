@@ -125,7 +125,16 @@ namespace WoWNamingLib.Namers
             {"7c003b9f310f56cc4b61c0165554d5f8", "7fx_heroaura_fire_noedge" },
             {"29aa5ad5f33b538b72d4660afd6cfcb1", "lightning_large_02_v3" },
             {"70c0c61a41975993215d5140f110132f", "7FX_Flipbook_Lighting_Stylized_Yellow_A" },
-            {"f7e45e1641ab26790a3f3f99ae84a577", "grey128" }
+            {"f7e45e1641ab26790a3f3f99ae84a577", "grey128" },
+            {"cb5bd672ff95b4ffbd360329df07cf6e", "7fx_energyscroll_desat" },
+            {"7b76041a2838a510d85c665f49acd06f","Smoke_Wispy_Mask_BlendAdd" },
+            {"b682936a2cd500a03370eb451860e198", "8fx_puddles" },
+            {"bf3f3f3d882df9faecf06e4df976d235", "white_64" },
+            {"49f1a516f949f52d418706c1df49adf1", "energy1b_witchredcontrasthori_alphalift" },
+            {"95e81b149607d3f2e5cc641d5cfc1751", "Water_Hard_BlendAdd" },
+            {"ecc44a7579100b6d44f97b0fb7ce3eee", "energy1b_bloodtroll_bloodgoop_ba" },
+            {"ed6929c6dd0e9821929dfc9d3af71c82", "wispysmoke_masksmall_blend" }
+
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes)

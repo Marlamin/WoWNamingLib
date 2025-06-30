@@ -427,6 +427,18 @@ namespace WoWNamingLib
             }
         }
 
+        public static void NameDecals()
+        {
+            try
+            {
+                Decals.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during decal naming: " + e.Message);
+            }
+        }
+
         public static string NameSingleVO(int fileDataID, string creatureName)
         {
             return VO.NameSingle(fileDataID, creatureName);

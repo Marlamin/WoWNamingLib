@@ -323,7 +323,7 @@ namespace WoWNamingLib.Namers
                                 )
                                 AddWMOTextureName(wmoMat.texture3, texture3Filename, true, resetName);
                         }
-                        else if (wmoMat.shader == 23)
+                        else if (wmoMat.shader == 22 || wmoMat.shader == 23)
                         {
                             var textureFDIDs = new List<uint>() { wmoMat.texture1, wmoMat.texture2, wmoMat.texture3, wmoMat.color3, wmoMat.flags3, wmoMat.runtimeData0, wmoMat.runtimeData1, wmoMat.runtimeData2, wmoMat.runtimeData3 };
 
