@@ -52,6 +52,21 @@ namespace WoWNamingLib.Namers
                             NewFileManager.AddNewFileByname(line.Replace("\\", "/"));
                     }
                 }
+
+                // 6076661 - interface/ui-gen-addon-list.txt
+                var genList = CASCManager.GetFileByID(6076661).Result;
+                if (genList != null)
+                {
+                    using (var ms = new MemoryStream())
+                    {
+                        genList.CopyTo(ms);
+                        ms.Position = 0;
+                        var asText = Encoding.ASCII.GetString(ms.ToArray());
+                        var lines = asText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                        foreach (var line in lines)
+                            NewFileManager.AddNewFileByname(line.Replace("\\", "/"));
+                    }
+                }
             }
             catch (Exception e)
             {
