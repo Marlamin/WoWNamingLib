@@ -6,6 +6,7 @@ namespace WoWNamingLib.Namers
     class Sound
     {
         private static Dictionary<uint, DBCD.DBCDRow> CSDMap = new();
+        private static Dictionary<uint, List<(string TerrainType, uint SoundID, uint SoundIDSplash)>> CreatureFootstepMap = new();
         private static IDBCDStorage CSDDB;
         private static IDBCDStorage CSFDB;
 
@@ -17,7 +18,7 @@ namespace WoWNamingLib.Namers
             if (!Namer.IDToNameLookup.TryGetValue((int)modelFDID, out var modelFilename))
                 return;
 
-            if (modelFilename.ToLower().StartsWith("character"))
+            if (modelFilename.StartsWith("character", StringComparison.OrdinalIgnoreCase))
             {
                 if (displayID != 0)
                 {
@@ -46,6 +47,36 @@ namespace WoWNamingLib.Namers
 
             foreach (var col in CSDDB.AvailableColumns)
             {
+                if(col == "SoundFootstepID")
+                {
+                    var footstepID = uint.Parse(csdRow[col].ToString());
+                    if (CreatureFootstepMap.TryGetValue(footstepID, out var footstepSounds))
+                    {
+                        foreach (var footstepSound in footstepSounds)
+                        {
+                            foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(footstepSound.SoundID))
+                            {
+                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                                {
+                                    NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_footstep_" + footstepSound.TerrainType + "_" + soundFileDataID + ".ogg");
+                                }
+                            }
+
+                            if (footstepSound.SoundIDSplash != 0)
+                            {
+                                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(footstepSound.SoundIDSplash))
+                                {
+                                    if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                                    {
+                                        NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_footstep_splash_" + footstepSound.TerrainType + "_" + soundFileDataID + ".ogg");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    continue;
+                }
+
                 // Skip non-SoundKitIDs
                 if (col == "CreatureSoundDataIDPet" || col == "FidgetDelaySecondsMin" || col == "FidgetDelaySecondsMax" || col == "CreatureImpactType")
                     continue;
@@ -160,6 +191,29 @@ namespace WoWNamingLib.Namers
                 var csdID = uint.Parse(cmdEntry["SoundID"].ToString());
 
                 cmdIDToFDIDMap.Add(uint.Parse(cmdEntry["ID"].ToString()), mFDID);
+            }
+
+            CreatureFootstepMap.Clear();
+            var footstepTerrainLookupDB = Namer.LoadDBC("FootstepTerrainLookup");
+            var terrainTypeDB = Namer.LoadDBC("TerrainTypeSounds");
+            var terrainTypeLookup = new Dictionary<uint, string>();
+            foreach(var terrainTypeEntry in terrainTypeDB.Values)
+                terrainTypeLookup.Add(uint.Parse(terrainTypeEntry["ID"].ToString()), terrainTypeEntry["Name"].ToString());
+
+            foreach (var footstepTerrainRow in footstepTerrainLookupDB.Values)
+            {
+                var creatureFootstepID = uint.Parse(footstepTerrainRow["CreatureFootstepID"].ToString());
+                var terrainSoundID = uint.Parse(footstepTerrainRow["TerrainSoundID"].ToString());
+                var soundID = uint.Parse(footstepTerrainRow["SoundID"].ToString());
+                var soundIDSplash = uint.Parse(footstepTerrainRow["SoundIDSplash"].ToString());
+
+                if (!CreatureFootstepMap.ContainsKey(creatureFootstepID))
+                    CreatureFootstepMap.Add(creatureFootstepID, new List<(string TerrainType, uint SoundID, uint SoundIDSplash)>());
+
+                if (terrainTypeLookup.TryGetValue(terrainSoundID, out var terrainName))
+                    CreatureFootstepMap[creatureFootstepID].Add((terrainName.Replace(" ", "").Replace("/", ""), soundID, soundIDSplash));
+                else
+                    Console.WriteLine("Unknown terrain sound ID " + terrainSoundID + " for sound ID " + soundID);
             }
 
             var creatureDisplayInfoDB = Namer.LoadDBC("CreatureDisplayInfo");
