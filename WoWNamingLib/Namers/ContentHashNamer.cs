@@ -2,9 +2,9 @@
 
 namespace WoWNamingLib.Namers
 {
-    class ContentHashNamer
+    public class ContentHashNamer
     {
-        private static Dictionary<string, string> knownHashes = new Dictionary<string, string>()
+        public static Dictionary<string, string> knownHashes = new Dictionary<string, string>()
         {
             {"3ae255c5ce0b3c8216237f09bf45ec56", "smoke_loose_02_256_blend_contrast"},
             {"4f00cef6127f05c82305fd21adc815fe", "7fx_energyscroll_holy_dark_highalpha"},
