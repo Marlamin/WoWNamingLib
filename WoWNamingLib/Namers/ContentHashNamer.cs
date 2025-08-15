@@ -133,7 +133,19 @@ namespace WoWNamingLib.Namers
             {"49f1a516f949f52d418706c1df49adf1", "energy1b_witchredcontrasthori_alphalift" },
             {"95e81b149607d3f2e5cc641d5cfc1751", "Water_Hard_BlendAdd" },
             {"ecc44a7579100b6d44f97b0fb7ce3eee", "energy1b_bloodtroll_bloodgoop_ba" },
-            {"ed6929c6dd0e9821929dfc9d3af71c82", "wispysmoke_masksmall_blend" }
+            {"ed6929c6dd0e9821929dfc9d3af71c82", "wispysmoke_masksmall_blend" },
+            {"afd2a171ccb02cedd544163f5b433915", "AURA_01"},
+            {"11b68146a8964dfbc978a87586edbe35", "Electric_Liquid_Blue_A" },
+            {"622aa28e4c43dd7eb9f9cb04646b9109", "Bow_1H_PandaRaid_D_01_Spark" },
+            {"ddc2efa56c9ef47d16425b7e41cff0fc", "Flash_Plain_Directed_BA" },
+            {"869c981b3318c0d201a44d87fae3931a", "8fx_alphamask_void_circle" },
+            {"79c653f57c8a87c43eb5c3a88f3bf225", "8fx_alphamask_sharplarge_a" },
+            {"f5d4c4ae2f76c525773f2abd1eec7b1e", "soft_flare_" },
+            {"6d0979566585f366dea2004618753855", "urn_mist_flipped_azerite" },
+            {"8efe4eca8f1036c68646243c7009803d", "Caustic_Blue3" },
+            {"c1424cc02d1a62d6907276a418a7eea1", "Ember_Offset_frost" }
+
+
 
         };
 
