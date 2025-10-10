@@ -71,7 +71,7 @@ namespace WoWNamingLib.Services
             {
                 if(newLookup != cachedLookup)
                 {
-                    Console.WriteLine("Incoming filename " + filename + " for FDID " + fileDataID + " does not match known lookup " + cachedLookup.ToString("X16") + ", skipping.");
+                    //Console.WriteLine("Incoming filename " + filename + " for FDID " + fileDataID + " does not match known lookup " + cachedLookup.ToString("X16") + ", skipping.");
                     return;
                 }
             }

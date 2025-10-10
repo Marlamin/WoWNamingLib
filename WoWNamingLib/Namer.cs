@@ -439,6 +439,18 @@ namespace WoWNamingLib
             }
         }
 
+        public static void NamePlayerHousing()
+        {
+            try
+            {
+                PlayerHousing.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during player housing naming: " + e.Message);
+            }
+        }
+
         public static string NameSingleVO(int fileDataID, string creatureName)
         {
             return VO.NameSingle(fileDataID, creatureName);

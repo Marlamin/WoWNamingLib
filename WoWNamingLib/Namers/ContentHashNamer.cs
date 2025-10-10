@@ -143,10 +143,21 @@ namespace WoWNamingLib.Namers
             {"f5d4c4ae2f76c525773f2abd1eec7b1e", "soft_flare_" },
             {"6d0979566585f366dea2004618753855", "urn_mist_flipped_azerite" },
             {"8efe4eca8f1036c68646243c7009803d", "Caustic_Blue3" },
-            {"c1424cc02d1a62d6907276a418a7eea1", "Ember_Offset_frost" }
-
-
-
+            {"c1424cc02d1a62d6907276a418a7eea1", "Ember_Offset_frost" },
+            {"c08d6fb3aae4f8cecb222c1d2520f400", "energy1b_bloodtroll_brokenalpha_large_" },
+            {"21bc1b186ae8d4ed0b2882693ebf5616", "Incense_Red_StreakAlpha" },
+            {"cb635ada568002d6788bd5d94ef8bbf3", "Blendadd_CustomBubble_Brighter" },
+            {"549dc8fc7611ff6604b17e95c45d0adc", "8fx_alphamask_glow_blood" },
+            {"bbc22256f67017db14657a10816d3089", "12RTL_DetailDoodads_01" },
+            {"76584cf28cc3e1c5c48b3bb73a1bdaad", "7FX_Wavey_Mask_02_Vert" },
+            {"835635e650bfa9d8703158f57a365274", "12RTL_Seedblossom_01" },
+            {"4eed02535c9d23c6b91b759b3342a4df", "12RTL_Seedblossom_01_Glow" },
+            {"ea1b1d8c290957c169d9383ad52f761d", "12RTL_Rock01_1024_s" },
+            {"383c7cddc10de8e40b944407c7924dc2", "7FX_AlphaMask_Glow_GreenBlue" },
+            {"7237c1814ea6b4e59abce3c7efffa8a5", "7FX_AlphaMask_Glow_512_02" },
+            {"d10512532340b09f9791868d3ee69219", "12RTL_Main_Plant_Teacupmushroom_01" },
+            {"e9e89ea2a9540137209716577fee4f7a", "12RTL_Main_Plant_VineFlower_01" },
+            {"fab34640ba40a73b8642ff7cbc497dc1", "12RTL_Main_Plant_Groundbrush_01" },
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes)

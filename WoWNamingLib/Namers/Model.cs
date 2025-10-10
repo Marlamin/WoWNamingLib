@@ -1,5 +1,4 @@
 ﻿using DBCD;
-using System.Diagnostics;
 using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
@@ -59,7 +58,7 @@ namespace WoWNamingLib.Namers
         {
             spellLock.Enter();
 
-            if(spellsLoaded)
+            if (spellsLoaded)
             {
                 spellLock.Exit();
                 return;
@@ -151,7 +150,7 @@ namespace WoWNamingLib.Namers
                     svIDs.Add(svID);
             }
 
-            var spellVisualToSpell = new Dictionary<uint, List<(uint spellID, string context)>> ();
+            var spellVisualToSpell = new Dictionary<uint, List<(uint spellID, string context)>>();
             foreach (var svToSpellEntry in svToSpellDB.Values)
             {
                 var svID = uint.Parse(svToSpellEntry["SpellVisualID"].ToString()!);
@@ -237,7 +236,7 @@ namespace WoWNamingLib.Namers
             }
 
             var svenDB = Namer.LoadDBC("SpellVisualEffectName");
-            if(!svenDB.AvailableColumns.Contains("ModelFileDataID") || !svenDB.AvailableColumns.Contains("Type"))
+            if (!svenDB.AvailableColumns.Contains("ModelFileDataID") || !svenDB.AvailableColumns.Contains("Type"))
                 throw new Exception("SpellVisualEffectName DB2 does not contain ModelFileDataID or Type columns");
 
             foreach (var svenEntry in svenDB.Values)
@@ -266,17 +265,17 @@ namespace WoWNamingLib.Namers
                 if (!svenToKit.TryGetValue(svenID, out var svkIDs))
                     continue;
 
-             //   spellOutputLines.Add(spellModelFDID + " (SpellVisualEffectName ID " + svenID + ")");
+                //   spellOutputLines.Add(spellModelFDID + " (SpellVisualEffectName ID " + svenID + ")");
                 foreach (var svkID in svkIDs)
                 {
-                //    spellOutputLines.Add("\t SpellKitVisualID " + svkID);
+                    //    spellOutputLines.Add("\t SpellKitVisualID " + svkID);
 
                     if (!kitToVisual.TryGetValue(svkID, out var svIDs))
                         continue;
 
                     foreach (var svID in svIDs)
                     {
-                 //       spellOutputLines.Add("\t\t SpellVisualID " + svID);
+                        //       spellOutputLines.Add("\t\t SpellVisualID " + svID);
 
                         if (!spellVisualToSpell.TryGetValue(svID, out var svInfos))
                             continue;
@@ -286,10 +285,10 @@ namespace WoWNamingLib.Namers
                             if (!spellToSpellName.TryGetValue(svInfo.spellID, out var spellName))
                                 continue;
 
-                    //        spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + svInfo.spellID + ", context " + svInfo.context + ")");
+                            //        spellOutputLines.Add("\t\t\t " + spellName + " (SpellID " + svInfo.spellID + ", context " + svInfo.context + ")");
 
                             var eventStart = svkToType[svkID];
-                            if(svInfo.context == "main")
+                            if (svInfo.context == "main")
                             {
                                 if (!spellNames.TryGetValue(spellModelFDID, out List<SpellEntry>? spellEntries))
                                     spellNames.Add(spellModelFDID, new List<SpellEntry>() { new SpellEntry() { SpellID = svInfo.spellID, SpellName = spellName, EventStart = eventStart } });
@@ -313,7 +312,7 @@ namespace WoWNamingLib.Namers
                 throw new Exception("SpellVisualMissile DB2 does not contain SpellVisualMissileSetID or SpellVisualEffectNameID columns");
 
             var spellMissileSetToSVEN = new Dictionary<uint, List<uint>>();
-            foreach(var spellMissileEntry in spellMissileDB.Values)
+            foreach (var spellMissileEntry in spellMissileDB.Values)
             {
                 var spellMissileSetID = uint.Parse(spellMissileEntry["SpellVisualMissileSetID"].ToString()!);
                 var svenID = uint.Parse(spellMissileEntry["SpellVisualEffectNameID"].ToString()!);
@@ -347,7 +346,7 @@ namespace WoWNamingLib.Namers
                 }
 
             }
-            
+
             var spellClassOptionDB = Namer.LoadDBC("SpellClassOptions");
             if (!spellClassOptionDB.AvailableColumns.Contains("SpellID") || !spellClassOptionDB.AvailableColumns.Contains("SpellClassSet"))
                 throw new Exception("SpellClassOptions DB2 does not contain SpellID or SpellClassSet columns");
@@ -708,7 +707,7 @@ namespace WoWNamingLib.Namers
                     }
                 }
 
-               // spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
+                // spellOutputLines.Add(spellModelName.Key + ": " + spellModelName.Value.SpellName + "(" + spellModelName.Value.SpellID + ") = " + calculatedName);
             }
 
             //File.WriteAllLines("spellnames.txt", spellOutputLines);
@@ -727,7 +726,7 @@ namespace WoWNamingLib.Namers
             if (fullRun)
             {
                 var mfd = Namer.LoadDBC("ModelFileData");
-                if(!mfd.AvailableColumns.Contains("FileDataID"))
+                if (!mfd.AvailableColumns.Contains("FileDataID"))
                     throw new Exception("ModelFileData is missing a required column");
 
                 foreach (var entry in mfd.Values)
@@ -824,7 +823,7 @@ namespace WoWNamingLib.Namers
             try
             {
                 var cmdDB = Namer.LoadDBC("CreatureModelData");
-                if(!cmdDB.AvailableColumns.Contains("FileDataID") || !cmdDB.AvailableColumns.Contains("ID"))
+                if (!cmdDB.AvailableColumns.Contains("FileDataID") || !cmdDB.AvailableColumns.Contains("ID"))
                     throw new Exception("CreatureModelData is missing a required column");
 
                 foreach (var cmdEntry in cmdDB.Values)
@@ -888,6 +887,34 @@ namespace WoWNamingLib.Namers
             if (false)
             {
 
+            }
+
+            var decorNames = new Dictionary<uint, string>();
+
+            // HouseDecor M2s
+            // Possible sources:  spells for learning the decor, collectable*.db2
+            try
+            {
+                var decorDB = Namer.LoadDBC("HouseDecor");
+                if (!decorDB.AvailableColumns.Contains("ModelFileDataID") || !decorDB.AvailableColumns.Contains("Name_lang"))
+                    throw new Exception("HouseDecor DB2 is missing a required column");
+
+                foreach (var decorEntry in decorDB.Values)
+                {
+                    var decorFDID = uint.Parse(decorEntry["ModelFileDataID"].ToString()!);
+                    var decorName = decorEntry["Name_lang"].ToString()!;
+                    if (!decorName.Contains(".m2", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    decorName = decorName.Replace("[DNT]", "").Replace("[AUTOGEN]", "").Replace(".m2", "", StringComparison.OrdinalIgnoreCase).Trim();
+
+                    if (decorFDID != 0 && !string.IsNullOrEmpty(decorName) && !decorNames.ContainsKey(decorFDID))
+                        decorNames.Add(decorFDID, decorName);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Can't load HouseDecor DB for model naming: " + e.Message);
             }
 
             var itemAppearance = Namer.LoadDBC("ItemAppearance");
@@ -1124,6 +1151,10 @@ namespace WoWNamingLib.Namers
                         {
                             Console.WriteLine("Found item name based on icons: " + currentModelName);
                         }
+                        else if (decorNames.TryGetValue(fdid, out currentModelName))
+                        {
+
+                        }
                         //else if (spellNamesClean.TryGetValue(fdid, out currentModelName))
                         //{
                         //    currentModelName = Path.GetFileNameWithoutExtension(currentModelName);
@@ -1175,7 +1206,46 @@ namespace WoWNamingLib.Namers
                             switch (splitModelName[0])
                             {
                                 // DOODADS
+                                // 12.0
+                                case "12ph":
+                                    folder = "World/Expansion11/Doodads/PlayerHousing";
+                                    break;
+                                case "12xp":
+                                    folder = "World/Expansion11/Doodads/Generic";
+                                    break;
+                                case "12elw":
+                                    folder = "World/Expansion11/Doodads/Elwynn";
+                                    break;
+                                case "12dur":
+                                    folder = "World/Expansion11/Doodads/Durotar";
+                                    break;
+                                case "12be":
+                                    folder = "World/Expansion11/Doodads/BloodElf";
+                                    break;
+                                case "12tr":
+                                    folder = "World/Expansion11/Doodads/Troll";
+                                    break;
+                                case "12vd":
+                                    folder = "World/Expansion11/Doodads/Void";
+                                    break;
+                                case "12fn":
+                                    folder = "World/Expansion11/Doodads/Fungarian";
+                                    break;
+                                case "12pm":
+                                    folder = "World/Expansion11/Doodads/Primitive";
+                                    break;
+                                case "12ru":
+                                    folder = "World/Expansion11/Doodads/Rutaani";
+                                    break;
+                                case "12ve":
+                                    folder = "World/Expansion11/Doodads/VoidElf";
+                                    break;
+
+
                                 // 11.0
+                                case "11we":
+                                    folder = "World/Expansion10/Doodads/WildElves";
+                                    break;
                                 case "11fx":
                                     folder = "spells";
                                     break;
@@ -1348,37 +1418,81 @@ namespace WoWNamingLib.Namers
 
                                 // 7.0
                                 case "7vr":
-                                    folder = "World/Expansion06/Doodads/vrykul";
+                                    folder = "World/Expansion06/Doodads/Vrykul";
                                     break;
                                 case "7ne":
+                                    folder = "World/Expansion06/Doodads/NightElf";
+                                    break;
                                 case "7nb":
+                                    folder = "World/Expansion06/Doodads/Nightborn";
+                                    break;
                                 case "7du":
+                                    folder = "World/Expansion06/Doodads/Dungeon";
+                                    break;
                                 case "7fx":
+                                    folder = "World/Expansion06/Doodads/fx";
+                                    break;
                                 case "7hm":
+                                    folder = "World/Expansion06/Doodads/Highmountain";
+                                    break;
                                 case "7sr":
+                                    folder = "World/Expansion06/Doodads/Suramar";
+                                    break;
                                 case "7dl":
+                                    folder = "World/Expansion06/Doodads/Dalaran";
+                                    break;
                                 case "7bs":
+                                    folder = "World/Expansion06/Doodads/BrokenShore";
+                                    break;
                                 case "7lg":
+                                    folder = "World/Expansion06/Doodads/Legion";
+                                    break;
                                 case "7fk":
+                                    folder = "World/Expansion06/Doodads/Forsaken";
+                                    break;
                                 case "7af":
+                                    folder = "World/Expansion06/Doodads/Artifact";
+                                    break;
                                 case "7sw":
+                                    folder = "World/Expansion06/Doodads/Stormwind";
+                                    break;
                                 case "7xp":
-                                    // TODO
+                                    folder = "World/Expansion06/Doodads";
                                     break;
 
                                 // 6.0
                                 case "6fx":
                                     folder = "World/Expansion05/Doodads/fx";
                                     break;
+                                case "6fw":
+                                    folder = "World/Expansion05/Doodads/FrostwindDesert/Doodads";
+                                    break;
+                                case "6og":
+                                    folder = "World/Expansion05/Doodads/Ogre";
+                                    break;
                                 case "6ar":
+                                    folder = "World/Expansion05/Doodads/Ashrand";
+                                    break;
                                 case "6hu":
+                                    folder = "World/Expansion05/Doodads/Human";
+                                    break;
                                 case "6tj":
+                                    folder = "World/Expansion05/Doodads/TanaanJungle";
+                                    break;
                                 case "6dr":
+                                    folder = "World/Expansion05/Doodads/Draenei";
+                                    break;
                                 case "6du":
+                                    folder = "World/Expansion05/Doodads/Dungeon";
+                                    break;
                                 case "6ak":
+                                    folder = "World/Expansion05/Doodads/Arakkoa";
+                                    break;
                                 case "6oc":
+                                    folder = "World/Expansion05/Doodads/OrcClans";
+                                    break;
                                 case "6or":
-                                    // TODO
+                                    folder = "World/Expansion05/Doodads/Orc";
                                     break;
 
                                 // GOOBERS
@@ -1528,7 +1642,7 @@ namespace WoWNamingLib.Namers
                                     //}
                                     //else
                                     //{
-                                        folder = "models/spells/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
+                                    folder = "models/spells/unk_" + NewFileManager.GetExpansionForFileDataID(fdid) + "_" + currentModelName.ToLower();
                                     //}
                                 }
                                 else
@@ -1576,7 +1690,7 @@ namespace WoWNamingLib.Namers
                                 NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
                         }
 
-                        if(m2.skinFileDataIDs != null)
+                        if (m2.skinFileDataIDs != null)
                         {
                             for (var i = 0; i < m2.skinFileDataIDs.Length; i++)
                             {
@@ -1641,7 +1755,7 @@ namespace WoWNamingLib.Namers
 
                         // TODO: Particles?
 
-                        if(m2.events != null)
+                        if (m2.events != null)
                         {
                             for (var i = 0; i < m2.events.Length; i++)
                             {
@@ -1746,14 +1860,14 @@ namespace WoWNamingLib.Namers
         {
             var model = new M2Model();
             var m3ChunkNames = new List<uint>() {
-                'M' << 0 | '3' << 8 | 'D' << 16 | 'T' << 24,  // "M3DT"
-                'M' << 0 | '3' << 8 | 'S' << 16 | 'I' << 24,  // "M3SI"
-                'M' << 0 | '3' << 8 | 'S' << 16 | 'T' << 24,  // "M3ST"
-                'M' << 0 | 'E' << 8 | 'S' << 16 | '3' << 24,  // "MES3"
-                'M' << 0 | '3' << 8 | 'C' << 16 | 'L' << 24,  // "M3CL"
-                'M' << 0 | '3' << 8 | 'S' << 16 | 'V' << 24,  // "M3SV"
-                'M' << 0 | '3' << 8 | 'X' << 16 | 'F' << 24   // "M3XF"
-            };
+'M' << 0 | '3' << 8 | 'D' << 16 | 'T' << 24,  // "M3DT"
+'M' << 0 | '3' << 8 | 'S' << 16 | 'I' << 24,  // "M3SI"
+'M' << 0 | '3' << 8 | 'S' << 16 | 'T' << 24,  // "M3ST"
+'M' << 0 | 'E' << 8 | 'S' << 16 | '3' << 24,  // "MES3"
+'M' << 0 | '3' << 8 | 'C' << 16 | 'L' << 24,  // "M3CL"
+'M' << 0 | '3' << 8 | 'S' << 16 | 'V' << 24,  // "M3SV"
+'M' << 0 | '3' << 8 | 'X' << 16 | 'F' << 24   // "M3XF"
+};
 
             using (var bin = new BinaryReader(ms))
             {
@@ -1761,14 +1875,14 @@ namespace WoWNamingLib.Namers
                 {
                     var chunkName = bin.ReadUInt32();
 
-                    if(m3ChunkNames.Contains(chunkName))
+                    if (m3ChunkNames.Contains(chunkName))
                     {
                         // This is a M3 file, not M2
                         throw new Exception("M3 files are not supported yet!");
                     }
 
                     var chunkSize = bin.ReadUInt32();
-                    
+
                     if (chunkName == 0)
                         throw new Exception("M2 is encrypted");
 
