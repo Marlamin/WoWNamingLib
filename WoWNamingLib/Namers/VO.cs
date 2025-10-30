@@ -30,7 +30,7 @@ namespace WoWNamingLib.Namers
                     var sceneScriptRow = sceneScriptDB[sceneScriptTextRow.ID];
 
                     // Skip partial scenescripts (these are compiled in with the main one)
-                    if ((ushort)sceneScriptRow["FirstSceneScriptID"] != 0)
+                    if (int.Parse(sceneScriptRow["FirstSceneScriptID"].ToString()) != 0)
                         continue;
 
                     var parsedScript = SceneScriptParser.CompileScript(sceneScriptTextRow.ID);

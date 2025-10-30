@@ -891,17 +891,21 @@ namespace WoWNamingLib.Namers
 
             var decorNames = new Dictionary<uint, string>();
 
-            // HouseDecor M2s
-            // Possible sources:  spells for learning the decor, collectable*.db2
+            // HouseDecor/Collectable M2s
+            // TODO sources: spells for learning the decor
             try
             {
                 var decorDB = Namer.LoadDBC("HouseDecor");
                 if (!decorDB.AvailableColumns.Contains("ModelFileDataID") || !decorDB.AvailableColumns.Contains("Name_lang"))
                     throw new Exception("HouseDecor DB2 is missing a required column");
 
+                var decorIDToFDID = new Dictionary<uint, uint>();
                 foreach (var decorEntry in decorDB.Values)
                 {
                     var decorFDID = uint.Parse(decorEntry["ModelFileDataID"].ToString()!);
+                    var decorID = uint.Parse(decorEntry["ID"].ToString()!);
+                    decorIDToFDID.Add(decorID, decorFDID);
+
                     var decorName = decorEntry["Name_lang"].ToString()!;
                     if (!decorName.Contains(".m2", StringComparison.OrdinalIgnoreCase))
                         continue;
@@ -911,6 +915,32 @@ namespace WoWNamingLib.Namers
                     if (decorFDID != 0 && !string.IsNullOrEmpty(decorName) && !decorNames.ContainsKey(decorFDID))
                         decorNames.Add(decorFDID, decorName);
                 }
+
+                var collectableInfoDB = Namer.LoadDBC("CollectableInfo");
+                if (!collectableInfoDB.AvailableColumns.Contains("ID") || !collectableInfoDB.AvailableColumns.Contains("HouseDecorID"))
+                    throw new Exception("CollectableInfo DB2 is missing a required column");
+
+                foreach (var collectableEntry in collectableInfoDB.Values)
+                {
+                    var collectableDecorID = uint.Parse(collectableEntry["HouseDecorID"].ToString()!);
+                    if (collectableDecorID == 0)
+                        continue;
+
+                    if (!decorIDToFDID.TryGetValue(collectableDecorID, out var collectableFDID))
+                        continue;
+
+                    if (collectableFDID == 0)
+                        continue;
+
+                    var collectableName = collectableEntry["Name_lang"].ToString()!;
+                    if (!string.IsNullOrEmpty(collectableName) && collectableName.StartsWith("House Decor:") && !decorNames.ContainsKey(collectableFDID))
+                    {
+                        collectableName = collectableName.Split(" - ")[1].Replace(".m2", "", StringComparison.OrdinalIgnoreCase).Trim();
+                        decorNames.Add(collectableFDID, collectableName);
+                    }
+                }
+
+                File.WriteAllLines("decorNames.txt", decorNames.Select(x => x.Key + ": " + x.Value));
             }
             catch (Exception e)
             {
@@ -1184,7 +1214,7 @@ namespace WoWNamingLib.Namers
                         var folder = "";
 
                         if (
-                            !Namer.IDToNameLookup.ContainsKey((int)fdid) || (m2.name != null && m2.name.ToLower() != Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]).ToLower() || Namer.placeholderNames.Contains((int)fdid))
+                            !Namer.IDToNameLookup.ContainsKey((int)fdid) || (m2.name != null && !m2.name.Equals(Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]), StringComparison.OrdinalIgnoreCase) || Namer.placeholderNames.Contains((int)fdid))
                             )
                         {
                             // Time to figure out a name!
@@ -1239,6 +1269,9 @@ namespace WoWNamingLib.Namers
                                     break;
                                 case "12ve":
                                     folder = "World/Expansion11/Doodads/VoidElf";
+                                    break;
+                                case "12du":
+                                    folder = "World/Expansion11/Doodads/Dungeon";
                                     break;
 
 

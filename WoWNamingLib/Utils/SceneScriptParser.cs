@@ -71,16 +71,16 @@ namespace WoWNamingLib.Utils
             // script.Append("\n\n-- WoW.tools debug output: SceneScript name: " + (string)sceneScriptTextRow["Name"] + "\n\n");
 
             script.Append(sceneScriptTextRow["Script"]);
-            while ((ushort)sceneScriptRow["NextSceneScriptID"] != 0)
+            while (int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()) != 0)
             {
-                if (!sceneScriptDB.ContainsKey((ushort)sceneScriptRow["NextSceneScriptID"]))
+                if (!sceneScriptDB.ContainsKey(int.Parse(sceneScriptRow["NextSceneScriptID"].ToString())))
                 {
-                    script.Append("\n\n-- WoW.tools debug output: !!! SceneScript ID " + (ushort)sceneScriptRow["NextSceneScriptID"] + " not found, possibly encrypted\n\n");
+                    script.Append("\n\n-- WoW.tools debug output: !!! SceneScript ID " + int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()) + " not found, possibly encrypted\n\n");
                     continue;
                 }
 
-                sceneScriptTextRow = sceneScriptTextDB[(ushort)sceneScriptRow["NextSceneScriptID"]];
-                sceneScriptRow = sceneScriptDB[(ushort)sceneScriptRow["NextSceneScriptID"]];
+                sceneScriptTextRow = sceneScriptTextDB[int.Parse(sceneScriptRow["NextSceneScriptID"].ToString())];
+                sceneScriptRow = sceneScriptDB[int.Parse(sceneScriptRow["NextSceneScriptID"].ToString())];
 
                 script.Append(sceneScriptTextRow["Script"]);
             }
