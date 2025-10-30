@@ -360,7 +360,7 @@ namespace WoWNamingLib.Namers
                                     {
                                         //NewFileManager.AddNewFile(filedataid, folder + "/" + currentName.Replace(filedataid.ToString(), first.color.Replace(" ", "").Replace("(", "").Replace(")", "") + ".blp"), true, true);
                                     }
-                                    else
+                                    else if(Namer.IDToNameLookup.ContainsKey((int)filedataid))
                                     {
                                         NewFileManager.AddNewFile(filedataid, Namer.IDToNameLookup[(int)filedataid].Replace(filedataid.ToString(), first.color.Replace(" ", "").Replace("(", "").Replace(")", "")), true, true);
                                     }
