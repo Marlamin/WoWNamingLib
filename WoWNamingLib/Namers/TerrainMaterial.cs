@@ -79,6 +79,12 @@ namespace WoWNamingLib.Namers
                         {
                             if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
                             {
+                                if(liquidTexture.Contains("%d"))
+                                {
+                                    Console.WriteLine("!!! FrameCount == 1 but %d in texture name: " + liquidTexture);
+                                    continue;
+                                }
+
                                 NewFileManager.AddNewFile(liquidTypeXTexture.FileDataID, liquidTexture);
                                 break;
                             }
