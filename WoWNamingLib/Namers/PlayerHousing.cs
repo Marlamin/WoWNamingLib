@@ -1,4 +1,5 @@
-﻿using WoWNamingLib.Services;
+﻿using System.Reflection.Metadata.Ecma335;
+using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
 {
@@ -25,7 +26,9 @@ namespace WoWNamingLib.Namers
             typeToName[5] = "Pillar";
             typeToName[6] = "DoorwayWall";
             typeToName[7] = "Doorway";
-            foreach(var houseRoomRecord in houseRoomDB.Values)
+
+            var roomComponentDictionary = new Dictionary<int, List<(string cleanName, byte type, byte rcoType, int subType, string themeName)>>();
+            foreach (var houseRoomRecord in houseRoomDB.Values)
             {
                 var cleanName = houseRoomRecord["Name_lang"].ToString()!.Replace(" ", "_").Replace("(", "").Replace(")", "");
                 var roomWMODataID = (int)houseRoomRecord["RoomWmoDataID"];
@@ -42,6 +45,7 @@ namespace WoWNamingLib.Namers
 
                     // ModelFileDataID here is also in RoomComponentOption. Do we ignore it here?
                     // RoomComponentOption is selected by MeshStyleFilterID and Type
+
                     foreach (var rcoEntry in roomComponentOptionDB.Values)
                     {
                         // For RoomComponent::Type 4 (Stairs) there are MeshStyleFilters for 28 and 52. In RoomComponentOption SubType becomes 1-4 for those filters which matches HousingRoomComponentStairType.
@@ -53,14 +57,49 @@ namespace WoWNamingLib.Namers
 
                         var rcoType = (byte)rcoEntry["Type"];
                         var themeName = themeToName[(int)rcoEntry["Theme"]];
-                        Console.WriteLine(rcoModelFDID + " " + cleanName + " " + typeToName[type] + " "  + rcoType + " " + (int)rcoEntry["SubType"] + " " + themeName);
+
+                        if (!roomComponentDictionary.ContainsKey(rcoModelFDID))
+                            roomComponentDictionary[rcoModelFDID] = [];
+
+                        roomComponentDictionary[rcoModelFDID].Add((cleanName, type, rcoType, (int)rcoEntry["SubType"], themeName.Replace("'", "")));
                     }
+                }
+            }
+
+            foreach(var roomComponent in roomComponentDictionary)
+            {
+                var fdid = roomComponent.Key;
+                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                {
+                    var modelIndex = 1;
+                    var basename = "";
+                    if (roomComponent.Value.Select(v => v.cleanName).Distinct().Count() == 1)
+                    {
+                        var name = roomComponent.Value[0];
+                        basename = $"World/WMO/Expansion11/PlayerHousing/Room/12PH_{name.cleanName}_{typeToName[name.type]}_{name.rcoType}_{name.subType}_{name.themeName}";
+                    }
+                    else
+                    {
+                        // If all themes are the same, use that in the name
+                        var distinctThemes = roomComponent.Value.Select(v => v.themeName).Distinct().ToList();
+                        var name = roomComponent.Value[0];
+
+                        if (distinctThemes.Count == 0)
+                            basename = $"World/WMO/Expansion11/PlayerHousing/Room/12PH_Generic_{typeToName[name.type]}_{name.rcoType}_{name.subType}_{name.themeName}";
+                        else
+                            basename = $"World/WMO/Expansion11/PlayerHousing/Room/12PH_Generic_{typeToName[name.type]}_{name.rcoType}_{name.subType}_MultiTheme";
+                    }
+
+                    while (Namer.IDToNameLookup.ContainsValue(basename + modelIndex.ToString().PadLeft(2, '0') + ".wmo"))
+                        modelIndex++;
+
+                    NewFileManager.AddNewFile(fdid, basename + modelIndex.ToString().PadLeft(2, '0') + ".wmo", true);
                 }
             }
 
             // TODO: Room Component Option
 
-            // TODO: House Decor thumbnails
+            // TODO: House Decor thumbnails and icons
 
             // Exterior components
             var exteriorComponentTypeDB = Namer.LoadDBC("ExteriorComponentType");
@@ -93,11 +132,14 @@ namespace WoWNamingLib.Namers
                     var nameClean = wmoName.Replace("House", "").Replace(" ", "");
 
                     typeName = typeName.Replace(" ", "");
-                    var filename = $"World/WMO/Expansion11/PlayerHousing/Exterior/12PH_Exterior_{nameClean}_{typeName}_{fdid}.wmo";
-                    NewFileManager.AddNewFile(fdid, filename, true);
+                    var basename = $"World/WMO/Expansion11/PlayerHousing/Exterior/12PH_Exterior_{nameClean}_{typeName}";
+                    var modelIndex = 1;
+                    while (Namer.IDToNameLookup.ContainsValue(basename + modelIndex.ToString().PadLeft(2, '0') + ".wmo"))
+                        modelIndex++;
+
+                    NewFileManager.AddNewFile(fdid, basename + modelIndex.ToString().PadLeft(2, '0') + ".wmo", true);
                 }
             }
-
         }
     }
 }
