@@ -1,5 +1,6 @@
 ﻿using CASCLib;
 using DBCD;
+using DBCD.IO;
 using DBCD.Providers;
 using TACTSharp;
 using WoWNamingLib.Namers;
@@ -21,7 +22,7 @@ namespace WoWNamingLib
         public static string cacheDir = "";
 
         private static DBCManager? dbcManager;
-
+        
         public static bool isInitialized = false;
         public static bool IsCASCLibInit = false;
         public static bool IsTACTSharpInit = false;
@@ -51,6 +52,14 @@ namespace WoWNamingLib
         public static void SetProviders(IDBCProvider dbcProvider, Stream bdbdStream)
         {
             dbcManager = new DBCManager(dbcProvider, bdbdStream);
+        }
+
+        public static void SetHotfixes(Dictionary<uint, HotfixReader> hotfixes)
+        {
+            if(dbcManager == null)
+                throw new Exception("DBCManager not initialized!");
+
+            dbcManager.SetHotfixes(hotfixes);
         }
 
         public static void SetGetExpansionFunction(Func<int, uint> function)

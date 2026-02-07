@@ -485,6 +485,10 @@ namespace WoWNamingLib.Namers
                 if (calculatedVOVersion == 820)
                     return 82;
 
+                // Remove trailing 0 if minor is 0 to replicate Blizzard naming
+                if (patch == 0)
+                    calculatedVOVersion /= 10;
+
                 return calculatedVOVersion;
             }
 
@@ -492,7 +496,7 @@ namespace WoWNamingLib.Namers
 
             if (fileDataID > 5524626)
             {
-                voVersion = 1100;
+                voVersion = 110;
             }
             else if (fileDataID > 5313885)
             {
@@ -500,7 +504,7 @@ namespace WoWNamingLib.Namers
             }
             else if (fileDataID > 5279429)
             {
-                voVersion = 1020;
+                voVersion = 102;
             }
             else if (fileDataID > 5222554)
             {
@@ -512,11 +516,11 @@ namespace WoWNamingLib.Namers
             }
             else if (fileDataID > 4901580)
             {
-                voVersion = 1010;
+                voVersion = 101;
             }
             else if (fileDataID > 4561244)
             {
-                voVersion = 1000;
+                voVersion = 100;
             }
             else if (fileDataID > 4423411)
             {
@@ -524,11 +528,11 @@ namespace WoWNamingLib.Namers
             }
             else if (fileDataID > 4208596)
             {
-                voVersion = 920;
+                voVersion = 92;
             }
             else if (fileDataID > 4035327)
             {
-                voVersion = 910;
+                voVersion = 91;
             }
             else if (fileDataID > 3380485)
             {

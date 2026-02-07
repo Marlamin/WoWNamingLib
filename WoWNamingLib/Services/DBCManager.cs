@@ -1,5 +1,8 @@
-﻿using DBCD.Providers;
+﻿using DBCD;
 using DBCD.IO;
+using DBCD.Providers;
+using DBDefsLib;
+using static WoWNamingLib.Services.WDBManager;
 
 namespace WoWNamingLib.Services
 {
@@ -7,33 +10,21 @@ namespace WoWNamingLib.Services
     {
         private DBCD.DBCD dbcd;
         private Dictionary<string, DBCD.IDBCDStorage> cache = new Dictionary<string, DBCD.IDBCDStorage>();
-        private HotfixReader? hotfixReader;
+        private Dictionary<uint, HotfixReader> hotfixes = [];
+
         public DBCManager(IDBCProvider dbcProvider, IDBDProvider dbdProvider)
         {
             dbcd = new DBCD.DBCD(dbcProvider, dbdProvider);
-            InitHotfixes();
         }
 
         public DBCManager(IDBCProvider dbcProvider, Stream bdbdStream)
         {
             dbcd = new DBCD.DBCD(dbcProvider, bdbdStream);
-            InitHotfixes();
         }
 
-        private void InitHotfixes()
+        public void SetHotfixes(Dictionary<uint, HotfixReader> htfxs)
         {
-            if (!string.IsNullOrEmpty(Namer.wowDir) && Namer.localProduct == "wow" && File.Exists(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin")))
-            {
-                var htfxReader = new HotfixReader(Path.Combine(Namer.wowDir, "_retail_", "Cache\\ADB\\enUS\\DBCache.bin"));
-
-                var buildIDInNamer = Namer.build.Split('.')[3];
-
-                if (htfxReader.BuildId == int.Parse(buildIDInNamer))
-                {
-                    hotfixReader = htfxReader;
-                    Console.WriteLine("Loaded hotfixes from " + hotfixReader.BuildId);
-                }
-            }
+            hotfixes = htfxs;
         }
 
         public DBCD.IDBCDStorage Load(string name)
@@ -42,8 +33,10 @@ namespace WoWNamingLib.Services
                 return value;
 
             var db = dbcd.Load(name, Namer.build);
-            if (hotfixReader != null)
-                db.ApplyingHotfixes(hotfixReader);
+            var buildNumber = uint.Parse(Namer.build.Split('.')[3]);
+
+            if (hotfixes.TryGetValue(buildNumber, out HotfixReader? hotfixReaders))
+                db.ApplyingHotfixes(hotfixReaders);
 
             cache.TryAdd(name, db);
 
