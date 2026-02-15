@@ -7,12 +7,12 @@ namespace WoWNamingLib.Namers
     {
         public static void Name()
         {
-            // TODO: Room component WMOs
-            // World/WMO/Expansion11/PlayerHousing/Room/12PH_Race_Room_*.wmo
             var houseThemeDB = Namer.LoadDBC("HouseTheme");
             var houseRoomDB = Namer.LoadDBC("HouseRoom");
             var roomComponentDB = Namer.LoadDBC("RoomComponent");
             var roomComponentOptionDB = Namer.LoadDBC("RoomComponentOption");
+            var roomComponentTextureDB = Namer.LoadDBC("RoomComponentTexture");
+            var houseDecorDB = Namer.LoadDBC("HouseDecor");
 
             var themeToName = new Dictionary<int, string>();
             foreach(var houseThemeRec in houseThemeDB.Values)
@@ -97,7 +97,108 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            // TODO: Room Component Option
+            foreach(var rcOptionRow in roomComponentOptionDB.Values)
+            {
+                var fdid = (int)rcOptionRow["ModelFileDataID"];
+                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                {
+                    if(!themeToName.TryGetValue((int)rcOptionRow["Theme"], out var themeName))
+                        themeName = "Unknown";
+
+                    themeName = themeName.Replace("'", "");
+
+                    var rcoType = (byte)rcOptionRow["Type"];
+                    var rcoTypeDesc = "";
+                    switch (rcoType)
+                    {
+                        case 0:
+                            rcoTypeDesc = "Cosmetic";
+                            break;
+                        case 1:
+                            rcoTypeDesc = "DoorwayWall";
+                            break;
+                        case 2:
+                            rcoTypeDesc = "Doorway"; 
+                            break;
+                        default:
+                            rcoTypeDesc = "Type" + rcoType.ToString();
+                            break;
+                    }
+                    var meshStyleFilterID = (int)rcOptionRow["MeshStyleFilterID"];
+                    var subType = (int)rcOptionRow["SubType"];
+                    var basename = $"World/WMO/Expansion11/PlayerHousing/Room/12PH_Option_{rcoTypeDesc}_{subType}_{themeName}";
+                    var modelIndex = 1;
+                    while (Namer.IDToNameLookup.ContainsValue(basename + modelIndex.ToString().PadLeft(2, '0') + ".wmo"))
+                        modelIndex++;
+
+                    NewFileManager.AddNewFile(fdid, basename + modelIndex.ToString().PadLeft(2, '0') + ".wmo", true);
+                }
+            }
+
+            foreach (var houseDecorRow in houseDecorDB.Values)
+            {
+                var fdid = (int)houseDecorRow["ModelFileDataID"];
+                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                {
+                    var modelType = (byte)houseDecorRow["ModelType"];
+                    if (modelType == 1)
+                    {
+                        // TODO: M2
+                    }
+                    else if (modelType == 2)
+                    {
+                        // WMO
+                        var folder = "World/WMO/Expansion11/PlayerHousing/Decor/";
+                        var baseName = "12PH_Decor_" + fdid + ".wmo";
+                        var name = houseDecorRow["Name_lang"].ToString();
+                        if (name.Contains("12PH") && name.Contains("wmo"))
+                        {
+                            var startOfName = name.IndexOf("12PH");
+                            var endOfName = name.LastIndexOf(".wmo");
+                            if (startOfName != -1 && endOfName != -1 && endOfName > startOfName)
+                            {
+                                var namePart = name.Substring(startOfName, endOfName - startOfName);
+                                baseName = namePart;
+                            }
+                        }
+
+                        NewFileManager.AddNewFile(fdid, folder + baseName, true);
+                    }
+                }
+            }
+
+            foreach(var rctRow in roomComponentTextureDB.Values)
+            {
+                var fdid = (int)rctRow["TextureFileDataID"];
+                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                {
+                    if (!themeToName.TryGetValue((int)rctRow["HouseThemeID"], out var themeName))
+                        themeName = "Unknown";
+
+                    themeName = themeName.Replace("'", "");
+                    
+                    var type = (int)rctRow["RoomComponentType"];
+                    var typeDesc = "";
+                    switch (type)
+                    {
+                        case 1:
+                            typeDesc = "Wall";
+                            break;
+                        case 2:
+                            typeDesc = "Floor";
+                            break;
+                        case 3:
+                            typeDesc = "Ceiling";
+                            break;
+                        default:
+                            typeDesc = "Type" + type.ToString();
+                            break;
+
+                    }
+                    var basename = $"World/Texture/Expansion11/PlayerHousing/Room/12PH_ComponentTexture_{typeDesc}_{themeName}_{fdid}.blp";
+                    NewFileManager.AddNewFile(fdid, basename, true);
+                }
+            }
 
             // TODO: House Decor thumbnails and icons
 
