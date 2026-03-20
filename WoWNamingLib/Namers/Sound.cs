@@ -203,14 +203,17 @@ namespace WoWNamingLib.Namers
             foreach (var footstepTerrainRow in footstepTerrainLookupDB.Values)
             {
                 var creatureFootstepID = uint.Parse(footstepTerrainRow["CreatureFootstepID"].ToString());
-                var terrainSoundID = uint.Parse(footstepTerrainRow["TerrainSoundID"].ToString());
+                var terrainSoundID = int.Parse(footstepTerrainRow["TerrainSoundID"].ToString());
+                if (terrainSoundID == -1)
+                    continue;
+
                 var soundID = uint.Parse(footstepTerrainRow["SoundID"].ToString());
                 var soundIDSplash = uint.Parse(footstepTerrainRow["SoundIDSplash"].ToString());
 
                 if (!CreatureFootstepMap.ContainsKey(creatureFootstepID))
                     CreatureFootstepMap.Add(creatureFootstepID, new List<(string TerrainType, uint SoundID, uint SoundIDSplash)>());
 
-                if (terrainTypeLookup.TryGetValue(terrainSoundID, out var terrainName))
+                if (terrainTypeLookup.TryGetValue((uint)terrainSoundID, out var terrainName))
                     CreatureFootstepMap[creatureFootstepID].Add((terrainName.Replace(" ", "").Replace("/", ""), soundID, soundIDSplash));
                 else
                     Console.WriteLine("Unknown terrain sound ID " + terrainSoundID + " for sound ID " + soundID);
