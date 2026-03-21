@@ -916,9 +916,9 @@ namespace WoWNamingLib.Namers
                         decorNames.Add(decorFDID, decorName);
                 }
 
-                var collectableInfoDB = Namer.LoadDBC("CollectableInfo");
+                var collectableInfoDB = Namer.LoadDBC("CollectableSourceInfo");
                 if (!collectableInfoDB.AvailableColumns.Contains("ID") || !collectableInfoDB.AvailableColumns.Contains("HouseDecorID"))
-                    throw new Exception("CollectableInfo DB2 is missing a required column");
+                    throw new Exception("CollectableSourceInfo DB2 is missing a required column");
 
                 foreach (var collectableEntry in collectableInfoDB.Values)
                 {
@@ -932,11 +932,19 @@ namespace WoWNamingLib.Namers
                     if (collectableFDID == 0)
                         continue;
 
-                    var collectableName = collectableEntry["Name_lang"].ToString()!;
+                    var collectableName = collectableEntry["Description"].ToString()!;
                     if (!string.IsNullOrEmpty(collectableName) && collectableName.StartsWith("House Decor:") && !decorNames.ContainsKey(collectableFDID))
                     {
-                        collectableName = collectableName.Split(" - ")[1].Replace(".m2", "", StringComparison.OrdinalIgnoreCase).Trim();
-                        decorNames.Add(collectableFDID, collectableName);
+                        var m2Index = collectableName.LastIndexOf(".m2", StringComparison.OrdinalIgnoreCase);
+                        if(m2Index != -1)
+                        {
+                            var spaceIndex = collectableName.LastIndexOf(' ', m2Index);
+                            if (spaceIndex != -1)
+                            {
+                                collectableName = collectableName.Substring(spaceIndex, m2Index - spaceIndex).Trim().Replace(".m2", "", StringComparison.OrdinalIgnoreCase);
+                                decorNames.Add(collectableFDID, collectableName);
+                            }
+                        }
                     }
                 }
 
