@@ -160,10 +160,13 @@ namespace WoWNamingLib.Namers
             {"fab34640ba40a73b8642ff7cbc497dc1", "12RTL_Main_Plant_Groundbrush_01" },
         };
 
-        public static void Name(Dictionary<int, byte[]> idToHashes)
+        public static void Name(Dictionary<int, byte[]> idToHashes, List<int> filter = null)
         {
             foreach (var idToHash in idToHashes)
             {
+                if (filter != null && !filter.Contains(idToHash.Key))
+                    continue;
+
                 var contenthash = Convert.ToHexStringLower(idToHash.Value);
 
                 if (!Namer.IDToNameLookup.ContainsKey(idToHash.Key))
