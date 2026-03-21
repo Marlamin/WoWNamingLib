@@ -58,8 +58,6 @@ namespace WoWNamingLib.Services
 
         public static void AddNewFile(int fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
         {
-
-
             // Please don't overwrite these files.
             if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357 || fileDataID == 2887301 || fileDataID == 3557051)
                 return;
@@ -126,6 +124,16 @@ namespace WoWNamingLib.Services
 
                         if (!currentFileName.StartsWith("models") && !currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
                             return;
+                    }
+
+                    // Special case: When we name mass placeholders (e.g. models/world/expansion11/doodads/troll/etc.m2) we'd like to keep those over the useless models/world/unkexp11 placeholders.
+                    if(currentFileName.StartsWith("models", StringComparison.OrdinalIgnoreCase) && filename.StartsWith("models", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if(!currentFileName.Contains("unk_exp", StringComparison.OrdinalIgnoreCase) && filename.Contains("unk_exp", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine("Skipping " + fileDataID + ", useless placeholder override: " + currentFileName + " => " + filename);
+                            return;
+                        }
                     }
 
                     if (filename.Contains("world/wmo", StringComparison.CurrentCultureIgnoreCase) && currentFileName.Contains("tileset", StringComparison.CurrentCultureIgnoreCase))
