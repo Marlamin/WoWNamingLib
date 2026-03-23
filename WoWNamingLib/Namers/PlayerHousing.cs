@@ -135,21 +135,62 @@ namespace WoWNamingLib.Namers
                 }
             }
 
+            var itemDB = Namer.LoadDBC("Item");
+
             foreach (var houseDecorRow in houseDecorDB.Values)
             {
-                var fdid = (int)houseDecorRow["ModelFileDataID"];
-                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                var modelFDID = (int)houseDecorRow["ModelFileDataID"];
+                var itemID = (int)houseDecorRow["ItemID"];
+                var iconFDID = 0;
+                var iconFilename = "";
+
+                if (itemID != 0 && itemDB.TryGetValue(itemID, out var itemRow))
+                {
+                    iconFDID = (int)itemRow["IconFileDataID"];
+                    if (!Namer.IDToNameLookup.TryGetValue(iconFDID, out iconFilename) && Namer.placeholderNames.Contains(iconFDID))
+                    {
+                        var iconName = BattleNetAPI.GetBaseNameForMediaFDID((uint)iconFDID);
+                        if(!string.IsNullOrEmpty(iconName))
+                        {
+                            iconFilename = "Housing/Icons/" + iconName + ".blp";
+                            NewFileManager.AddNewFile(iconFDID, iconFilename, true);
+                        }
+                        else
+                        {
+                            Console.WriteLine("No official icon name found for FDID " + iconFDID + ", falling back to model name for now");
+                            if(Namer.IDToNameLookup.TryGetValue(modelFDID, out var modelName))
+                            {
+                                // use capitals for inv_ and embed fdid to signify unofficial name
+                                iconFilename = "Housing/Icons/INV_" + Path.GetFileNameWithoutExtension(modelName) + "_" + iconFDID + ".blp";
+                                NewFileManager.AddNewFile(iconFDID, iconFilename, true);
+                            }
+                        }
+                    }
+                }
+
+                if (iconFDID != 975745 && !string.IsNullOrEmpty(iconFilename))
+                {
+                    // Hey guess what, we can name the thumbnail based on the icon!
+                    var thumbnailFDID = (int)houseDecorRow["ThumbnailFileDataID"];
+                    if (!Namer.IDToNameLookup.ContainsKey(thumbnailFDID) || Namer.placeholderNames.Contains(thumbnailFDID))
+                    {
+                        var thumbnailFilename = iconFilename.Replace("Icons", "Thumbnails").Replace("INV_", "", StringComparison.OrdinalIgnoreCase).Replace(iconFDID.ToString(), thumbnailFDID.ToString());
+                        NewFileManager.AddNewFile(thumbnailFDID, thumbnailFilename, true);
+                    }
+                }
+
+                if (!Namer.IDToNameLookup.ContainsKey(modelFDID) || Namer.placeholderNames.Contains(modelFDID))
                 {
                     var modelType = (byte)houseDecorRow["ModelType"];
                     if (modelType == 1)
                     {
-                        // TODO: M2
+                        // letting this part be handled by the model namer, see logic there for more
                     }
                     else if (modelType == 2)
                     {
                         // WMO
                         var folder = "World/WMO/Expansion11/PlayerHousing/Decor/";
-                        var baseName = "12PH_Decor_" + fdid + ".wmo";
+                        var baseName = "12PH_Decor_" + modelFDID + ".wmo";
                         var name = houseDecorRow["Name_lang"].ToString();
                         if (name.Contains("12PH") && name.Contains("wmo"))
                         {
@@ -162,7 +203,7 @@ namespace WoWNamingLib.Namers
                             }
                         }
 
-                        NewFileManager.AddNewFile(fdid, folder + baseName, true);
+                        NewFileManager.AddNewFile(modelFDID, folder + baseName, true);
                     }
                 }
             }
@@ -199,8 +240,6 @@ namespace WoWNamingLib.Namers
                     NewFileManager.AddNewFile(fdid, basename, true);
                 }
             }
-
-            // TODO: House Decor thumbnails and icons
 
             // Exterior components
             var exteriorComponentTypeDB = Namer.LoadDBC("ExteriorComponentType");

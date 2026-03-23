@@ -1,5 +1,6 @@
 ﻿using DBCD;
 using WoWNamingLib.Services;
+using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
 {
@@ -895,6 +896,7 @@ namespace WoWNamingLib.Namers
             // TODO sources: spells for learning the decor
             try
             {
+                var itemDB = Namer.LoadDBC("Item");
                 var decorDB = Namer.LoadDBC("HouseDecor");
                 if (!decorDB.AvailableColumns.Contains("ModelFileDataID") || !decorDB.AvailableColumns.Contains("Name_lang"))
                     throw new Exception("HouseDecor DB2 is missing a required column");
@@ -904,16 +906,30 @@ namespace WoWNamingLib.Namers
                 {
                     var decorFDID = uint.Parse(decorEntry["ModelFileDataID"].ToString()!);
                     var decorID = uint.Parse(decorEntry["ID"].ToString()!);
+                    var itemID = int.Parse(decorEntry["ItemID"].ToString()!);
                     decorIDToFDID.Add(decorID, decorFDID);
 
-                    var decorName = decorEntry["Name_lang"].ToString()!;
-                    if (!decorName.Contains(".m2", StringComparison.OrdinalIgnoreCase))
-                        continue;
+                    // Try icon name first since that has a larger chance of being official
+                    if (!decorNames.ContainsKey(decorFDID) && itemID != 0 && itemDB.TryGetValue(itemID, out var itemRow))
+                    {
+                        var iconFDID = (int)itemRow["IconFileDataID"];
+                        // specifically ignore interface/icons/garrison_building_storehouse.blp
+                        if (iconFDID != 975745 && Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconName) && !Namer.placeholderNames.Contains(iconFDID))
+                            decorNames.Add(decorFDID, Path.GetFileNameWithoutExtension(iconName).Replace("INV_", "", StringComparison.OrdinalIgnoreCase));
+                    }
 
-                    decorName = decorName.Replace("[DNT]", "").Replace("[AUTOGEN]", "").Replace(".m2", "", StringComparison.OrdinalIgnoreCase).Trim();
+                    // If icon approach failed check decor name for m2
+                    if (!decorNames.ContainsKey(decorFDID))
+                    {
+                        var decorName = decorEntry["Name_lang"].ToString()!;
+                        if (!decorName.Contains(".m2", StringComparison.OrdinalIgnoreCase))
+                            continue;
 
-                    if (decorFDID != 0 && !string.IsNullOrEmpty(decorName) && !decorNames.ContainsKey(decorFDID))
-                        decorNames.Add(decorFDID, decorName);
+                        decorName = decorName.Replace("[DNT]", "").Replace("[AUTOGEN]", "").Replace(".m2", "", StringComparison.OrdinalIgnoreCase).Trim();
+
+                        if (decorFDID != 0 && !string.IsNullOrEmpty(decorName) && !decorNames.ContainsKey(decorFDID))
+                            decorNames.Add(decorFDID, decorName);
+                    }
                 }
 
                 var collectableInfoDB = Namer.LoadDBC("CollectableSourceInfo");
@@ -947,8 +963,6 @@ namespace WoWNamingLib.Namers
                         }
                     }
                 }
-
-                File.WriteAllLines("decorNames.txt", decorNames.Select(x => x.Key + ": " + x.Value));
             }
             catch (Exception e)
             {
@@ -1310,6 +1324,9 @@ namespace WoWNamingLib.Namers
                                     break;
                                 case "11ko":
                                     folder = "World/Expansion10/Doodads/Kobold";
+                                    break;
+                                case "11go":
+                                    folder = "World/Expansion10/Doodads/Goblin";
                                     break;
 
                                 // 10.0
