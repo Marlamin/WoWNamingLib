@@ -94,6 +94,7 @@ namespace WoWNamingLib.Services
             {
                 var oldHash = Hasher.ComputeHash(currentFileName);
 
+
                 var caseOnlyFix = currentFileName.Equals(filename, StringComparison.OrdinalIgnoreCase) && !currentFileName.Equals(filename, StringComparison.Ordinal);
                 if (!Namer.AllowCaseRenames && caseOnlyFix)
                     return;

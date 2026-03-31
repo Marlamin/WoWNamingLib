@@ -46,6 +46,9 @@ namespace WoWNamingLib.Namers
                     var fileDataID = int.Parse(mfdRow["FileDataID"].ToString());
                     var modelResourcesID = uint.Parse(mfdRow["ModelResourcesID"].ToString());
 
+                    if (modelResourcesID == 0)
+                        continue;
+
                     if (mfdMap.TryGetValue(modelResourcesID, out List<int>? currentList))
                     {
                         currentList.Add(fileDataID);
@@ -108,22 +111,19 @@ namespace WoWNamingLib.Namers
                                 if (Namer.IDToNameLookup.ContainsKey(fileDataID))
                                     continue;
 
-                                Console.WriteLine(fileDataID);
-
                                 if (mfdMap.TryGetValue(modelResourcesID, out List<int> M2FileDataIDs))
                                 {
-                                    if (Namer.IDToNameLookup.TryGetValue(M2FileDataIDs[0], out var filename))
+                                    if (M2FileDataIDs[0] != 0 && Namer.IDToNameLookup.TryGetValue(M2FileDataIDs[0], out var filename))
                                     {
                                         var textureFilename = filename;
                                         foreach (var stupidExtension in stupidItemExtensions)
-                                        {
-                                            textureFilename = textureFilename.Replace(stupidExtension, fileDataID + ".blp");
-                                        }
+                                            textureFilename = textureFilename.Replace(stupidExtension, fileDataID + ".blp", StringComparison.OrdinalIgnoreCase);
 
-                                        if (textureFilename.Contains(".m2"))
-                                        {
-                                            textureFilename = textureFilename.Replace(".m2", "_" + fileDataID + ".blp");
-                                        }
+                                        if (textureFilename.EndsWith(".m2", StringComparison.OrdinalIgnoreCase))
+                                            textureFilename = textureFilename.Replace(".m2", "_" + fileDataID + ".blp", StringComparison.OrdinalIgnoreCase);
+
+                                        if(textureFilename.EndsWith(".m3", StringComparison.OrdinalIgnoreCase))
+                                            textureFilename = textureFilename.Replace(".m3", "_" + fileDataID + ".blp", StringComparison.OrdinalIgnoreCase);
 
                                         NewFileManager.AddNewFile(fileDataID, textureFilename);
                                     }
@@ -150,6 +150,10 @@ namespace WoWNamingLib.Namers
                                         }
                                     }
                                 }
+                                else
+                                {
+                                    Console.WriteLine("!!! Item texture " + fileDataID + " belongs to model resources ID " + modelResourcesID + " which has no name, skipping naming..");
+                                }
                             }
                         }
                     }
@@ -169,8 +173,11 @@ namespace WoWNamingLib.Namers
                     var textureFolder = "";
                     var miniComponent = "";
                     var miniComponentGender = "u";
+                    var itemDisplayInfoID = int.Parse(idimrRow["ItemDisplayInfoID"].ToString()!);
+                    var componentSection = int.Parse(idimrRow["ComponentSection"].ToString()!);
+                    var materialResourcesID = int.Parse(idimrRow["MaterialResourcesID"].ToString()!);
 
-                    switch (int.Parse(idimrRow["ComponentSection"].ToString()))
+                    switch (componentSection)
                     {
                         case 0: // ArmUpper
                             textureFolder = "item/texturecomponents/armuppertexture";
@@ -212,7 +219,7 @@ namespace WoWNamingLib.Namers
                             throw new Exception("Unhandled component type " + idimrRow["ComponentSection"].ToString());
                     }
 
-                    if (tfdMap.TryGetValue(int.Parse(idimrRow["MaterialResourcesID"].ToString()), out List<int> fileDataIDs))
+                    if (tfdMap.TryGetValue(materialResourcesID, out List<int> fileDataIDs))
                     {
                         foreach (var fileDataID in fileDataIDs)
                         {
@@ -243,7 +250,7 @@ namespace WoWNamingLib.Namers
 
                                 var named = false;
 
-                                if (idiMap.TryGetValue(int.Parse(idimrRow["ItemDisplayInfoID"].ToString()), out var idiRow))
+                                if (idiMap.TryGetValue(itemDisplayInfoID, out var idiRow))
                                 {
                                     for (int i = 0; i < 2; i++)
                                     {
@@ -256,24 +263,23 @@ namespace WoWNamingLib.Namers
                                         {
                                             for (int j = 0; j < M2FileDataIDs.Count; j++)
                                             {
-                                                if (Namer.IDToNameLookup.TryGetValue(M2FileDataIDs[j], out var filename))
+                                                if (M2FileDataIDs[j] != 0 && Namer.IDToNameLookup.TryGetValue(M2FileDataIDs[j], out var filename))
                                                 {
                                                     var textureFilename = Path.GetFileName(filename);
                                                     foreach (var stupidExtension in stupidItemExtensions)
-                                                    {
-                                                        textureFilename = textureFilename.Replace(stupidExtension, "");
-                                                    }
+                                                        textureFilename = textureFilename.Replace(stupidExtension, "", StringComparison.OrdinalIgnoreCase);
 
-                                                    if (textureFilename.Contains(".m2"))
-                                                    {
-                                                        textureFilename = textureFilename.Replace(".m2", "");
-                                                    }
+                                                    if (textureFilename.EndsWith(".m2", StringComparison.OrdinalIgnoreCase))
+                                                        textureFilename = textureFilename.Replace(".m2", "", StringComparison.OrdinalIgnoreCase);
+
+                                                    if (textureFilename.EndsWith(".m3", StringComparison.OrdinalIgnoreCase))
+                                                        textureFilename = textureFilename.Replace(".m3", "", StringComparison.OrdinalIgnoreCase);
 
                                                     var actualFilename = textureFolder + "/" + textureFilename + "_" + miniComponent + miniComponentGender + "_" + fileDataID + ".blp";
 
                                                     actualFilename = actualFilename.Replace("__", "_");
 
-                                                    NewFileManager.AddNewFile(fileDataID, actualFilename);
+                                                    NewFileManager.AddNewFile(fileDataID, actualFilename, Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                                     named = true;
                                                     break;
                                                 }
@@ -284,7 +290,7 @@ namespace WoWNamingLib.Namers
 
                                 if (!named)
                                 {
-                                    itemAppearanceIDIToIconMap.TryGetValue(uint.Parse(idimrRow["ItemDisplayInfoID"].ToString()), out var iconFDID);
+                                    itemAppearanceIDIToIconMap.TryGetValue((uint)itemDisplayInfoID, out var iconFDID);
 
                                     if(iconFDID != 0)
                                     {
@@ -295,15 +301,16 @@ namespace WoWNamingLib.Namers
 
                                             iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");
                                             iconFilename = textureFolder + "/" + iconFilename + "_" + miniComponent + miniComponentGender + "_" + fileDataID + ".blp";
-                                            NewFileManager.AddNewFile(fileDataID, iconFilename);
+                                            NewFileManager.AddNewFile(fileDataID, iconFilename, Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                             named = true;
                                         }
                                     }
                                 }
 
                                 if (!named)
-                                {
-                                    Console.WriteLine("Didn't find a name for item texture FDID " + fileDataID);
+                                {   
+                                    if(!string.IsNullOrEmpty(textureFolder))
+                                        NewFileManager.AddNewFile(fileDataID, textureFolder + "/idi" + itemDisplayInfoID + "_" + miniComponent + miniComponentGender + "_" + fileDataID + ".blp", Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                 }
                             }
                         }
@@ -315,6 +322,8 @@ namespace WoWNamingLib.Namers
                     var miniComponent = "";
                     var miniComponentGender = "u";
                     var materialResourcesID = (int)idimmRow["MaterialResourcesID"];
+                    var itemDisplayInfoID = (int)idimmRow["ItemDisplayInfoID"];
+
                     if (tfdMap.TryGetValue(materialResourcesID, out var fileDataIDs))
                     {
                         foreach (var fileDataID in fileDataIDs)
@@ -347,7 +356,7 @@ namespace WoWNamingLib.Namers
                                 var named = false;
                                 var textureFolder = "";
 
-                                if (idiMap.TryGetValue(int.Parse(idimmRow["ItemDisplayInfoID"].ToString()), out var idiRow))
+                                if (idiMap.TryGetValue(itemDisplayInfoID, out var idiRow))
                                 {
                                     for (int i = 0; i < 2; i++)
                                     {
@@ -378,7 +387,7 @@ namespace WoWNamingLib.Namers
 
                                                     actualFilename = actualFilename.Replace("__", "_");
 
-                                                    NewFileManager.AddNewFile(fileDataID, actualFilename);
+                                                    NewFileManager.AddNewFile(fileDataID, actualFilename, Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                                     named = true;
                                                     break;
                                                 }
@@ -389,7 +398,7 @@ namespace WoWNamingLib.Namers
 
                                 if (!named && !string.IsNullOrEmpty(textureFolder))
                                 {
-                                    itemAppearanceIDIToIconMap.TryGetValue(uint.Parse(idimmRow["ItemDisplayInfoID"].ToString()), out var iconFDID);
+                                    itemAppearanceIDIToIconMap.TryGetValue((uint)itemDisplayInfoID, out var iconFDID);
 
                                     if (iconFDID != 0)
                                     {
@@ -408,7 +417,8 @@ namespace WoWNamingLib.Namers
 
                                 if (!named)
                                 {
-                                    Console.WriteLine("Didn't find a name for item texture FDID " + fileDataID);
+                                    if(!string.IsNullOrEmpty(textureFolder))
+                                        NewFileManager.AddNewFile(fileDataID, textureFolder + "/idi" + itemDisplayInfoID + "_" + miniComponent + miniComponentGender + "_" + fileDataID + ".blp", Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                 }
                             }
                         }
@@ -436,12 +446,12 @@ namespace WoWNamingLib.Namers
                                             if (iconFilename.Substring(0, 4) == "cape")
                                             {
                                                 iconFilename = "item/objectcomponents/cape/" + iconFilename + "_" + fileDataID + ".blp";
-                                                NewFileManager.AddNewFile(fileDataID, iconFilename);
+                                                NewFileManager.AddNewFile(fileDataID, iconFilename, Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                             }
                                             else if (iconFilename.EndsWith("_cape"))
                                             {
                                                 iconFilename = "item/objectcomponents/cape/cape_" + iconFilename.Substring(0, iconFilename.Length - 5) + "_" + fileDataID + ".blp";
-                                                NewFileManager.AddNewFile(fileDataID, iconFilename);
+                                                NewFileManager.AddNewFile(fileDataID, iconFilename, Namer.IDToNameLookup.ContainsKey(fileDataID) && Namer.placeholderNames.Contains(fileDataID));
                                             }
                                         }
                                     }
