@@ -1,6 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using WoWNamingLib.Services;
+﻿using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
@@ -186,6 +184,32 @@ namespace WoWNamingLib.Namers
                         NewFileManager.AddNewFile(files.mapTextureN, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + "_n.blp", true);
                 }
 
+                if(mapFiles.tileFileDataIDs2 != null)
+                {
+                    Console.WriteLine("Map " + mapDirectory + " has tileFileDataIDs2, processing..");
+                    foreach (var tile in mapFiles.tileFileDataIDs2)
+                    {
+                        var adt = tile.Key;
+                        var files = tile.Value;
+                        if (files.unknown0 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown0))
+                            NewFileManager.AddNewFile(files.unknown0, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk0.bin", true);
+                        if (files.unknown1 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown1))
+                            NewFileManager.AddNewFile(files.unknown1, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk1.bin", true);
+                        if (files.unknown2 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown2))
+                            NewFileManager.AddNewFile(files.unknown2, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk2.bin", true);
+                        if (files.unknown3 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown3))
+                            NewFileManager.AddNewFile(files.unknown3, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk3.bin", true);
+                        if (files.unknown4 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown4))
+                            NewFileManager.AddNewFile(files.unknown4, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk4.bin", true);
+                        if (files.unknown5 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown5))
+                            NewFileManager.AddNewFile(files.unknown5, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk5.bin", true);
+                        if (files.unknown6 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown6))
+                            NewFileManager.AddNewFile(files.unknown6, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk6.bin", true);
+                        if (files.unknown7 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown7))
+                            NewFileManager.AddNewFile(files.unknown7, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk7.bin", true);
+                    }
+                }
+
                 //if (mapFiles.texFileDataID != 0)
                 //{
                 //    using (var texMS = new MemoryStream())
@@ -241,7 +265,7 @@ namespace WoWNamingLib.Namers
 
             Console.WriteLine("Scanning listfile for named WDTs not in map DB2..");
             var bannedExts = new List<string>() { "_fogs.wdt", "_lgt.wdt", "_occ.wdt", "_mpv.wdt", "_preload.wdt" };
-            foreach(var entry in Namer.IDToNameLookup)
+            foreach (var entry in Namer.IDToNameLookup)
             {
                 if (!entry.Value.EndsWith(".wdt"))
                     continue;
@@ -272,7 +296,7 @@ namespace WoWNamingLib.Namers
                     var mapDirectory = entry["Directory"].ToString();
                     var preloadFileDataID = uint.Parse(entry["PreloadFileDataID"].ToString());
 
-                    if(preloadFileDataID == 0)
+                    if (preloadFileDataID == 0)
                         continue;
 
                     NewFileManager.AddNewFile(preloadFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_preload.wdt", true);
@@ -290,6 +314,7 @@ namespace WoWNamingLib.Namers
             public uint wdlFileDataID;
             public uint pd4FileDataID;
             public Dictionary<(byte, byte), TileFileDataIDs> tileFileDataIDs;
+            public Dictionary<(byte, byte), TileFileDataIDs2> tileFileDataIDs2;
         }
 
         public struct TileFileDataIDs
@@ -302,6 +327,18 @@ namespace WoWNamingLib.Namers
             public uint mapTexture;
             public uint mapTextureN;
             public uint minimapTexture;
+        }
+
+        public struct TileFileDataIDs2
+        {
+            public uint unknown0;
+            public uint unknown1;
+            public uint unknown2;
+            public uint unknown3;
+            public uint unknown4;
+            public uint unknown5;
+            public uint unknown6;
+            public uint unknown7;
         }
 
         private static MapFileDataIDs ProcessWDT(MemoryStream file)
@@ -328,6 +365,9 @@ namespace WoWNamingLib.Namers
                     case 'M' << 24 | 'A' << 16 | 'I' << 8 | 'D' << 0:
                         mFDIDs.tileFileDataIDs = ReadMAIDChunk(bin);
                         break;
+                    case 'M' << 24 | 'A' << 16 | 'I' << 8 | '2' << 0:
+                        mFDIDs.tileFileDataIDs2 = ReadMAI2Chunk(bin);
+                        break;
                     default:
                         bin.BaseStream.Position += chunkSize;
                         break;
@@ -345,6 +385,19 @@ namespace WoWNamingLib.Namers
                 for (byte y = 0; y < 64; y++)
                 {
                     tileFiles.Add((y, x), bin.Read<TileFileDataIDs>());
+                }
+            }
+            return tileFiles;
+        }
+
+        private static Dictionary<(byte, byte), TileFileDataIDs2> ReadMAI2Chunk(BinaryReader bin)
+        {
+            var tileFiles = new Dictionary<(byte, byte), TileFileDataIDs2>();
+            for (byte x = 0; x < 64; x++)
+            {
+                for (byte y = 0; y < 64; y++)
+                {
+                    tileFiles.Add((y, x), bin.Read<TileFileDataIDs2>());
                 }
             }
             return tileFiles;
