@@ -1,6 +1,5 @@
 ﻿using DBCD;
 using WoWNamingLib.Services;
-using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
 {
@@ -952,7 +951,7 @@ namespace WoWNamingLib.Namers
                     if (!string.IsNullOrEmpty(collectableName) && collectableName.StartsWith("House Decor:") && !decorNames.ContainsKey(collectableFDID))
                     {
                         var m2Index = collectableName.LastIndexOf(".m2", StringComparison.OrdinalIgnoreCase);
-                        if(m2Index != -1)
+                        if (m2Index != -1)
                         {
                             var spaceIndex = collectableName.LastIndexOf(' ', m2Index);
                             if (spaceIndex != -1)

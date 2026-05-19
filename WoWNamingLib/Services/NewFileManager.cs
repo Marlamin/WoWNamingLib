@@ -1,6 +1,5 @@
 ﻿using CASCLib;
 using System.Data;
-using System.Diagnostics;
 
 namespace WoWNamingLib.Services
 {
@@ -67,7 +66,7 @@ namespace WoWNamingLib.Services
             // Retrieve lookup from lookup.csv.
             if (CASCManager.LookupMap.TryGetValue(fileDataID, out var cachedLookup))
             {
-                if(newLookup != cachedLookup)
+                if (newLookup != cachedLookup)
                 {
                     //Console.WriteLine("Incoming filename " + filename + " for FDID " + fileDataID + " does not match known lookup " + cachedLookup.ToString("X16") + ", skipping.");
                     return;
@@ -84,7 +83,7 @@ namespace WoWNamingLib.Services
                     return;
                 }
 
-                if(cachedLookup != hashByFDID)
+                if (cachedLookup != hashByFDID)
                 {
                     Console.WriteLine("!!! CASC-sourced lookup for file " + fileDataID + " does not match known lookup from listfile repo (" + hashByFDID.ToString("X16") + " != " + cachedLookup.ToString("X16") + " )!");
                 }
@@ -117,7 +116,7 @@ namespace WoWNamingLib.Services
 
                     if (!forceUpdate)
                     {
-                        if(!Namer.placeholderNames.Contains(fileDataID))
+                        if (!Namer.placeholderNames.Contains(fileDataID))
                         {
                             Console.WriteLine("Skipping " + fileDataID + ", attempted to overwrite " + currentFileName + " with " + filename);
                             return;
@@ -128,9 +127,20 @@ namespace WoWNamingLib.Services
                     }
 
                     // Special case: When we name mass placeholders (e.g. models/world/expansion11/doodads/troll/etc.m2) we'd like to keep those over the useless models/world/unkexp11 placeholders.
-                    if(currentFileName.StartsWith("models", StringComparison.OrdinalIgnoreCase) && filename.StartsWith("models", StringComparison.OrdinalIgnoreCase))
+                    if (currentFileName.StartsWith("models", StringComparison.OrdinalIgnoreCase) && filename.StartsWith("models", StringComparison.OrdinalIgnoreCase))
                     {
-                        if(!currentFileName.Contains("unk_exp", StringComparison.OrdinalIgnoreCase) && filename.Contains("unk_exp", StringComparison.OrdinalIgnoreCase))
+                        if (
+                            (
+                            !currentFileName.Contains("unk_exp", StringComparison.OrdinalIgnoreCase) &&
+                            !currentFileName.StartsWith("models/" + fileDataID, StringComparison.OrdinalIgnoreCase) &&
+                            filename.Contains("unk_exp", StringComparison.OrdinalIgnoreCase)
+                            )
+                            ||
+                            (
+                            !currentFileName.StartsWith("models/unknown", StringComparison.OrdinalIgnoreCase) && filename.StartsWith("models/unknown", StringComparison.OrdinalIgnoreCase)
+                            )
+
+                        )
                         {
                             Console.WriteLine("Skipping " + fileDataID + ", useless placeholder override: " + currentFileName + " => " + filename);
                             return;
