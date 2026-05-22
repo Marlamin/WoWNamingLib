@@ -209,7 +209,22 @@ namespace WoWNamingLib.Namers
             {"5266622b355fbedaf6b9da6adcd1b5ab", "12ESW_skyscene_voidstorm_cloudsSmall01" },
             {"995117cbc12c02c98fae0cd37a557e13", "12ESW_skyscene_voidstorm_cloudsWeird01_mod" },
             {"5ec7c48a2b4be24bdf856c9745a1e23a", "12ESW_skyscene_voidstorm_cloudsWeird01" },
-            {"238135992467682c219c577dd45da399", "12ESW_skyscene_voidstorm_cloudInterior01" }
+            {"238135992467682c219c577dd45da399", "12ESW_skyscene_voidstorm_cloudInterior01" },
+            {"b393813678503211ec202f139754ac8f", "10FX_Shockwave_Soft" },
+            {"c648727711826f54391caac003add56c", "T_VFX_Glow01" },
+            {"87dc5724f224992241349935b2f43164", "WispSoft" },
+            {"195c469d1eef5de5957e673259983aee", "Arcane_Wisps_Water" },
+            {"c453769a52a77cd205e5775c95cd0934", "8fx_speckledwarp_swirl_a_rev" },
+            {"520f1eb9407978709bcd272ebcb0dce0", "ArmorReflectGold" },
+            {"821d3b9356d94145b13e8b6a3c79c3b4", "11FX_Arcane_Flare_Blues" },
+            {"e3b1e3fe50f6399921c8daf82809939f", "11FX_Arcane_Smoke_Energy" },
+            {"bc2ff56f3308f9f5b55fb7318f3ef055", "11FX_Arcane_Star_Core_A" },
+            {"6b541424576396ce922667bf87e1efa1", "11FX_Frost_Rune_A" },
+            {"e310e2bc946d6805d281e11c2417491e", "8FX_Bit_Glow_03" },
+            {"ac78312423d24c4a4c6ab9754c6b3aac", "Flare1_TC_Holy2Tone" },
+            {"148d56fe97552068b7f28a43d1a1083b", "Beam_Frost_01_scrolling" },
+            {"1d18fd793dc62c063155540f88a535d9", "8FX_Bit_Glow_01" },
+            {"2e632ec1826e53979f6bb8292d27decc", "Sparkle_Tumbling_01_small" }
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes, List<int> filter = null)
