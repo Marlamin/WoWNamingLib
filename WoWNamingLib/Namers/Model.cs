@@ -913,7 +913,7 @@ namespace WoWNamingLib.Namers
                     {
                         var iconFDID = (int)itemRow["IconFileDataID"];
                         // specifically ignore interface/icons/garrison_building_storehouse.blp
-                        if (iconFDID != 975745 && Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconName) && !Namer.placeholderNames.Contains(iconFDID))
+                        if (iconFDID != 975745 && iconFDID != 133454 && Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconName) && !Namer.placeholderNames.Contains(iconFDID))
                             decorNames.Add(decorFDID, Path.GetFileNameWithoutExtension(iconName).Replace("INV_", "", StringComparison.OrdinalIgnoreCase));
                     }
 

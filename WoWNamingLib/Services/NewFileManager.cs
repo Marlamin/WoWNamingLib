@@ -1,5 +1,6 @@
 ﻿using CASCLib;
 using System.Data;
+using System.Diagnostics;
 
 namespace WoWNamingLib.Services
 {
@@ -57,6 +58,8 @@ namespace WoWNamingLib.Services
 
         public static void AddNewFile(int fileDataID, string filename, bool updateIfExists = false, bool forceUpdate = false)
         {
+            if (fileDataID == 7506531)
+                Debugger.Break();
             // Please don't overwrite these files.
             if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357 || fileDataID == 2887301 || fileDataID == 3557051)
                 return;
