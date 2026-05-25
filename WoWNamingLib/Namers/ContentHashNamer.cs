@@ -224,7 +224,27 @@ namespace WoWNamingLib.Namers
             {"ac78312423d24c4a4c6ab9754c6b3aac", "Flare1_TC_Holy2Tone" },
             {"148d56fe97552068b7f28a43d1a1083b", "Beam_Frost_01_scrolling" },
             {"1d18fd793dc62c063155540f88a535d9", "8FX_Bit_Glow_01" },
-            {"2e632ec1826e53979f6bb8292d27decc", "Sparkle_Tumbling_01_small" }
+            {"2e632ec1826e53979f6bb8292d27decc", "Sparkle_Tumbling_01_small" },
+            {"bf5977fb91ea19d3d275ed97bd3e8567", "Flare_PriestHoly_Bright" },
+            {"67c86d9eeeee29d9561ed3fe55abce7f", "GlowBalls" },
+            {"9dd2e814dc2959bcf8fb4ea98d99afd7", "11FX_Arcane_Star_Core_A_Blue" },
+            {"967551a90cbff377742885ae48247891", "FairyDust2OffsetTwinkle_2x2_BlendAdd" },
+            {"cb9b68d1c89bd51b1845d8d611dae8d4", "11FX_Arcane_Energy_Desat_A" },
+            {"d4406a962684378c1a6e1397cc24afdf", "9FX_Flare_B_Pink" },
+            {"15447f9757167c7fa19fb26c143437be", "10FX_MaskWave_Horizontal" },
+            {"d233291674914ae769f0cef0c428ef3f", "10FX_ArcaneEnergy_Bright" },
+            {"77dad1490152b5d2966e31569d0c55ee", "10FX_Shockwave_Spikey_Frost" },
+            {"8fd19de59dc484669f3e1c0f7f0afb87", "10FX_ShadowEatAway_Small_White" },
+            {"8a5ab6910fd10673321de2b71cb4fdaa", "10FX_BlueDragonRune_Strip" },
+            {"c472ab0562e8721dd0208273c4dc3557", "10FX_BlueDragonRune_Quad" },
+            {"b64eb1b1672bbaa191f31948e37ad261", "10FX_WispyMagic_Frost" },
+            {"b81f4cd793881f6cc38b48e4e91558aa", "11GFX_Holy_AlphaMask_Flare" },
+            {"c9c6fc2ab11e7224e4982db30aab17ca", "11GFX_Holy_AlphaMask_Shockwave" },
+            {"82353a835abf3b659e6595773be60eb8", "Gray8x8_03" },
+            {"72da966dca93de2316673eb1c7ce0467", "11GFX_Arcane_AlphaMask02" },
+            {"7458f3f9ac6a259cbcfa1edd3b2b55ff", "11FX_Arcane_Energy_and_Streaks" },
+            {"78b6f8dfb164480e0bc36eab048feee8", "11FX_Arcane_Smoke_Energy_Blue" },
+            {"dd18eaa2ad80f5dcf0cf0b8007ce961e", "12FX_Chromatic_Mote" }
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes, List<int> filter = null)
