@@ -1,8 +1,4 @@
-﻿using CASCLib;
-using DBDefsLib;
-using System.Reflection.Metadata.Ecma335;
-using System.Xml.Linq;
-using TACTSharp;
+﻿using TACTSharp;
 
 namespace WoWNamingLib.Services
 {
@@ -11,30 +7,17 @@ namespace WoWNamingLib.Services
         private static HttpClient client = new HttpClient();
         public static List<int> AvailableFDIDs = new();
         public static string BuildName;
-        public static CASCLib.Jenkins96 Hasher = new CASCLib.Jenkins96();
+        public static TACTSharp.Jenkins96 Hasher = new TACTSharp.Jenkins96();
         public static HashSet<ulong> OfficialLookups = new();
         public static Dictionary<int, ulong> LookupMap = new();
 
-        private static CASCHandler cascHandler;
         private static BuildInstance buildInstance;
 
         private static Lock verifiedListfileLock = new();
 
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
-            Stream file = null;
-            if(cascHandler == null)
-            {
-                return new MemoryStream(buildInstance.OpenFileByFDID(filedataid));
-            }
-            else
-            {
-                file = cascHandler.OpenFile((int)filedataid);
-                if (file == null)
-                    throw new Exception("Unable to open file " + filedataid);
-            }
-
-            return file;
+            return new MemoryStream(buildInstance.OpenFileByFDID(filedataid));
         }
 
         public static bool FileExists(int fileDataID)
@@ -45,18 +28,10 @@ namespace WoWNamingLib.Services
         public static async Task<Stream> GetFileByName(string name)
         {
             Stream file = null;
-            if(cascHandler == null)
+
+            using (var jenkins = new TACTSharp.Jenkins96())
             {
-                using (var jenkins = new TACTSharp.Jenkins96())
-                {
-                    file = new MemoryStream(buildInstance.OpenFileByFDID(buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
-                }
-            }
-            else
-            {
-                file = cascHandler.OpenFile(name);
-                if (file == null)
-                    throw new Exception("Unable to open file " + name);
+                file = new MemoryStream(buildInstance.OpenFileByFDID(buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
             }
 
             return file;
@@ -64,46 +39,23 @@ namespace WoWNamingLib.Services
 
         public static async Task<int> GetFileDataIDByName(string name)
         {
-            if(cascHandler == null)
+            using (var jenkins = new TACTSharp.Jenkins96())
             {
-                using (var jenkins = new TACTSharp.Jenkins96())
-                {
-                    var entries = buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name));
-                    if (entries.Count == 0)
-                        return 0;
-                    return (int)entries[0].fileDataID;
-                }
-            }
-            else
-            {
-                var wrh = cascHandler.Root as WowRootHandler;
-                var hash = Hasher.ComputeHash(name);
-                return wrh.GetFileDataIdByHash(hash);
+                var entries = buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name));
+                if (entries.Count == 0)
+                    return 0;
+                return (int)entries[0].fileDataID;
             }
         }
 
         public static async Task<ulong> GetHashByFileDataID(int filedataid)
         {
-            if(cascHandler == null)
+            using (var jenkins = new TACTSharp.Jenkins96())
             {
-                using (var jenkins = new TACTSharp.Jenkins96())
-                {
-                    var entries = buildInstance.Root.GetEntriesByFDID((uint)filedataid);
-                    if (entries.Count == 0)
-                        return 0;
-                    return entries[0].lookup;
-                }
-            }
-            else
-            {
-                var wrh = cascHandler.Root as WowRootHandler;
-                var cascLibLookup = wrh.GetHashByFileDataId(filedataid);
-
-                // Check if this is a fake CASCLib lookup
-                if (cascLibLookup == ComputeFakeCASCLibHash(filedataid))
+                var entries = buildInstance.Root.GetEntriesByFDID((uint)filedataid);
+                if (entries.Count == 0)
                     return 0;
-                else
-                    return cascLibLookup;
+                return entries[0].lookup;
             }
         }
 
@@ -123,12 +75,6 @@ namespace WoWNamingLib.Services
         {
             CASCManager.buildInstance = build;
             BuildName = build.BuildConfig.Values["build-name"][0];
-        }
-
-        public static void InitializeCASC(ref CASCHandler cascHandler)
-        {
-            CASCManager.cascHandler = cascHandler;
-            BuildName = cascHandler.Config.BuildName;
         }
 
         public static void MergeLookups(Dictionary<int, ulong> lookups)

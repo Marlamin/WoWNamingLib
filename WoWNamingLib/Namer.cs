@@ -1,5 +1,4 @@
-﻿using CASCLib;
-using DBCD;
+﻿using DBCD;
 using DBCD.IO;
 using DBCD.Providers;
 using TACTSharp;
@@ -24,7 +23,7 @@ namespace WoWNamingLib
         public static string battleNetClientSecret = "";
 
         private static DBCManager? dbcManager;
-        
+
         public static bool isInitialized = false;
         public static bool IsCASCLibInit = false;
         public static bool IsTACTSharpInit = false;
@@ -40,12 +39,6 @@ namespace WoWNamingLib
             CASCManager.AvailableFDIDs = availableFDIDs;
         }
 
-        public static void SetCASC(ref CASCHandler handler, ref List<int> availableFDIDs)
-        {
-            CASCManager.InitializeCASC(ref handler);
-            CASCManager.AvailableFDIDs = availableFDIDs;
-        }
-
         public static void SetProviders(IDBCProvider dbcProvider, IDBDProvider dbdProvider)
         {
             dbcManager = new DBCManager(dbcProvider, dbdProvider);
@@ -58,7 +51,7 @@ namespace WoWNamingLib
 
         public static void SetHotfixes(Dictionary<uint, HotfixReader> hotfixes)
         {
-            if(dbcManager == null)
+            if (dbcManager == null)
                 throw new Exception("DBCManager not initialized!");
 
             dbcManager.SetHotfixes(hotfixes);

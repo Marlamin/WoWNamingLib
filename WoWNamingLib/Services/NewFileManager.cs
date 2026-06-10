@@ -1,5 +1,4 @@
-﻿using CASCLib;
-using System.Data;
+﻿using System.Data;
 using System.Diagnostics;
 
 namespace WoWNamingLib.Services
@@ -7,7 +6,7 @@ namespace WoWNamingLib.Services
     public static class NewFileManager
     {
         private static Dictionary<int, string> newFiles;
-        private static Jenkins96 Hasher = new Jenkins96();
+        private static TACTSharp.Jenkins96 Hasher = new TACTSharp.Jenkins96();
 
         static NewFileManager()
         {
