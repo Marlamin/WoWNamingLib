@@ -59,18 +59,6 @@ namespace WoWNamingLib.Services
             }
         }
 
-        public static ulong ComputeFakeCASCLibHash(int fileDataId)
-        {
-            ulong baseOffset = 0xCBF29CE484222325UL;
-
-            for (int i = 0; i < 4; i++)
-            {
-                baseOffset = 0x100000001B3L * ((((uint)fileDataId >> (8 * i)) & 0xFF) ^ baseOffset);
-            }
-
-            return baseOffset;
-        }
-
         public static void InitializeTACT(ref BuildInstance build)
         {
             CASCManager.buildInstance = build;

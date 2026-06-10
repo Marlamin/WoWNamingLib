@@ -25,7 +25,6 @@ namespace WoWNamingLib
         private static DBCManager? dbcManager;
 
         public static bool isInitialized = false;
-        public static bool IsCASCLibInit = false;
         public static bool IsTACTSharpInit = false;
         public static bool AllowCaseRenames = false;
 
