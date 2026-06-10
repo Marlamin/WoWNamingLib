@@ -430,6 +430,18 @@ namespace WoWNamingLib
             }
         }
 
+        public static void NameInstall(Dictionary<int, byte[]> idToHashes, List<(byte[], string)> installCKeyToInstallName)
+        {
+            try
+            {
+                Install.Name(idToHashes, installCKeyToInstallName);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during install naming: " + e.Message);
+            }
+        }
+
         public static void NameDecals()
         {
             try
