@@ -244,7 +244,8 @@ namespace WoWNamingLib.Namers
             {"72da966dca93de2316673eb1c7ce0467", "11GFX_Arcane_AlphaMask02" },
             {"7458f3f9ac6a259cbcfa1edd3b2b55ff", "11FX_Arcane_Energy_and_Streaks" },
             {"78b6f8dfb164480e0bc36eab048feee8", "11FX_Arcane_Smoke_Energy_Blue" },
-            {"dd18eaa2ad80f5dcf0cf0b8007ce961e", "12FX_Chromatic_Mote" }
+            {"dd18eaa2ad80f5dcf0cf0b8007ce961e", "12FX_Chromatic_Mote" },
+            {"3b9d9e4a6503fceb10fc71a8bbb7bd0e", "GlowBall02" }
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes, List<int> filter = null)

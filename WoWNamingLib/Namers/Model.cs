@@ -16,19 +16,19 @@ namespace WoWNamingLib.Namers
         public static Dictionary<uint, string> spellNamesClean = [];
         private static List<uint> spellFDIDs = [];
         private static uint fileDataID;
-        private static string currentModelName;
+        private static string currentModelName = "";
         private static bool spellsLoaded = false;
         private static Lock spellLock = new Lock();
 
         private static string GetCFDSuffixedName(DBCDRow cfdRow, Dictionary<uint, string> racePrefix, string modelName)
         {
-            if (!racePrefix.TryGetValue(uint.Parse(cfdRow["RaceID"].ToString()), out string miniComponentRace))
+            if (!racePrefix.TryGetValue(uint.Parse(cfdRow["RaceID"].ToString()!), out string? miniComponentRace))
             {
                 Console.WriteLine("!!! Unknown race prefix for race ID " + cfdRow["RaceID"].ToString());
                 miniComponentRace = "xx";
             }
 
-            var miniComponentGender = uint.Parse(cfdRow["GenderIndex"].ToString()) switch
+            var miniComponentGender = uint.Parse(cfdRow["GenderIndex"].ToString()!) switch
             {
                 0 => "m",
                 1 => "f",
@@ -786,10 +786,12 @@ namespace WoWNamingLib.Namers
             try
             {
                 var skyboxDB = Namer.LoadDBC("LightSkybox");
+                if (!skyboxDB.AvailableColumns.Contains("SkyboxFileDataID"))
+                    throw new Exception("LightSkybox is missing a required column");
 
                 foreach (var skyboxEntry in skyboxDB.Values)
                 {
-                    var skyboxFDID = uint.Parse(skyboxEntry["SkyboxFileDataID"].ToString());
+                    var skyboxFDID = uint.Parse(skyboxEntry["SkyboxFileDataID"].ToString()!);
                     skyboxFDIDs.Add(skyboxFDID);
                 }
             }
@@ -860,9 +862,12 @@ namespace WoWNamingLib.Namers
             try
             {
                 var gedDB = Namer.LoadDBC("GroundEffectDoodad");
+                if (!gedDB.AvailableColumns.Contains("ModelFileID"))
+                    throw new Exception("GroundEffectDoodad is missing a required column");
+
                 foreach (var gedEntry in gedDB.Values)
                 {
-                    var gedFDID = uint.Parse(gedEntry["ModelFileID"].ToString());
+                    var gedFDID = uint.Parse(gedEntry["ModelFileID"].ToString()!);
                     groundEffectDoodadFDIDs.Add(gedFDID);
                 }
             }
@@ -890,15 +895,32 @@ namespace WoWNamingLib.Namers
             }
 
             var decorNames = new Dictionary<uint, string>();
-
+            var decorFDIDs = new List<uint>();
             // HouseDecor/Collectable M2s
             // TODO sources: spells for learning the decor
             try
             {
+                var dyeableDecorIDs = new List<uint>();
+
                 var itemDB = Namer.LoadDBC("Item");
                 var decorDB = Namer.LoadDBC("HouseDecor");
                 if (!decorDB.AvailableColumns.Contains("ModelFileDataID") || !decorDB.AvailableColumns.Contains("Name_lang"))
                     throw new Exception("HouseDecor DB2 is missing a required column");
+
+                var decorDyeSlotDB = Namer.LoadDBC("DecorDyeSlot");
+                if (decorDyeSlotDB.AvailableColumns.Contains("HouseDecorID"))
+                {
+                    foreach (var ddSlotEntry in decorDyeSlotDB.Values)
+                    {
+                        dyeableDecorIDs.Add(uint.Parse(ddSlotEntry["HouseDecorID"].ToString()!));
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("DecorDyeSlot is missing HouseDecorID field, can not list dyeable decor");
+                }
+
+                dyeableDecorIDs = dyeableDecorIDs.Distinct().ToList();
 
                 var decorIDToFDID = new Dictionary<uint, uint>();
                 foreach (var decorEntry in decorDB.Values)
@@ -907,6 +929,9 @@ namespace WoWNamingLib.Namers
                     var decorID = uint.Parse(decorEntry["ID"].ToString()!);
                     var itemID = int.Parse(decorEntry["ItemID"].ToString()!);
                     decorIDToFDID.Add(decorID, decorFDID);
+
+                    if (dyeableDecorIDs.Contains(decorID))
+                        decorFDIDs.Add(decorFDID);
 
                     // Try icon name first since that has a larger chance of being official
                     if (!decorNames.ContainsKey(decorFDID) && itemID != 0 && itemDB.TryGetValue(itemID, out var itemRow))
@@ -999,7 +1024,7 @@ namespace WoWNamingLib.Namers
 
 
                     var cfdDB = Namer.LoadDBC("ComponentModelFileData");
-                    if (!cfdDB.AvailableColumns.Contains("ID"))
+                    if (!cfdDB.AvailableColumns.Contains("ID") || !cfdDB.AvailableColumns.Contains("RaceID") || !cfdDB.AvailableColumns.Contains("GenderIndex"))
                         throw new Exception("ComponentModelFileData does not contain a required column");
 
                     var idiDB = Namer.LoadDBC("ItemDisplayInfo");
@@ -1198,11 +1223,11 @@ namespace WoWNamingLib.Namers
                         {
                             currentModelName = Path.GetFileNameWithoutExtension(existingName);
                         }
-                        else if (itemModelNames.TryGetValue(fdid, out currentModelName))
+                        else if (itemModelNames.TryGetValue(fdid, out currentModelName!))
                         {
                             Console.WriteLine("Found item name based on icons: " + currentModelName);
                         }
-                        else if (decorNames.TryGetValue(fdid, out currentModelName))
+                        else if (decorNames.TryGetValue(fdid, out currentModelName!))
                         {
 
                         }
@@ -1215,7 +1240,7 @@ namespace WoWNamingLib.Namers
                         //{
                         //    currentModelName = Path.GetFileNameWithoutExtension(existingName);
                         //}
-                        else if (objectModelNames != null && objectModelNames.TryGetValue(fdid, out var objectName))
+                        else if (objectModelNames.Count > 0 && objectModelNames.TryGetValue(fdid, out var objectName))
                         {
                             Console.WriteLine("Found object name " + objectName + " for FDID " + fdid);
                             Namer.placeholderNames.Add((int)fdid);
@@ -1743,7 +1768,7 @@ namespace WoWNamingLib.Namers
                         if (currentModelName != "7XP_Waterfall_Top" && currentModelName != "SpellVisualPlaceholder")
                         {
                             var M2baseName = Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]);
-                            if (M2baseName.ToLower() != currentModelName.ToLower() && !folder.ToLower().StartsWith("item"))
+                            if (!M2baseName.Equals(currentModelName, StringComparison.OrdinalIgnoreCase) && !folder.ToLower().StartsWith("item"))
                                 NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
                         }
 
@@ -1756,7 +1781,6 @@ namespace WoWNamingLib.Namers
                                     if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
                                     {
                                         NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + "_lod" + (i - m2.nViews + 1).ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
-                                        //Console.WriteLine("parent fdid for " + m2.skinFileDataIDs[i]  + " is " + fdid);
                                     }
                                 }
                                 else
@@ -1764,22 +1788,8 @@ namespace WoWNamingLib.Namers
                                     if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
                                     {
                                         NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + i.ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
-                                        // Console.WriteLine("parent fdid for " + m2.skinFileDataIDs[i] + " is " + fdid);
                                     }
                                 }
-                            }
-                        }
-
-                        if (m2.animFileDataIDs != null)
-                        {
-                            for (var i = 0; i < m2.animFileDataIDs.Length; i++)
-                            {
-                                var anim = m2.animFileDataIDs[i];
-                                if (anim.fileDataID == 0)
-                                    continue;
-
-                                if (overrideCheck(overrideName, anim.fileDataID, forceOverrideName))
-                                    NewFileManager.AddNewFile(anim.fileDataID, folder + "/" + currentModelName + anim.animID.ToString().PadLeft(4, '0') + "-" + anim.subAnimID.ToString().PadLeft(2, '0') + ".anim", overrideCheck(overrideName, anim.fileDataID, forceOverrideName), forceOverrideName);
                             }
                         }
 
@@ -1795,6 +1805,121 @@ namespace WoWNamingLib.Namers
 
                                 if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName))
                                     NewFileManager.AddNewFile(m2.textureFileDataIDs[i], folder + "/" + currentModelName + "_" + m2.textureFileDataIDs[i] + ".blp", overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName), forceOverrideName);
+                            }
+                        }
+
+                        // Dye texture naming
+                        if (
+                            m2.skinFileDataIDs != null && m2.skinFileDataIDs.Length > 0 &&
+                            m2.textureFileDataIDs != null && m2.textureFileDataIDs.Length > 0 &&
+                            decorFDIDs.Contains(fdid))
+                        {
+                            var blizzSubmeshTextureList = new Dictionary<short, (uint ChannelMap, uint InfluenceMap)>();
+
+                            using (var skinMS = CASCManager.GetFileByID(m2.skinFileDataIDs[0]).Result)
+                            using (var bin = new BinaryReader(skinMS))
+                            {
+                                var header = new string(bin.ReadChars(4));
+                                if (header != "SKIN")
+                                {
+                                    Console.WriteLine("Invalid SKIN file!");
+                                }
+
+                                var nIndices = bin.ReadUInt32();
+                                var ofsIndices = bin.ReadUInt32();
+                                var nTriangles = bin.ReadUInt32();
+                                var ofsTriangles = bin.ReadUInt32();
+                                var nProperties = bin.ReadUInt32();
+                                var ofsProperties = bin.ReadUInt32();
+                                var nSubmeshes = bin.ReadUInt32();
+                                var ofsSubmeshes = bin.ReadUInt32();
+                                var nBatches = bin.ReadUInt32();
+                                var ofsBatches = bin.ReadUInt32();
+
+                                bin.BaseStream.Position = ofsBatches;
+                                for (var i = 0; i < nBatches; i++)
+                                {
+                                    var flags = bin.ReadByte();
+                                    var priorityPlane = bin.ReadByte();
+                                    var shaderID = bin.ReadUInt16();
+                                    var skinSectionIndex = bin.ReadInt16();
+                                    var flags2 = bin.ReadUInt16();
+                                    var colorIndex = bin.ReadUInt16();
+                                    var materialINdex = bin.ReadUInt16();
+                                    var materialLayer = bin.ReadUInt16();
+                                    var batchTextureCount = bin.ReadUInt16();
+                                    var textureComboIndex = bin.ReadUInt16();
+                                    var textureCoordComboIndex = bin.ReadInt16();
+                                    if (textureCoordComboIndex != -1)
+                                    {
+                                        if (textureCoordComboIndex + 1 >= m2.textureFileDataIDs.Length)
+                                            Console.WriteLine("\tWARN: Missing texture coord combo for submesh " + skinSectionIndex);
+                                        else
+                                            blizzSubmeshTextureList[skinSectionIndex] = (m2.textureFileDataIDs[textureCoordComboIndex], m2.textureFileDataIDs[textureCoordComboIndex + 1]);
+                                    }
+                                    var textureWeightComboIndex = bin.ReadUInt16();
+                                    var textureTransformComboIndex = bin.ReadUInt16();
+                                }
+                            }
+
+                            var uniqueTextureCombos = m2.textureCombos!.Distinct().ToList();
+
+                            if (m2.textureFileDataIDs.Length != uniqueTextureCombos.Count)
+                            {
+                                var m2ParticleTextures = m2.particleTextures != null ? m2.particleTextures.ToList() : new List<uint>();
+                                var m2TexturesWithFlags = m2.texturesWithFlags != null ? m2.texturesWithFlags.ToList() : new List<uint>();
+
+                                for (var i = 0; i < m2.textureFileDataIDs.Length; i++)
+                                {
+                                    var textureFDID = m2.textureFileDataIDs[i];
+
+                                    if (uniqueTextureCombos.Contains((short)i))
+                                        continue;
+
+                                    if (m2TexturesWithFlags.Contains((uint)i))
+                                        continue;
+
+                                    if (m2ParticleTextures.Contains((uint)i))
+                                        continue;
+
+                                    foreach (var submesh in blizzSubmeshTextureList)
+                                    {
+                                        if (textureFDID == submesh.Value.ChannelMap)
+                                        {
+                                            if (Namer.IDToNameLookup.TryGetValue((int)submesh.Value.ChannelMap, out var currentChannelName) && !Namer.placeholderNames.Contains((int)submesh.Value.ChannelMap))
+                                                continue;
+
+                                            var overrideCurrent = !currentChannelName!.Contains("DyeColorMap");
+
+                                            if (overrideCheck(overrideName, submesh.Value.ChannelMap, forceOverrideName))
+                                                NewFileManager.AddNewFile(submesh.Value.ChannelMap, folder + "/" + currentModelName + "_DyeColorMap_" + submesh.Value.ChannelMap + ".blp", true, overrideCurrent);
+                                        }
+
+                                        if (textureFDID == submesh.Value.InfluenceMap)
+                                        {
+                                            if (Namer.IDToNameLookup.TryGetValue((int)submesh.Value.InfluenceMap, out var currentInfluenceName) && !Namer.placeholderNames.Contains((int)submesh.Value.InfluenceMap))
+                                                continue;
+
+                                            var overrideCurrent = !currentInfluenceName!.Contains("DyeInfluenceMap");
+
+                                            if (overrideCheck(overrideName, submesh.Value.InfluenceMap, forceOverrideName))
+                                                NewFileManager.AddNewFile(submesh.Value.InfluenceMap, folder + "/" + currentModelName + "_DyeInfluenceMap_" + submesh.Value.InfluenceMap + ".blp", true, overrideCurrent);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (m2.animFileDataIDs != null)
+                        {
+                            for (var i = 0; i < m2.animFileDataIDs.Length; i++)
+                            {
+                                var anim = m2.animFileDataIDs[i];
+                                if (anim.fileDataID == 0)
+                                    continue;
+
+                                if (overrideCheck(overrideName, anim.fileDataID, forceOverrideName))
+                                    NewFileManager.AddNewFile(anim.fileDataID, folder + "/" + currentModelName + anim.animID.ToString().PadLeft(4, '0') + "-" + anim.subAnimID.ToString().PadLeft(2, '0') + ".anim", overrideCheck(overrideName, anim.fileDataID, forceOverrideName), forceOverrideName);
                             }
                         }
 
@@ -1890,6 +2015,10 @@ namespace WoWNamingLib.Namers
             public string name;
             public uint nViews;
             public Event[] events;
+
+            public short[] textureCombos;
+            public uint[] texturesWithFlags;
+            public uint[] particleTextures;
 
         }
         public struct AFID
@@ -2026,31 +2155,94 @@ namespace WoWNamingLib.Namers
         {
             var model = new M2Model();
 
-            var bin = new BinaryReader(m2stream);
-            var header = bin.ReadUInt32();
-            if (header != ('M' << 0 | 'D' << 8 | '2' << 16 | '0' << 24))
+            var textureCombos = new List<short>();
+            var particleTextures = new List<uint>();
+
+            using (var bin = new BinaryReader(m2stream, System.Text.Encoding.ASCII, true))
             {
-                throw new Exception("Invalid M2 file!");
+                var startPos = bin.BaseStream.Position;
+
+                var header = bin.ReadUInt32();
+                if (header != ('M' << 0 | 'D' << 8 | '2' << 16 | '0' << 24))
+                {
+                    throw new Exception("Invalid M2 file!");
+                }
+
+                model.version = bin.ReadUInt32();
+                var lenModelname = bin.ReadUInt32();
+                var ofsModelname = bin.ReadUInt32();
+
+                bin.BaseStream.Position = startPos + 0x044;
+
+                model.nViews = bin.ReadUInt32();
+
+                bin.BaseStream.Position = startPos + 0x50;
+
+                var nTextures = bin.ReadUInt32();
+                var ofsTextures = bin.ReadUInt32();
+
+                bin.BaseStream.Position = startPos + 0x80;
+
+                var nTextureCombos = bin.ReadUInt32();
+                var ofsTextureCombos = bin.ReadUInt32();
+
+                bin.BaseStream.Position = startPos + ofsTextureCombos;
+                for (var i = 0; i < nTextureCombos; i++)
+                    textureCombos.Add(bin.ReadInt16());
+
+                model.textureCombos = textureCombos.ToArray();
+
+                bin.BaseStream.Position = startPos + 0x100;
+
+                var nEvents = bin.ReadUInt32();
+                var ofsEvents = bin.ReadUInt32();
+
+                bin.BaseStream.Position = startPos + 0x128;
+
+                var nParticles = bin.ReadUInt32();
+                var ofsParticles = bin.ReadUInt32();
+
+                bin.BaseStream.Position = ofsParticles + 8;
+                for (var i = 0; i < nParticles; i++)
+                {
+                    bin.ReadBytes(22); // Skip to the texture refs
+                    var textureID = bin.ReadInt16();
+                    // 5 bits per texture id
+                    var tex1 = (textureID >> 10) & 0x1F;
+                    var tex2 = (textureID >> 5) & 0x1F;
+                    var tex3 = textureID & 0x1F;
+                    particleTextures.Add((uint)tex1);
+                    particleTextures.Add((uint)tex2);
+                    particleTextures.Add((uint)tex3);
+                    bin.ReadBytes(468);
+                }
+
+                model.particleTextures = particleTextures.ToArray();
+
+                if (lenModelname != 0)
+                {
+                    bin.BaseStream.Position = ofsModelname;
+                    model.name = new string(bin.ReadChars((int)lenModelname));
+                    model.name = model.name.Remove(model.name.Length - 1); //remove last char, empty
+                }
+
+                model.events = ReadEvents(nEvents, ofsEvents, bin);
+
+                bin.BaseStream.Position = ofsTextures;
+                var texturesWithFlags = new List<uint>();
+                for (var i = 0; i < nTextures; i++)
+                {
+                    var type = bin.ReadUInt32();
+                    var flags = bin.ReadUInt32();
+                    if (flags != 0)
+                        texturesWithFlags.Add((uint)i);
+
+                    var lenFilename = bin.ReadUInt32();
+                    var ofsFilename = bin.ReadUInt32();
+                }
+
+                model.texturesWithFlags = texturesWithFlags.ToArray();
             }
-
-            model.version = bin.ReadUInt32();
-            var lenModelname = bin.ReadUInt32();
-            var ofsModelname = bin.ReadUInt32();
-
-            bin.ReadBytes(52);
-            model.nViews = bin.ReadUInt32();
-            bin.ReadBytes(184);
-            var nEvents = bin.ReadUInt32();
-            var ofsEvents = bin.ReadUInt32();
-
-            if (lenModelname != 0)
-            {
-                bin.BaseStream.Position = ofsModelname;
-                model.name = new string(bin.ReadChars((int)lenModelname));
-                model.name = model.name.Remove(model.name.Length - 1); //remove last char, empty
-            }
-
-            model.events = ReadEvents(nEvents, ofsEvents, bin);
 
             return model;
         }
