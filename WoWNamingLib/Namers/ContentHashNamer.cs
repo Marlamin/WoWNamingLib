@@ -245,11 +245,31 @@ namespace WoWNamingLib.Namers
             {"7458f3f9ac6a259cbcfa1edd3b2b55ff", "11FX_Arcane_Energy_and_Streaks" },
             {"78b6f8dfb164480e0bc36eab048feee8", "11FX_Arcane_Smoke_Energy_Blue" },
             {"dd18eaa2ad80f5dcf0cf0b8007ce961e", "12FX_Chromatic_Mote" },
-            {"3b9d9e4a6503fceb10fc71a8bbb7bd0e", "GlowBall02" }
+            {"3b9d9e4a6503fceb10fc71a8bbb7bd0e", "GlowBall02" },
+            {"ce5d5ac4fc59721030476b54f46783cb", "ColdBreath32" },
+            {"be2de7ee447c7b5f43d5a392a2685a19", "10FX_BumpyScroll" },
+            {"3634e2fcfc6a0c70f7074e1be6201eea", "Smoke_Generic_PaintyMask02_BlendGreen" },
+            {"000600f82567d875389b09212b249e08", "10FX_EnergyTendril_B" },
+            {"346927c05edc029f1b41dfe5fbd573a7", "10FX_EnergyStars_Lift" },
+            {"680a03f5c182836d8e0f0684a7964515", "10FX_DragonClouds_02" },
+            {"d984bc64a46cbd99f89e0f45712068d1", "7FX_AlphaMask_Glow_Blue_Blend" },
+            {"864ac9dc6d187e5318051bbcc4f6788d", "7FX_EnergyScroll_Desat4" },
+            {"c120e8880ffdc08ff163f3ee25e51e59", "9FX_AmimaArd_FlareOut_BlurA" },
+            {"cf9c77aad04bab67e943def227e39afe", "10FX_EnergyTendril_C" },
+            {"c553b0dd0d39265a13dfc031064b408a", "10FX_FlareBlur_Prism" },
+            {"d19ca17717d8ff5e76e04daa2f92856f", "7FX_AlphaMask_Glow_Blue_BlendAdd" },
+            {"8b1e54c1b94f572be012901fcba96cbf", "smoothreflect" },
+            {"b7aec926eba320b8f2e2d69fc53d4cae", "10FX_Lava_Scroll_09" },
+            {"7eea920dcc172b963fedb8d22ebf4bec", "10FX_WaterFall_StaticAlpha_02" },
+            {"06d08361558f336f87c8118a455ec994", "10FX_Goo_Sphere_01" },
+
+
         };
 
-        public static void Name(Dictionary<int, byte[]> idToHashes, List<int> filter = null)
+        public static void Name(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int> filter = null)
         {
+            knownHashes = knownHashes.Concat(additionalHashes).ToDictionary(x => x.Key, x => x.Value);
+
             foreach (var idToHash in idToHashes)
             {
                 if (filter != null && !filter.Contains(idToHash.Key))
@@ -272,7 +292,14 @@ namespace WoWNamingLib.Namers
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/minimaps/" + idToHash.Key + ".blp", true, true);
                 }
 
+                // Black/empty textures
+                if (contenthash == "8660736128e3cd4e244cfd1f32f205ef" || contenthash == "6168c9a0f30f7e811493dc8c6bc24c9f")
+                    continue;
+
                 if (!knownHashes.TryGetValue(contenthash, out var knownName))
+                    continue;
+
+                if (!Namer.placeholderNames.Contains(idToHash.Key))
                     continue;
 
                 if (Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentName))

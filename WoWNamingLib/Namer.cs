@@ -417,11 +417,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameByContentHashes(Dictionary<int, byte[]> idToHashes, List<int> filter = null)
+        public static void NameByContentHashes(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int> filter = null)
         {
             try
             {
-                ContentHashNamer.Name(idToHashes, filter);
+                ContentHashNamer.Name(idToHashes, additionalHashes, filter);
                 ReloadPlaceholders();
             }
             catch (Exception e)
