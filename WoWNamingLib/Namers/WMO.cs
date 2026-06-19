@@ -100,6 +100,13 @@ namespace WoWNamingLib.Namers
                     {
                         var file = CASCManager.GetFileByID((uint)fdid).Result;
                         file.CopyTo(ms);
+
+                        ms.Position = 0;
+
+                        var bin = new BinaryReader(ms);
+                        if (bin.ReadUInt64() == 0)
+                            throw new Exception("WMO is encrypted");
+
                         ms.Position = 0;
                     }
                     catch (Exception e)

@@ -262,8 +262,7 @@ namespace WoWNamingLib.Namers
             {"b7aec926eba320b8f2e2d69fc53d4cae", "10FX_Lava_Scroll_09" },
             {"7eea920dcc172b963fedb8d22ebf4bec", "10FX_WaterFall_StaticAlpha_02" },
             {"06d08361558f336f87c8118a455ec994", "10FX_Goo_Sphere_01" },
-
-
+            {"bd37536470149f6d2b216e03184af9f4", "ARMORREFLECT3" }
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int> filter = null)

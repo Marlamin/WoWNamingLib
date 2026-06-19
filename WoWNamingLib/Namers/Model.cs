@@ -1319,7 +1319,12 @@ namespace WoWNamingLib.Namers
                                 case "12du":
                                     folder = "World/Expansion11/Doodads/Dungeon";
                                     break;
-
+                                case "12sn":
+                                    folder = "World/Expansion11/Doodads/Snakoid";
+                                    break;
+                                case "12zam":
+                                    folder = "World/Expansion11/Doodads/Swamp";
+                                    break;
 
                                 // 11.0
                                 case "11we":
