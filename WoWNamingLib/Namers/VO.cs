@@ -161,17 +161,17 @@ namespace WoWNamingLib.Namers
                 Console.WriteLine("Error parsing VO WoWDB Lua: " + e.Message);
             }
 
-            try
-            {
-                foreach (var wowdbLua in Directory.GetFiles(Path.Combine(Namer.wowDir, "_retail_", "WTF\\Account"), "+Wowhead_Looter.lua", SearchOption.AllDirectories))
-                {
-                    ParseWowheadLua(wowdbLua);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error parsing VO Wowhead LUA: " + e.Message);
-            }
+            //try
+            //{
+            //    foreach (var wowdbLua in Directory.GetFiles(Path.Combine(Namer.wowDir, "_retail_", "WTF\\Account"), "+Wowhead_Looter.lua", SearchOption.AllDirectories))
+            //    {
+            //        ParseWowheadLua(wowdbLua);
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    Console.WriteLine("Error parsing VO Wowhead LUA: " + e.Message);
+            //}
 
             if (textToSoundKitID.Count == 0)
             {
