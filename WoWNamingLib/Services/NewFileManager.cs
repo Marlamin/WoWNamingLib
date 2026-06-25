@@ -68,8 +68,11 @@ namespace WoWNamingLib.Services
             {
                 if (newLookup != cachedLookup)
                 {
-                    //Console.WriteLine("Incoming filename " + filename + " for FDID " + fileDataID + " does not match known lookup " + cachedLookup.ToString("X16") + ", skipping.");
-                    return;
+                    if (!filename.Contains(fileDataID.ToString()))
+                    {
+                        Console.WriteLine("Incoming filename " + filename + " for FDID " + fileDataID + " does not match known lookup " + cachedLookup.ToString("X16") + ", skipping.");
+                        return;
+                    }
                 }
             }
 
@@ -79,8 +82,11 @@ namespace WoWNamingLib.Services
             {
                 if (hashByFDID != newLookup)
                 {
-                    Console.WriteLine("Hash mismatch for " + fileDataID + ": " + filename);
-                    return;
+                    if (!filename.Contains(fileDataID.ToString()))
+                    {
+                        Console.WriteLine("Hash mismatch for " + fileDataID + ": " + filename);
+                        return;
+                    }
                 }
 
                 if (cachedLookup != hashByFDID)
