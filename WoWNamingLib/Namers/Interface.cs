@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
@@ -15,6 +14,7 @@ namespace WoWNamingLib.Namers
             // Interface files
             try
             {
+                Console.WriteLine("[Interface Namer] MID naming");
                 var manifestInterfaceData = Namer.LoadDBC("ManifestInterfaceData");
                 foreach (var midRow in manifestInterfaceData.Values)
                 {
@@ -27,6 +27,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 // 6067012 - interface/ui-code-list.txt
+                Console.WriteLine("[Interface Namer] ui-code-list naming");
                 var codeList = CASCManager.GetFileByID(6067012).Result;
                 if (codeList != null)
                 {
@@ -42,6 +43,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 // 6067013 - interface/ui-toc-list.txt
+                Console.WriteLine("[Interface Namer] ui-toc-list naming");
                 var tocList = CASCManager.GetFileByID(6067013).Result;
                 if (tocList != null)
                 {
@@ -57,6 +59,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 // 6076661 - interface/ui-gen-addon-list.txt
+                Console.WriteLine("[Interface Namer] ui-gen-addon-list naming");
                 var genList = CASCManager.GetFileByID(6076661).Result;
                 if (genList != null)
                 {
@@ -72,6 +75,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 #region LoadingScreen
+                Console.WriteLine("[Interface Namer] LoadingScreen naming");
                 try
                 {
                     // 	Interface/Glues/LOADINGSCREENS/ExpansionXX/Main/Loadscreen_X.blp
@@ -130,6 +134,7 @@ namespace WoWNamingLib.Namers
                 #endregion
 
                 #region UIMap
+                Console.WriteLine("[Interface Namer] UIMap naming");
                 // System:
                 // 0 => Interface/WorldMap
                 // 1 => Deprecated, ignore
@@ -233,6 +238,47 @@ namespace WoWNamingLib.Namers
                 // TODO
                 #endregion
 
+                #region Splash screens
+                // 	Interface/Splash/SplashX.blp
+                // NOTE: This is lookup based. Accurate names for splashes from 9.0.1 - 12.1.0.
+                Console.WriteLine("[Interface Namer] Splash screen naming");
+                var uiTextureKitDB = Namer.LoadDBC("UITextureKit");
+                var uiTextureKitMap = new Dictionary<int, string>();
+                foreach(var uiTextureKitRow in uiTextureKitDB.Values)
+                {
+                    var textureKitID = int.Parse(uiTextureKitRow["ID"].ToString()!);
+                    var name = CleanName(uiTextureKitRow["KitPrefix"].ToString()!);
+                    uiTextureKitMap[textureKitID] = name;
+                }
+
+                try
+                {
+                    var uiSplashScreenDB = Namer.LoadDBC("UISplashScreen");
+                    if (!uiSplashScreenDB.AvailableColumns.Contains("TextureKitID"))
+                        throw new Exception("Missing TextureKitID column in UISplashScreen.db2");
+
+                    foreach (var uiSplashScreenRow in uiSplashScreenDB.Values)
+                    {
+                        var textureKitID = int.Parse(uiSplashScreenRow["TextureKitID"].ToString()!);
+                        if (!uiTextureKitMap.TryGetValue(textureKitID, out var textureKitName))
+                            continue;
+
+                        var fdidByName = CASCManager.GetFileDataIDByName("Interface/Splash/Splash" + textureKitName + ".blp").Result;
+                        if(fdidByName == 0)
+                            Console.WriteLine("No FDID found for splash screen: Interface/Splash/Splash" + textureKitName + ".blp");
+
+                        if(fdidByName != 0 && (!Namer.IDToNameLookup.ContainsKey(fdidByName) || Namer.placeholderNames.Contains(fdidByName)))
+                        {
+                            var newName = "Interface/Splash/Splash" + textureKitName + ".blp";
+                            NewFileManager.AddNewFile(fdidByName, newName, true, true);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Error during splash screen naming: " + e.Message);
+                }
+                #endregion
                 #region UITextureAtlas
                 #endregion
 
