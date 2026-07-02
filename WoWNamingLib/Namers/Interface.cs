@@ -1,6 +1,6 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
 using WoWNamingLib.Services;
-using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
 {
@@ -79,6 +79,10 @@ namespace WoWNamingLib.Namers
                     if (!mapDB.AvailableColumns.Contains("LoadingScreenID") || !mapDB.AvailableColumns.Contains("ExpansionID") || !mapDB.AvailableColumns.Contains("MapName_lang"))
                         throw new Exception("Missing LoadingScreenID or ExpansionID column in Map.db2");
 
+                    var mapLoadingScreenDB = Namer.LoadDBC("MapLoadingScreen");
+                    if (!mapLoadingScreenDB.AvailableColumns.Contains("MapID") || !mapLoadingScreenDB.AvailableColumns.Contains("LoadingScreenID"))
+                        throw new Exception("Missing MapID or LoadingScreenID column in MapLoadingScreen.db2");
+
                     var loadingScreenDB = Namer.LoadDBC("LoadingScreens");
                     if (!loadingScreenDB.AvailableColumns.Contains("MainImageFileDataID"))
                         throw new Exception("Missing MainImageFileDataID column in LoadingScreen.db2");
@@ -89,15 +93,31 @@ namespace WoWNamingLib.Namers
                         if (loadingScreenDB.TryGetValue(loadingScreenID, out var loadingScreenRow))
                         {
                             var mainImage = int.Parse(loadingScreenRow["MainImageFileDataID"].ToString()!);
-                            if (mainImage == 0)
-                                continue;
-
-                            if (!Namer.IDToNameLookup.ContainsKey(mainImage) || Namer.placeholderNames.Contains(mainImage))
+                            if (mainImage != 0 && (!Namer.IDToNameLookup.ContainsKey(mainImage) || Namer.placeholderNames.Contains(mainImage)))
                             {
                                 var expansion = int.Parse(mapRow["ExpansionID"].ToString()!);
                                 var mapName = CleanName(mapRow["MapName_lang"].ToString()!);
                                 var loadingScreenName = "Interface/Glues/LOADINGSCREENS/Expansion" + expansion + "/Main/Loadscreen_" + mapName + "_" + mainImage + ".blp";
                                 NewFileManager.AddNewFile(mainImage, loadingScreenName, true);
+                            }
+                        }
+
+                        foreach (var mapLoadingScreenRow in mapLoadingScreenDB.Values)
+                        {
+                            if (int.Parse(mapLoadingScreenRow["MapID"].ToString()!) == int.Parse(mapRow["ID"].ToString()!))
+                            {
+                                var loadingScreenID2 = int.Parse(mapLoadingScreenRow["LoadingScreenID"].ToString()!);
+                                if (loadingScreenDB.TryGetValue(loadingScreenID2, out var loadingScreenRow2))
+                                {
+                                    var mainImage = int.Parse(loadingScreenRow2["MainImageFileDataID"].ToString()!);
+                                    if (mainImage != 0 && (!Namer.IDToNameLookup.ContainsKey(mainImage) || Namer.placeholderNames.Contains(mainImage)))
+                                    {
+                                        var expansion = int.Parse(mapRow["ExpansionID"].ToString()!);
+                                        var mapName = CleanName(mapRow["MapName_lang"].ToString()!);
+                                        var loadingScreenName = "Interface/Glues/LOADINGSCREENS/Expansion" + expansion + "/Main/Loadscreen_" + mapName + "_" + mainImage + ".blp";
+                                        NewFileManager.AddNewFile(mainImage, loadingScreenName, true);
+                                    }
+                                }
                             }
                         }
                     }
@@ -149,7 +169,7 @@ namespace WoWNamingLib.Namers
                         // Skip other map types for now
                         if (basename == null)
                         {
-                            if(system != 1 && system != 3) // only bother warning for unexpected situations
+                            if (system != 1 && system != 3) // only bother warning for unexpected situations
                                 Console.WriteLine("Skipping UIMapID " + uiMapID + " with unsupported system " + system);
 
                             continue;
@@ -158,9 +178,9 @@ namespace WoWNamingLib.Namers
                         if (type == 5)
                             basename += "/MicroDungeon";
 
-                        foreach(var uiMapXMapArtRow in uiMapXMapArtDB.Values)
+                        foreach (var uiMapXMapArtRow in uiMapXMapArtDB.Values)
                         {
-                            if(int.Parse(uiMapXMapArtRow["UiMapID"].ToString()!) != uiMapID)
+                            if (int.Parse(uiMapXMapArtRow["UiMapID"].ToString()!) != uiMapID)
                                 continue;
 
                             var uiMapArtID = int.Parse(uiMapXMapArtRow["UiMapArtID"].ToString()!);
