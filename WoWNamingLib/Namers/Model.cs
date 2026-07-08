@@ -419,6 +419,7 @@ namespace WoWNamingLib.Namers
 
             //spellOutputLines.Add("## __ CALCULATED NAMES __ ##");
 
+            var mapDB = Namer.LoadDBC("Map");
             var journalInstanceDB = Namer.LoadDBC("JournalInstance");
             var journalEncounterDB = Namer.LoadDBC("JournalEncounter");
             if (!journalInstanceDB.AvailableColumns.Contains("ID") || !journalInstanceDB.AvailableColumns.Contains("Name_lang"))
@@ -453,10 +454,20 @@ namespace WoWNamingLib.Namers
                                 if (jiEntry.ID != jeInstanceID)
                                     continue;
 
+                                var mapID = int.Parse(jiEntry["MapID"].ToString()!);
+                                if(mapDB.TryGetValue(mapID, out var mapRow))
+                                {
+                                    var mapExpansionID = int.Parse(mapRow["ExpansionID"].ToString()!);
+                                    prefix = (mapExpansionID + 1) + "FX_";
+                                }
+
                                 var jiName = jiEntry["Name_lang"].ToString()!;
                                 var jiNameClean = jiName.Replace(" ", "").Replace("'", "").Replace(",", "").Replace("-", "").Replace(":", "");
                                 switch (jiNameClean)
                                 {
+                                    case "TheVenomousAbyss":
+                                        jiNameClean = "UlatekRaid";
+                                        break;
                                     case "LiberationofUndermine":
                                         jiNameClean = "UndermineRaid";
                                         break;
@@ -689,7 +700,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 var cleanSpellname = spellname.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
-                var calculatedName = "spells/" + prefix + cleanSpellname + eventSuffix + ".m2";
+                var calculatedName = "Spells/" + prefix + cleanSpellname + eventSuffix + ".m2";
                 var nameSaved = false;
                 var numIndex = 0;
 
@@ -703,7 +714,7 @@ namespace WoWNamingLib.Namers
                     else
                     {
                         numIndex++;
-                        calculatedName = "spells/" + prefix + cleanSpellname + eventSuffix + numIndex.ToString().PadLeft(2, '0') + ".m2";
+                        calculatedName = "Spells/" + prefix + cleanSpellname + eventSuffix + numIndex.ToString().PadLeft(2, '0') + ".m2";
                     }
                 }
 
