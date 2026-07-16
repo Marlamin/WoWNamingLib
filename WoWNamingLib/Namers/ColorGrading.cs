@@ -8,20 +8,20 @@
             var seMap = new Dictionary<uint, List<string>>();
             foreach (var seRow in screenEffectDB.Values)
             {
-                if (uint.Parse(seRow["Effect"].ToString()) != 6)
+                if (uint.Parse(seRow["Effect"].ToString()!) != 6)
                     continue;
 
                 var seParams = (uint[])seRow["Param"];
                 if (seParams[0] == 0)
                     continue;
 
-                if (!seMap.ContainsKey(seParams[0]))
+                if (!seMap.TryGetValue(seParams[0], out List<string>? screeneffects))
                 {
-                    seMap.Add(seParams[0], new List<string>() { seRow["Name"].ToString() });
+                    seMap.Add(seParams[0], new List<string>() { seRow["Name"].ToString()! });
                 }
                 else
                 {
-                    seMap[seParams[0]].Add(seRow["Name"].ToString());
+                    screeneffects.Add(seRow["Name"].ToString()!);
                 }
             }
 

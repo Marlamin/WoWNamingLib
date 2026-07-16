@@ -67,8 +67,8 @@ namespace WoWNamingLib.Namers
             var svenMap = new Dictionary<uint, uint>();
 
             var svkmaDB = Namer.LoadDBC("SpellVisualKitModelAttach");
-            if (!svkmaDB.AvailableColumns.Contains("SpellVisualEffectNameID") || !svkmaDB.AvailableColumns.Contains("ParentSpellVisualKitID"))
-                throw new Exception("SpellVisualKitModelAttach DB2 does not contain SpellVisualEffectNameID or ParentSpellVisualKitID columns");
+            if (!svkmaDB.AvailableColumns.Contains("SpellVisualEffectNameID") || !svkmaDB.AvailableColumns.Contains("ParentSpellVisualKitID") || !svkmaDB.AvailableColumns.Contains("LowDefModelAttachID"))
+                throw new Exception("SpellVisualKitModelAttach DB2 does not contain SpellVisualEffectNameID, ParentSpellVisualKitID or LowDefModelAttachID columns");
 
             var svkeDB = Namer.LoadDBC("SpellVisualKitEffect");
             if (!svkeDB.AvailableColumns.Contains("EffectType") || !svkeDB.AvailableColumns.Contains("Effect") || !svkeDB.AvailableColumns.Contains("ParentSpellVisualKitID"))
@@ -104,6 +104,25 @@ namespace WoWNamingLib.Namers
                 {
                     if (!kitIDs.Contains(svkID))
                         kitIDs.Add(svkID);
+                }
+
+                var lowDefModelAttachID = uint.Parse(svkmaEntry["LowDefModelAttachID"].ToString()!);
+                if(lowDefModelAttachID != 0)
+                {
+                    if(svkmaDB.TryGetValue((int)lowDefModelAttachID, out var lowDefEntry))
+                    {
+                        // ParentSpellVisualKitID is the same as the parent, so we can just use that
+                        var lowDefSvenID = uint.Parse(lowDefEntry["SpellVisualEffectNameID"].ToString()!);
+                        if (!svenToKit.TryGetValue(lowDefSvenID, out List<uint>? lowDefKitIDs))
+                        {
+                            svenToKit.Add(lowDefSvenID, [svkID]);
+                        }
+                        else
+                        {
+                            if (!lowDefKitIDs.Contains(svkID))
+                                lowDefKitIDs.Add(svkID);
+                        }
+                    }
                 }
             }
 
