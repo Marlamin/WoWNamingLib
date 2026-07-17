@@ -61,6 +61,8 @@ namespace WoWNamingLib.Services
             if (fileDataID == 0 || fileDataID == 4279042 || fileDataID == 5044357 || fileDataID == 2887301 || fileDataID == 3557051)
                 return;
 
+            filename = filename.Replace("\\", "/");
+
             var newLookup = Hasher.ComputeHash(filename);
 
             // Retrieve lookup from lookup.csv.

@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\DBCD\DBCD\DBCD.csproj" />
     <ProjectReference Include="..\..\TACTSharp\TACTSharp\TACTSharp.csproj" />
+    <ProjectReference Include="..\..\WoWFormatLib\WoWFormatLib\WoWFormatLib.csproj" />
   </ItemGroup>
 
 </Project>

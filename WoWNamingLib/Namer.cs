@@ -386,6 +386,18 @@ namespace WoWNamingLib
             }
         }
 
+        public static void NameM3s(List<int> fileDataIDs, bool forceFullRun = false)
+        {
+            try
+            {
+                Model3.Name(fileDataIDs, forceFullRun);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during M3 naming: " + e.Message);
+            }
+        }
+
         public static void NameMap()
         {
             try
