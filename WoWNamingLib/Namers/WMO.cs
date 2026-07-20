@@ -316,19 +316,19 @@ namespace WoWNamingLib.Namers
                                 wmoMat.texture1 != 0 &&
                                 (!Namer.IDToNameLookup.ContainsKey((int)wmoMat.texture1) || overrideTex1 || Namer.placeholderNames.Contains((int)wmoMat.texture1) || resetName)
                                 )
-                                AddWMOTextureName(wmoMat.texture1, texture1Filename, true, resetName);
+                                AddWMOTextureName(wmoMat.texture1, texture1Filename, true, resetName || overrideTex1);
 
                             if (
                                 wmoMat.texture2 != 0 &&
                                 (!Namer.IDToNameLookup.ContainsKey((int)wmoMat.texture2) || overrideTex2 || Namer.placeholderNames.Contains((int)wmoMat.texture2) || resetName)
                                 )
-                                AddWMOTextureName(wmoMat.texture2, texture2Filename, true, resetName);
+                                AddWMOTextureName(wmoMat.texture2, texture2Filename, true, resetName || overrideTex2);
 
                             if (
                                 wmoMat.texture3 != 0 &&
                                 (!Namer.IDToNameLookup.ContainsKey((int)wmoMat.texture3) || overrideTex3 || Namer.placeholderNames.Contains((int)wmoMat.texture3) || resetName)
                                 )
-                                AddWMOTextureName(wmoMat.texture3, texture3Filename, true, resetName);
+                                AddWMOTextureName(wmoMat.texture3, texture3Filename, true, resetName || overrideTex3);
                         }
                         else if (wmoMat.shader == 22 || wmoMat.shader == 23)
                         {
@@ -421,7 +421,7 @@ namespace WoWNamingLib.Namers
                 if (currentName.StartsWith("dungeon", StringComparison.CurrentCultureIgnoreCase))
                     return;
             }
-
+            
             NewFileManager.AddNewFile(fileDataID, filename, updateIfExists, forceUpdate);
         }
 
