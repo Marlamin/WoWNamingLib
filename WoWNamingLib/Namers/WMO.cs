@@ -259,13 +259,13 @@ namespace WoWNamingLib.Namers
                                 }
                             }
 
-                            if ((Namer.IDToNameLookup.ContainsKey((int)groupFileDataID) && !resetName && !Namer.IDToNameLookup[(int)groupFileDataID].Contains("/autogen-names")))
-                                continue;
+                            //if ((Namer.IDToNameLookup.ContainsKey((int)groupFileDataID) && !resetName && !Namer.IDToNameLookup[(int)groupFileDataID].Contains("/autogen-names")))
+                            //    continue;
 
                             if (lodIndex > 0)
-                                AddWMOTextureName(groupFileDataID, wmoFilename.Replace(".wmo", "_" + groupIndex.ToString().PadLeft(3, '0') + "_lod" + lodIndex + ".wmo"), true);
+                                AddWMOTextureName(groupFileDataID, wmoFilename.Replace(".wmo", "_" + groupIndex.ToString().PadLeft(3, '0') + "_lod" + lodIndex + ".wmo"), true, true);
                             else
-                                AddWMOTextureName(groupFileDataID, wmoFilename.Replace(".wmo", "_" + groupIndex.ToString().PadLeft(3, '0') + ".wmo"), true);
+                                AddWMOTextureName(groupFileDataID, wmoFilename.Replace(".wmo", "_" + groupIndex.ToString().PadLeft(3, '0') + ".wmo"), true, true);
                         }
                     }
 

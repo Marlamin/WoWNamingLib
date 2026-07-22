@@ -718,7 +718,7 @@ namespace WoWNamingLib.Namers
 
                 }
 
-                var cleanSpellname = spellname.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
+                var cleanSpellname = spellname.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace("\"", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
                 var calculatedName = "Spells/" + prefix + cleanSpellname + eventSuffix + ".m2";
                 var nameSaved = false;
                 var numIndex = 0;
