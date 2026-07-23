@@ -1651,6 +1651,8 @@ namespace WoWNamingLib.Namers
                                 case "flowercrown":
                                 case "mask":
                                 case "monocle":
+                                case "bracelete":
+                                case "bracelet":
                                 case "drustmask":
                                 case "tuskarrboots":
                                     folder = "Item/ObjectComponents/collections";
