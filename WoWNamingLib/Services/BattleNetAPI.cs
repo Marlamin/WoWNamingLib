@@ -39,7 +39,8 @@
 
         public static string GetBaseNameForMediaFDID(uint fileDataID)
         {
-            CheckToken();
+            if(!CheckToken())
+                return "";
 
             HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
 
