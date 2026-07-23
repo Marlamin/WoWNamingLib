@@ -112,7 +112,7 @@ namespace WoWNamingLib
             CASCManager.MergeLookups(lookups);
         }
 
-        static void ReloadPlaceholders()
+        public static void ReloadPlaceholders()
         {
             var hasher = new Jenkins96();
 

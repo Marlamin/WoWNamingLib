@@ -5,10 +5,13 @@ namespace WoWNamingLib.Namers
 {
     class Interface
     {
+        private static List<int> IDsNotInAPI = [];
+
         private static string CleanName(string name)
         {
-            return name.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
+            return name.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace("\"", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
         }
+
         public static void Name()
         {
             // Interface files
@@ -232,7 +235,7 @@ namespace WoWNamingLib.Namers
                 try
                 {
                     var unknownIconList = new List<int>();
-
+                    var iconToSpellNameMap = new Dictionary<int, string>();
                     var manifestInterfaceItemIconDB = Namer.LoadDBC("ManifestInterfaceItemIcon");
                     foreach (var manifestInterfaceItemIconRow in manifestInterfaceItemIconDB.Values)
                     {
@@ -255,21 +258,37 @@ namespace WoWNamingLib.Namers
                         }
                     }
 
+                    var spellNameDB = Namer.LoadDBC("SpellName");
                     var spellMiscDB = Namer.LoadDBC("SpellMisc");
                     foreach (var spellMiscRow in spellMiscDB.Values)
                     {
+                        var spellID = int.Parse(spellMiscRow["SpellID"].ToString()!);
                         var iconFileDataID = int.Parse(spellMiscRow["SpellIconFileDataID"].ToString()!);
                         if (iconFileDataID != 0)
                         {
                             if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                            {
                                 unknownIconList.Add(iconFileDataID);
+                                if (spellNameDB.TryGetValue(spellID, out var spellNameRow))
+                                {
+                                    var spellName = CleanName(spellNameRow["Name_lang"].ToString()!);
+                                    iconToSpellNameMap[iconFileDataID] = spellName;
+                                }
+                            }
                         }
 
                         var activeIconFileDataID = int.Parse(spellMiscRow["ActiveIconFileDataID"].ToString()!);
                         if (activeIconFileDataID != 0)
                         {
                             if (!Namer.IDToNameLookup.ContainsKey(activeIconFileDataID) || Namer.placeholderNames.Contains(activeIconFileDataID))
+                            {
                                 unknownIconList.Add(activeIconFileDataID);
+                                if (spellNameDB.TryGetValue(spellID, out var spellNameRow))
+                                {
+                                    var spellName = CleanName(spellNameRow["Name_lang"].ToString()!);
+                                    iconToSpellNameMap[activeIconFileDataID] = spellName;
+                                }
+                            }
                         }
                     }
 
@@ -283,11 +302,32 @@ namespace WoWNamingLib.Namers
                         if (iconFDID < 7000000)
                             continue;
 
-                        var iconName = BattleNetAPI.GetBaseNameForMediaFDID((uint)iconFDID);
-                        if (!string.IsNullOrEmpty(iconName))
+                        if (IDsNotInAPI.Contains(iconFDID))
                         {
-                            var iconFilename = "Interface/Icons/" + iconName + ".blp";
+                            continue;
+                        }
+                        else
+                        {
+                            var iconName = BattleNetAPI.GetBaseNameForMediaFDID((uint)iconFDID);
+                            if (!string.IsNullOrEmpty(iconName))
+                            {
+                                var iconFilename = "Interface/Icons/" + iconName + ".blp";
+                                NewFileManager.AddNewFile(iconFDID, iconFilename, true);
+                                continue;
+                            }
+                        }
+
+                        IDsNotInAPI.Add(iconFDID);
+
+                        if (iconToSpellNameMap.TryGetValue(iconFDID, out var spellName))
+                        {
+                            var iconFilename = "Interface/Icons/" + spellName + "_" + iconFDID + ".blp";
                             NewFileManager.AddNewFile(iconFDID, iconFilename, true);
+                            continue;
+                        }
+                        else
+                        {
+                            NewFileManager.AddNewFile(iconFDID, "Interface/Icons/Unknown_" + iconFDID + ".blp", true);
                         }
                     }
                 }
@@ -352,6 +392,8 @@ namespace WoWNamingLib.Namers
             {
                 Console.WriteLine("Exception during MID naming: " + e.Message);
             }
+
+            Namer.ReloadPlaceholders();
         }
     }
 }
