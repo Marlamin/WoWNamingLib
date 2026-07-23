@@ -114,26 +114,43 @@ namespace WoWNamingLib
 
         static void ReloadPlaceholders()
         {
+            var hasher = new Jenkins96();
+
             foreach (var entry in IDToNameLookup)
             {
                 var fileDataID = entry.Key;
                 var filename = entry.Value;
 
-                if (filename.StartsWith("models") ||
-                    filename.StartsWith("unkmaps") ||
-                    filename.Contains("autogen-names") ||
-                    filename.Contains(fileDataID.ToString()) ||
-                    filename.Contains("unk_exp") ||
-                    filename.Contains("tileset/unused"))
+                if (string.IsNullOrEmpty(filename))
                 {
                     placeholderNames.Add(fileDataID);
                     continue;
                 }
 
-                if (filename.EndsWith(".ogg") && filename.Substring(filename.Length - 10, 6).All(char.IsDigit))
+                if (filename.StartsWith("models", StringComparison.OrdinalIgnoreCase) ||
+                    filename.StartsWith("unkmaps", StringComparison.OrdinalIgnoreCase) ||
+                    filename.Contains("autogen-names", StringComparison.OrdinalIgnoreCase) ||
+                    filename.Contains(fileDataID.ToString(), StringComparison.OrdinalIgnoreCase) ||
+                    filename.Contains("unk_exp", StringComparison.OrdinalIgnoreCase) ||
+                    filename.Contains("tileset/unused", StringComparison.OrdinalIgnoreCase))
                 {
                     placeholderNames.Add(fileDataID);
                     continue;
+                }
+
+                if (filename.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase) && filename.Substring(filename.Length - 10, 6).All(char.IsDigit))
+                {
+                    placeholderNames.Add(fileDataID);
+                    continue;
+                }
+
+                if (CASCManager.LookupMap.TryGetValue(fileDataID, out var lookup))
+                {
+                    if (lookup != hasher.ComputeHash(filename))
+                    {
+                        placeholderNames.Add(fileDataID);
+                        continue;
+                    }
                 }
             }
         }

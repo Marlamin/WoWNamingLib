@@ -229,7 +229,72 @@ namespace WoWNamingLib.Namers
 
                 #region Icons
                 // Interface/Icons
-                // TODO
+                try
+                {
+                    var unknownIconList = new List<int>();
+
+                    var manifestInterfaceItemIconDB = Namer.LoadDBC("ManifestInterfaceItemIcon");
+                    foreach (var manifestInterfaceItemIconRow in manifestInterfaceItemIconDB.Values)
+                    {
+                        var iconFileDataID = int.Parse(manifestInterfaceItemIconRow["ID"].ToString()!);
+                        if (iconFileDataID != 0)
+                        {
+                            if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                                unknownIconList.Add(iconFileDataID);
+                        }
+                    }
+
+                    var manifestInterfaceActionIconDB = Namer.LoadDBC("ManifestInterfaceActionIcon");
+                    foreach (var manifestInterfaceActionIconRow in manifestInterfaceActionIconDB.Values)
+                    {
+                        var iconFileDataID = int.Parse(manifestInterfaceActionIconRow["ID"].ToString()!);
+                        if (iconFileDataID != 0)
+                        {
+                            if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                                unknownIconList.Add(iconFileDataID);
+                        }
+                    }
+
+                    var spellMiscDB = Namer.LoadDBC("SpellMisc");
+                    foreach (var spellMiscRow in spellMiscDB.Values)
+                    {
+                        var iconFileDataID = int.Parse(spellMiscRow["SpellIconFileDataID"].ToString()!);
+                        if (iconFileDataID != 0)
+                        {
+                            if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                                unknownIconList.Add(iconFileDataID);
+                        }
+
+                        var activeIconFileDataID = int.Parse(spellMiscRow["ActiveIconFileDataID"].ToString()!);
+                        if (activeIconFileDataID != 0)
+                        {
+                            if (!Namer.IDToNameLookup.ContainsKey(activeIconFileDataID) || Namer.placeholderNames.Contains(activeIconFileDataID))
+                                unknownIconList.Add(activeIconFileDataID);
+                        }
+                    }
+
+                    unknownIconList = unknownIconList.Distinct().ToList();
+
+                    Console.WriteLine("[Interface Namer] Found " + unknownIconList.Count + " icons that need naming.");
+
+                    foreach (var iconFDID in unknownIconList)
+                    {
+                        // Ignore icons under 7M
+                        if (iconFDID < 7000000)
+                            continue;
+
+                        var iconName = BattleNetAPI.GetBaseNameForMediaFDID((uint)iconFDID);
+                        if (!string.IsNullOrEmpty(iconName))
+                        {
+                            var iconFilename = "Interface/Icons/" + iconName + ".blp";
+                            NewFileManager.AddNewFile(iconFDID, iconFilename, true);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new Exception("Error during Icon naming: " + e.Message);
+                }
                 #endregion
 
                 #region LFGArt
@@ -244,7 +309,7 @@ namespace WoWNamingLib.Namers
                 Console.WriteLine("[Interface Namer] Splash screen naming");
                 var uiTextureKitDB = Namer.LoadDBC("UITextureKit");
                 var uiTextureKitMap = new Dictionary<int, string>();
-                foreach(var uiTextureKitRow in uiTextureKitDB.Values)
+                foreach (var uiTextureKitRow in uiTextureKitDB.Values)
                 {
                     var textureKitID = int.Parse(uiTextureKitRow["ID"].ToString()!);
                     var name = CleanName(uiTextureKitRow["KitPrefix"].ToString()!);
@@ -264,10 +329,10 @@ namespace WoWNamingLib.Namers
                             continue;
 
                         var fdidByName = CASCManager.GetFileDataIDByName("Interface/Splash/Splash" + textureKitName + ".blp").Result;
-                        if(fdidByName == 0)
+                        if (fdidByName == 0)
                             Console.WriteLine("No FDID found for splash screen: Interface/Splash/Splash" + textureKitName + ".blp");
 
-                        if(fdidByName != 0 && (!Namer.IDToNameLookup.ContainsKey(fdidByName) || Namer.placeholderNames.Contains(fdidByName)))
+                        if (fdidByName != 0 && (!Namer.IDToNameLookup.ContainsKey(fdidByName) || Namer.placeholderNames.Contains(fdidByName)))
                         {
                             var newName = "Interface/Splash/Splash" + textureKitName + ".blp";
                             NewFileManager.AddNewFile(fdidByName, newName, true, true);
