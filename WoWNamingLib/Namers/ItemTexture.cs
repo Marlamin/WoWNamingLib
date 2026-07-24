@@ -296,7 +296,7 @@ namespace WoWNamingLib.Namers
                                     {
                                         if (Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconFilename))
                                         {
-                                            if (iconFilename.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFilename.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase))
+                                            if (iconFilename.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFilename.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase) || iconFilename.Contains(iconFDID.ToString(), StringComparison.OrdinalIgnoreCase))
                                                 continue;
 
                                             iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");
@@ -404,7 +404,7 @@ namespace WoWNamingLib.Namers
                                     {
                                         if (Namer.IDToNameLookup.TryGetValue(iconFDID, out var iconFilename))
                                         {
-                                            if (iconFilename.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFilename.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase))
+                                            if (iconFilename.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFilename.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase) || iconFilename.Contains(iconFDID.ToString(), StringComparison.OrdinalIgnoreCase))
                                                 continue;
 
                                             iconFilename = iconFilename.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace(".blp", "");

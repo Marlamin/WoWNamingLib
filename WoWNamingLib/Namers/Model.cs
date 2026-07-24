@@ -1126,7 +1126,7 @@ namespace WoWNamingLib.Namers
                                         {
                                             var cleanedName = iconFileName.ToLower().Replace("\\", "/").Replace("interface/icons/inv_", "").Replace("interface/icons/ivn_", "").Replace("interface/icons/", "").Replace(".blp", "").Replace(" ", "").Trim();
 
-                                            if (iconFileName.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFileName.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase))
+                                            if (iconFileName.Contains("questionmark", StringComparison.OrdinalIgnoreCase) || iconFileName.Equals("interface/icons/temp.blp", StringComparison.OrdinalIgnoreCase) || iconFileName.Contains(iconFDID.ToString(), StringComparison.OrdinalIgnoreCase))
                                                 continue;
 
                                             Console.WriteLine("!!! Unnamed item M2 " + itemM2FDID + " has an icon with name " + cleanedName);
