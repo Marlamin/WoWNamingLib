@@ -39,7 +39,7 @@
 
         public static string GetBaseNameForMediaFDID(uint fileDataID)
         {
-            if(!CheckToken())
+            if (!CheckToken() || Namer.SkipAPIRequests)
                 return "";
 
             HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
@@ -53,12 +53,12 @@
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine("Failed to get media info for FDID " + fileDataID + ": " + response.StatusCode);
-                if(response.StatusCode != System.Net.HttpStatusCode.NotFound)
+                if (response.StatusCode != System.Net.HttpStatusCode.NotFound)
                     Console.WriteLine(responseContent);
             }
 
             var json = System.Text.Json.JsonDocument.Parse(responseContent);
-            if(!json.RootElement.TryGetProperty("results", out var results) || results.GetArrayLength() == 0)
+            if (!json.RootElement.TryGetProperty("results", out var results) || results.GetArrayLength() == 0)
             {
                 Console.WriteLine("No media found for FDID " + fileDataID);
                 return "";
@@ -66,7 +66,7 @@
 
             var url = json.RootElement.GetProperty("results")[0].GetProperty("data").GetProperty("assets")[0].GetProperty("value").GetString() ?? "";
 
-            if(string.IsNullOrEmpty(url))
+            if (string.IsNullOrEmpty(url))
             {
                 Console.WriteLine("Failed to get media URL for FDID " + fileDataID);
                 return "";

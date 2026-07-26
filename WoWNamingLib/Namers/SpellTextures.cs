@@ -7,12 +7,12 @@ namespace WoWNamingLib.Namers
         public static void Name()
         {
             var spellChainEffectsDB = Namer.LoadDBC("SpellChainEffects");
-            foreach(var sceRow in spellChainEffectsDB.Values)
+            foreach (var sceRow in spellChainEffectsDB.Values)
             {
                 var textureFileDataIDs = (int[])sceRow["TextureFileDataID"];
-                foreach(var tFDID in textureFileDataIDs)
+                foreach (var tFDID in textureFileDataIDs)
                 {
-                    if (tFDID != 0 && !Namer.IDToNameLookup.ContainsKey(tFDID))
+                    if (tFDID != 0 && Namer.NeedsName(tFDID))
                         NewFileManager.AddNewFile(tFDID, "spells/textures/spellchaineffect_" + sceRow["ID"].ToString() + "_" + tFDID + ".blp");
                 }
             }
@@ -23,7 +23,7 @@ namespace WoWNamingLib.Namers
                 var textureFileDataIDs = (int[])tbsRow["TextureFileDataID"];
                 foreach (var tFDID in textureFileDataIDs)
                 {
-                    if (tFDID != 0 && !Namer.IDToNameLookup.ContainsKey(tFDID))
+                    if (tFDID != 0 && Namer.NeedsName(tFDID))
                         NewFileManager.AddNewFile(tFDID, "spells/textures/textureblendset_" + tbsRow["ID"].ToString() + "_" + tFDID + ".blp");
                 }
             }

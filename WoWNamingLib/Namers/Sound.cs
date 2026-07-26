@@ -56,7 +56,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(footstepSound.SoundID))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                                if (Namer.NeedsName((int)soundFileDataID))
                                 {
                                     NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_footstep_" + footstepSound.TerrainType + "_" + soundFileDataID + ".ogg");
                                 }
@@ -66,7 +66,7 @@ namespace WoWNamingLib.Namers
                             {
                                 foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(footstepSound.SoundIDSplash))
                                 {
-                                    if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                                    if (Namer.NeedsName((int)soundFileDataID))
                                     {
                                         NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_footstep_splash_" + footstepSound.TerrainType + "_" + soundFileDataID + ".ogg");
                                     }
@@ -112,7 +112,7 @@ namespace WoWNamingLib.Namers
                 {
                     foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(targetSDID))
                     {
-                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                        if (Namer.NeedsName((int)soundFileDataID))
                         {
                             var soundType = CSDColToSoundType(col);
                             NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
@@ -128,7 +128,7 @@ namespace WoWNamingLib.Namers
 
                 foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(creatureSoundFidget["Fidget"].ToString())))
                 {
-                    if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                    if (Namer.NeedsName((int)soundFileDataID))
                     {
                         NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_fidget" + creatureSoundFidget["Index"].ToString() + "_" + soundFileDataID + ".ogg");
                     }
@@ -156,7 +156,7 @@ namespace WoWNamingLib.Namers
                     var uiCounter = 0;
                     foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(uiSoundKitID)))
                     {
-                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                        if (Namer.NeedsName((int)soundFileDataID))
                         {
                             NewFileManager.AddNewFile(soundFileDataID, "Sound/UI/" + uiSoundName + "_" + uiCounter++ + "_" + soundFileDataID + ".ogg");
                         }
@@ -264,13 +264,13 @@ namespace WoWNamingLib.Namers
                 var spellID = uint.Parse(svsRow["SpellID"].ToString());
                 var spellVisualID = uint.Parse(svsRow["SpellVisualID"].ToString());
 
-                if (!spellXSpellVisualMap.ContainsKey(spellID))
+                if (!spellXSpellVisualMap.TryGetValue(spellID, out List<uint>? spellVisuals))
                 {
                     spellXSpellVisualMap.Add(spellID, new List<uint>() { spellVisualID });
                 }
                 else
                 {
-                    spellXSpellVisualMap[spellID].Add(spellVisualID);
+                    spellVisuals.Add(spellVisualID);
                 }
             }
 
@@ -281,13 +281,13 @@ namespace WoWNamingLib.Namers
             {
                 var spellVisualID = uint.Parse(sveRow["SpellVisualID"].ToString());
 
-                if (!spellVisualEventsByVisualIDMap.ContainsKey(spellVisualID))
+                if (!spellVisualEventsByVisualIDMap.TryGetValue(spellVisualID, out List<DBCDRow>? spellVisualEvents))
                 {
                     spellVisualEventsByVisualIDMap.Add(spellVisualID, new List<DBCD.DBCDRow>() { sveRow });
                 }
                 else
                 {
-                    spellVisualEventsByVisualIDMap[spellVisualID].Add(sveRow);
+                    spellVisualEvents.Add(sveRow);
                 }
             }
 
@@ -303,14 +303,10 @@ namespace WoWNamingLib.Namers
                 if (effectType != 5)
                     continue;
 
-                if (!spellVisualKitSoundEffectMap.ContainsKey(parentSpellVisualKitID))
-                {
+                if (!spellVisualKitSoundEffectMap.TryGetValue(parentSpellVisualKitID, out List<uint>? effects))
                     spellVisualKitSoundEffectMap.Add(parentSpellVisualKitID, new List<uint>() { effectValue });
-                }
                 else
-                {
-                    spellVisualKitSoundEffectMap[parentSpellVisualKitID].Add(effectValue);
-                }
+                    effects.Add(effectValue);
             }
 
             // Mounts
@@ -322,30 +318,38 @@ namespace WoWNamingLib.Namers
                 var objectEffectGroupID = uint.Parse(oepeRow["ObjectEffectGroupID"].ToString());
                 var stateType = uint.Parse(oepeRow["StateType"].ToString());
 
-                if (!objectEffectPackageMap.ContainsKey(objectEffectPackageID))
+                if (!objectEffectPackageMap.TryGetValue(objectEffectPackageID, out List<(uint GroupID, uint StateType)>? objectEffects))
                 {
                     objectEffectPackageMap.Add(objectEffectPackageID, new List<(uint GroupID, uint StateType)>() { (objectEffectGroupID, stateType) });
                 }
                 else
                 {
-                    objectEffectPackageMap[objectEffectPackageID].Add((objectEffectGroupID, stateType));
+                    objectEffects.Add((objectEffectGroupID, stateType));
                 }
             }
 
             var objectEffectGroupMap = new Dictionary<uint, List<DBCD.DBCDRow>>();
-            var objectEffectDB = Namer.LoadDBC("ObjectEffect");
 
-            foreach (var oeRow in objectEffectDB.Values)
+            try
             {
-                var objectEffectGroupID = uint.Parse(oeRow["ObjectEffectGroupID"].ToString());
-                if (!objectEffectGroupMap.ContainsKey(objectEffectGroupID))
+                var objectEffectDB = Namer.LoadDBC("ObjectEffect");
+                if (!objectEffectDB.AvailableColumns.Contains("ObjectEffectGroupID"))
                 {
-                    objectEffectGroupMap.Add(objectEffectGroupID, new List<DBCD.DBCDRow>() { oeRow });
+                    throw new Exception("ObjectEffect.db2 is missing ObjectEffectGroupID column");
                 }
-                else
+
+                foreach (var oeRow in objectEffectDB.Values)
                 {
-                    objectEffectGroupMap[objectEffectGroupID].Add(oeRow);
+                    var objectEffectGroupID = uint.Parse(oeRow["ObjectEffectGroupID"].ToString()!);
+                    if (!objectEffectGroupMap.TryGetValue(objectEffectGroupID, out List<DBCDRow>? objectEffects))
+                        objectEffectGroupMap.Add(objectEffectGroupID, new List<DBCD.DBCDRow>() { oeRow });
+                    else
+                        objectEffects.Add(oeRow);
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error loading ObjectEffect.db2: " + e.Message);
             }
 
             var mountXDisplay = Namer.LoadDBC("MountXDisplay");
@@ -390,7 +394,7 @@ namespace WoWNamingLib.Namers
 
                                     foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(effectRecID))
                                     {
-                                        if (Namer.IDToNameLookup.ContainsKey((int)soundFDID) && !Namer.placeholderNames.Contains((int)soundFDID))
+                                        if (!Namer.NeedsName((int)soundFDID))
                                             continue;
 
                                         if (mountToFDID.TryGetValue(mountID, out var mountFDID))
@@ -418,7 +422,7 @@ namespace WoWNamingLib.Namers
                                                     Console.WriteLine(mountRow["Name_lang"].ToString() + " (" + mountFDID + ") is still unnamed");
                                                 }
 
-                                                if (!Namer.IDToNameLookup.ContainsKey((int)mountFDID))
+                                                if (Namer.NeedsName((int)mountFDID))
                                                 {
                                                     Console.WriteLine("!!!! " + mountRow["Name_lang"].ToString() + " has unnamed sound " + soundFDID + " for unknown state " + objectEffectPackageRef.StateType);
 
@@ -460,7 +464,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(spellVisualKitSoundEffect))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundKitFDID) || Namer.placeholderNames.Contains((int)soundKitFDID))
+                                if (Namer.NeedsName((int)soundKitFDID))
                                 {
                                     if (mountToFDID.TryGetValue(mountID, out var mountFDID))
                                     {
@@ -588,7 +592,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.SoundKitIDDay))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                                if (Namer.NeedsName((int)soundFile))
                                 {
                                     NewFileManager.AddNewFile(soundFile, "sound/ambience/zoneambience/amb_" + zoneName + "_day_" + soundFile + ".ogg");
                                 }
@@ -599,7 +603,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.SoundKitIDNight))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                                if (Namer.NeedsName((int)soundFile))
                                 {
                                     NewFileManager.AddNewFile(soundFile, "sound/ambience/zoneambience/amb_" + zoneName + "_night_" + soundFile + ".ogg");
                                 }
@@ -610,7 +614,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.AmbienceID0))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                                if (Namer.NeedsName((int)soundFile))
                                 {
                                     NewFileManager.AddNewFile(soundFile, "sound/ambience/zoneambience/amb_" + zoneName + "_" + soundFile + ".ogg");
                                 }
@@ -621,7 +625,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundAmbience.AmbienceID1))
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                                if (Namer.NeedsName((int)soundFile))
                                 {
                                     NewFileManager.AddNewFile(soundFile, "sound/ambience/zoneambience/amb_" + zoneName + "_" + soundFile + ".ogg");
                                 }
@@ -642,7 +646,7 @@ namespace WoWNamingLib.Namers
                 {
                     foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(npcsArr[i]))
                     {
-                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                        if (Namer.NeedsName((int)soundFileDataID))
                         {
                             foreach (var cdiRow in cdiMap.Values)
                             {
@@ -697,7 +701,7 @@ namespace WoWNamingLib.Namers
                 var soundCounter = 0;
                 foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                 {
-                    if (!Namer.IDToNameLookup.ContainsKey((int)soundFileDataID))
+                    if (Namer.NeedsName((int)soundFileDataID))
                     {
                         NewFileManager.AddNewFile(soundFileDataID, "Sound/Emitters/" + emitterName + "_" + soundCounter++ + "_" + soundFileDataID + ".ogg");
                     }
@@ -707,30 +711,44 @@ namespace WoWNamingLib.Namers
 
             #region RTPC
             // RTPC
-            var rtpcDB = Namer.LoadDBC("RTPC");
-            var rtpcToSoundKitMap = new Dictionary<uint, uint>();
-
-            foreach (var rtpcRow in rtpcDB.Values)
+            try
             {
-                var rtpcID = uint.Parse(rtpcRow["ID"].ToString());
-                var soundKitID = uint.Parse(rtpcRow["SoundKitID"].ToString());
-                rtpcToSoundKitMap.Add(rtpcID, soundKitID);
-            }
+                var rtpcDB = Namer.LoadDBC("RTPC");
+                if (!rtpcDB.AvailableColumns.Contains("ID") || !rtpcDB.AvailableColumns.Contains("SoundKitID"))
+                    throw new Exception("RTPC.db2 missing ID or SoundKitID columns");
 
-            var rtpcDataDB = Namer.LoadDBC("RTPCData");
-            foreach (var rtpcDataRow in rtpcDataDB.Values)
-            {
-                if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()), out uint soundKitID))
+                var rtpcToSoundKitMap = new Dictionary<uint, uint>();
+
+                foreach (var rtpcRow in rtpcDB.Values)
                 {
-                    foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
+                    var rtpcID = uint.Parse(rtpcRow["ID"].ToString()!);
+                    var soundKitID = uint.Parse(rtpcRow["SoundKitID"].ToString()!);
+                    rtpcToSoundKitMap.Add(rtpcID, soundKitID);
+                }
+
+                var rtpcDataDB = Namer.LoadDBC("RTPCData");
+                if (!rtpcDataDB.AvailableColumns.Contains("ID") || !rtpcDataDB.AvailableColumns.Contains("CreatureID") || !rtpcDataDB.AvailableColumns.Contains("SpellID"))
+                    throw new Exception("RTPCData.db2 missing ID, CreatureID or SpellID columns");
+
+                foreach (var rtpcDataRow in rtpcDataDB.Values)
+                {
+                    if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()!), out uint soundKitID))
                     {
-                        if (!Namer.IDToNameLookup.ContainsKey((int)soundFile))
+                        foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                         {
-                            Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
+                            if (Namer.NeedsName((int)soundFile))
+                            {
+                                Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
+                            }
                         }
                     }
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error loading RTPC: " + e.Message);
+            }
+
             // End of RTPC
             #endregion
 
@@ -776,7 +794,7 @@ namespace WoWNamingLib.Namers
                         {
                             foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(spellVisualKitSoundEffect))
                             {
-                                if (Namer.IDToNameLookup.ContainsKey((int)soundKitFDID))
+                                if (!Namer.NeedsName((int)soundKitFDID))
                                     continue;
 
                                 var castTime = "precast";
@@ -943,6 +961,14 @@ namespace WoWNamingLib.Namers
                 case "JumpStart":
                 case "JumpEnd":
                 case "WingFlap":
+                case "Charge":
+                case "ChargeCritical":
+                case "Windup":
+                case "WindupCritical":
+                case "PetAttack":
+                case "Taunt":
+                case "Stun":
+                case "Submerge":
                     return colName.ToLower();
                 default:
                     Console.WriteLine("WARNING: UNMAPPED SOUND: " + colName);

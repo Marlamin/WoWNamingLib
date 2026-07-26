@@ -381,7 +381,7 @@ namespace WoWNamingLib.Namers
                         }
                         else
                         {
-                            if (Namer.placeholderNames.Contains((int)filedataid))
+                            if (Namer.NeedsName((int)filedataid))
                             {
                                 if (itemModelSuffix != null)
                                     NewFileManager.AddNewFile(filedataid, folder + "/" + first.filename.Replace(" ", "") + itemModelSuffix + ".m2", true, true);

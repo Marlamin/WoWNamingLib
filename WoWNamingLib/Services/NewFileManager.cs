@@ -1,5 +1,4 @@
 ﻿using System.Data;
-using System.Diagnostics;
 
 namespace WoWNamingLib.Services
 {
@@ -101,7 +100,6 @@ namespace WoWNamingLib.Services
             {
                 var oldHash = Hasher.ComputeHash(currentFileName);
 
-
                 var caseOnlyFix = currentFileName.Equals(filename, StringComparison.OrdinalIgnoreCase) && !currentFileName.Equals(filename, StringComparison.Ordinal);
                 if (!Namer.AllowCaseRenames && caseOnlyFix)
                     return;
@@ -130,7 +128,7 @@ namespace WoWNamingLib.Services
                             return;
                         }
 
-                        if (!currentFileName.StartsWith("models") && !currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
+                        if (!currentFileName.StartsWith("models") && !currentFileName.Contains("exp08") && !currentFileName.Contains("exp09") && !currentFileName.Contains("exp10") && !Path.GetFileNameWithoutExtension(currentFileName).All(char.IsDigit) && currentFileName.EndsWith(".blp"))
                             return;
                     }
 

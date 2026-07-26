@@ -1,8 +1,5 @@
-﻿using DBCD;
-using DBCD.IO;
+﻿using DBCD.IO;
 using DBCD.Providers;
-using DBDefsLib;
-using static WoWNamingLib.Services.WDBManager;
 
 namespace WoWNamingLib.Services
 {

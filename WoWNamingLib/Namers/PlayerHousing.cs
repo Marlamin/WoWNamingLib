@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using WoWNamingLib.Services;
+﻿using WoWNamingLib.Services;
 
 namespace WoWNamingLib.Namers
 {
@@ -15,7 +14,7 @@ namespace WoWNamingLib.Namers
             var houseDecorDB = Namer.LoadDBC("HouseDecor");
 
             var themeToName = new Dictionary<int, string>();
-            foreach(var houseThemeRec in houseThemeDB.Values)
+            foreach (var houseThemeRec in houseThemeDB.Values)
                 themeToName.Add(houseThemeRec.ID, (string)houseThemeRec["Name_lang"]);
 
             var typeToName = new Dictionary<int, string>();
@@ -33,7 +32,7 @@ namespace WoWNamingLib.Namers
                 var cleanName = houseRoomRecord["Name_lang"].ToString()!.Replace(" ", "_").Replace("(", "").Replace(")", "");
                 var roomWMODataID = (int)houseRoomRecord["RoomWmoDataID"];
 
-                foreach(var rcEntry in roomComponentDB.Values)
+                foreach (var rcEntry in roomComponentDB.Values)
                 {
                     var componentRoomWMODataID = (int)rcEntry["RoomWmoDataID"];
                     if (roomWMODataID != componentRoomWMODataID)
@@ -66,10 +65,10 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            foreach(var roomComponent in roomComponentDictionary)
+            foreach (var roomComponent in roomComponentDictionary)
             {
                 var fdid = roomComponent.Key;
-                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                if (Namer.NeedsName(fdid))
                 {
                     var modelIndex = 1;
                     var basename = "";
@@ -97,12 +96,12 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            foreach(var rcOptionRow in roomComponentOptionDB.Values)
+            foreach (var rcOptionRow in roomComponentOptionDB.Values)
             {
                 var fdid = (int)rcOptionRow["ModelFileDataID"];
-                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                if (Namer.NeedsName(fdid))
                 {
-                    if(!themeToName.TryGetValue((int)rcOptionRow["Theme"], out var themeName))
+                    if (!themeToName.TryGetValue((int)rcOptionRow["Theme"], out var themeName))
                         themeName = "Unknown";
 
                     themeName = themeName.Replace("'", "");
@@ -118,7 +117,7 @@ namespace WoWNamingLib.Namers
                             rcoTypeDesc = "DoorwayWall";
                             break;
                         case 2:
-                            rcoTypeDesc = "Doorway"; 
+                            rcoTypeDesc = "Doorway";
                             break;
                         default:
                             rcoTypeDesc = "Type" + rcoType.ToString();
@@ -137,7 +136,7 @@ namespace WoWNamingLib.Namers
 
             var itemDB = Namer.LoadDBC("Item");
 
-            if(houseDecorDB.AvailableColumns.Contains("ItemID") && houseDecorDB.AvailableColumns.Contains("ModelFileDataID") && houseDecorDB.AvailableColumns.Contains("ThumbnailFileDataID") && houseDecorDB.AvailableColumns.Contains("ModelType") && houseDecorDB.AvailableColumns.Contains("Name_lang"))
+            if (houseDecorDB.AvailableColumns.Contains("ItemID") && houseDecorDB.AvailableColumns.Contains("ModelFileDataID") && houseDecorDB.AvailableColumns.Contains("ThumbnailFileDataID") && houseDecorDB.AvailableColumns.Contains("ModelType") && houseDecorDB.AvailableColumns.Contains("Name_lang"))
             {
                 foreach (var houseDecorRow in houseDecorDB.Values)
                 {
@@ -149,7 +148,7 @@ namespace WoWNamingLib.Namers
                     if (itemID != 0 && itemDB.TryGetValue(itemID, out var itemRow))
                     {
                         iconFDID = (int)itemRow["IconFileDataID"];
-                        if (!Namer.IDToNameLookup.TryGetValue(iconFDID, out iconFilename) && Namer.placeholderNames.Contains(iconFDID))
+                        if (Namer.NeedsName(iconFDID))
                         {
                             var iconName = BattleNetAPI.GetBaseNameForMediaFDID((uint)iconFDID);
                             if (!string.IsNullOrEmpty(iconName))
@@ -174,14 +173,14 @@ namespace WoWNamingLib.Namers
                     {
                         // Hey guess what, we can name the thumbnail based on the icon!
                         var thumbnailFDID = (int)houseDecorRow["ThumbnailFileDataID"];
-                        if (!Namer.IDToNameLookup.ContainsKey(thumbnailFDID) || Namer.placeholderNames.Contains(thumbnailFDID))
+                        if (Namer.NeedsName(thumbnailFDID))
                         {
                             var thumbnailFilename = iconFilename.Replace("Icons", "Thumbnails").Replace("INV_", "", StringComparison.OrdinalIgnoreCase).Replace(iconFDID.ToString(), thumbnailFDID.ToString());
                             NewFileManager.AddNewFile(thumbnailFDID, thumbnailFilename, true);
                         }
                     }
 
-                    if (!Namer.IDToNameLookup.ContainsKey(modelFDID) || Namer.placeholderNames.Contains(modelFDID))
+                    if (Namer.NeedsName(modelFDID))
                     {
                         var modelType = (byte)houseDecorRow["ModelType"];
                         if (modelType == 1)
@@ -211,16 +210,16 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            foreach(var rctRow in roomComponentTextureDB.Values)
+            foreach (var rctRow in roomComponentTextureDB.Values)
             {
                 var fdid = (int)rctRow["TextureFileDataID"];
-                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                if (Namer.NeedsName(fdid))
                 {
                     if (!themeToName.TryGetValue((int)rctRow["HouseThemeID"], out var themeName))
                         themeName = "Unknown";
 
                     themeName = themeName.Replace("'", "");
-                    
+
                     var type = (int)rctRow["RoomComponentType"];
                     var typeDesc = "";
                     switch (type)
@@ -260,7 +259,7 @@ namespace WoWNamingLib.Namers
             foreach (var row in exteriorComponentDB.Values)
             {
                 var fdid = (int)row["ModelFileDataID"];
-                if (!Namer.IDToNameLookup.ContainsKey(fdid) || Namer.placeholderNames.Contains(fdid))
+                if (Namer.NeedsName(fdid))
                 {
                     var type = (byte)row["Type"];
                     var wmoDataID = (int)row["HouseExteriorWmoDataID"];

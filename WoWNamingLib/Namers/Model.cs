@@ -107,9 +107,9 @@ namespace WoWNamingLib.Namers
                 }
 
                 var lowDefModelAttachID = uint.Parse(svkmaEntry["LowDefModelAttachID"].ToString()!);
-                if(lowDefModelAttachID != 0)
+                if (lowDefModelAttachID != 0)
                 {
-                    if(svkmaDB.TryGetValue((int)lowDefModelAttachID, out var lowDefEntry))
+                    if (svkmaDB.TryGetValue((int)lowDefModelAttachID, out var lowDefEntry))
                     {
                         // ParentSpellVisualKitID is the same as the parent, so we can just use that
                         var lowDefSvenID = uint.Parse(lowDefEntry["SpellVisualEffectNameID"].ToString()!);
@@ -267,7 +267,7 @@ namespace WoWNamingLib.Namers
                 if (uint.Parse(svenEntry["Type"].ToString()!) != 0)
                     continue;
 
-                if (Namer.placeholderNames.Contains((int)svenFDID) || !Namer.IDToNameLookup.ContainsKey((int)svenFDID))
+                if (Namer.NeedsName((int)svenFDID))
                 {
                     svenMap.Add(uint.Parse(svenEntry["ID"].ToString()!), svenFDID);
                     spellFDIDs.Add(svenFDID);
@@ -474,7 +474,7 @@ namespace WoWNamingLib.Namers
                                     continue;
 
                                 var mapID = int.Parse(jiEntry["MapID"].ToString()!);
-                                if(mapDB.TryGetValue(mapID, out var mapRow))
+                                if (mapDB.TryGetValue(mapID, out var mapRow))
                                 {
                                     var mapExpansionID = int.Parse(mapRow["ExpansionID"].ToString()!);
                                     prefix = (mapExpansionID + 1) + "FX_";
@@ -745,7 +745,7 @@ namespace WoWNamingLib.Namers
             spellsLoaded = true;
             spellLock.Exit();
         }
-        public static void Name(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
+        public static void Name(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string>? objectModelNames = null)
         {
             var fullRun = forceFullRun;
             var m2s = fileDataIDs;
@@ -1780,7 +1780,7 @@ namespace WoWNamingLib.Namers
                         //    folder = Path.GetDirectoryName(existingFolder);
                         //}
 
-                        if ((fdid != 395900 && fdid != 527723) && skyboxFDIDs.Contains(fdid) && folder.ToLower() != "environments/stars")
+                        if ((fdid != 395900 && fdid != 527723) && skyboxFDIDs.Contains(fdid) && !folder.Equals("environments/stars", StringComparison.OrdinalIgnoreCase))
                         {
                             Console.WriteLine("Encountered skybox " + fdid + " in folder " + folder + ", forcing rename");
                             folder = "models/environments/stars";
@@ -1805,7 +1805,7 @@ namespace WoWNamingLib.Namers
                         if (currentModelName != "7XP_Waterfall_Top" && currentModelName != "SpellVisualPlaceholder")
                         {
                             var M2baseName = Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]);
-                            if (!M2baseName.Equals(currentModelName, StringComparison.OrdinalIgnoreCase) && !folder.ToLower().StartsWith("item"))
+                            if (!M2baseName.Equals(currentModelName, StringComparison.OrdinalIgnoreCase) && !folder.StartsWith("item", StringComparison.OrdinalIgnoreCase))
                                 NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
                         }
 
@@ -1837,7 +1837,7 @@ namespace WoWNamingLib.Namers
                                 if (m2.textureFileDataIDs[i] == 0)
                                     continue;
 
-                                if (Namer.IDToNameLookup.ContainsKey((int)m2.textureFileDataIDs[i]) && !Namer.placeholderNames.Contains((int)m2.textureFileDataIDs[i]))
+                                if (!Namer.NeedsName((int)m2.textureFileDataIDs[i]))
                                     continue;
 
                                 if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName))
@@ -2031,7 +2031,7 @@ namespace WoWNamingLib.Namers
 
         private static bool overrideCheck(bool overrideName, uint fdid, bool forceOverride)
         {
-            return fdid != 0 && (forceOverride || overrideName || !Namer.IDToNameLookup.ContainsKey((int)fdid) || Namer.placeholderNames.Contains((int)fdid));
+            return fdid != 0 && (forceOverride || overrideName || Namer.NeedsName((int)fdid));
         }
 
         public struct M2Model

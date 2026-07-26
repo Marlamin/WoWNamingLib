@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
@@ -137,7 +136,7 @@ namespace WoWNamingLib.Namers
                     var resetName = false;
                     var premapRenameName = "";
 
-                    if (!Namer.IDToNameLookup.TryGetValue(fdid, out var wmoFilename) || wmoFilename.StartsWith("world/wmo/autogen-names/unknown-fdid/map-", StringComparison.OrdinalIgnoreCase) || wmoFilename.ToLower().StartsWith("models"))
+                    if (!Namer.IDToNameLookup.TryGetValue(fdid, out var wmoFilename) || wmoFilename.StartsWith("world/wmo/autogen-names/unknown-fdid/map-", StringComparison.OrdinalIgnoreCase) || wmoFilename.StartsWith("models", StringComparison.OrdinalIgnoreCase))
                     {
                         premapRenameName = wmoFilename;
                         Console.WriteLine("WMO " + fdid + " is unnamed");
@@ -312,22 +311,13 @@ namespace WoWNamingLib.Namers
                                 overrideTex3 = true;
                             }
 
-                            if (
-                                wmoMat.texture1 != 0 &&
-                                (!Namer.IDToNameLookup.ContainsKey((int)wmoMat.texture1) || overrideTex1 || Namer.placeholderNames.Contains((int)wmoMat.texture1) || resetName)
-                                )
+                            if (wmoMat.texture1 != 0 && (Namer.NeedsName((int)wmoMat.texture1) || overrideTex1 || resetName))
                                 AddWMOTextureName(wmoMat.texture1, texture1Filename, true, resetName || overrideTex1);
 
-                            if (
-                                wmoMat.texture2 != 0 &&
-                                (!Namer.IDToNameLookup.ContainsKey((int)wmoMat.texture2) || overrideTex2 || Namer.placeholderNames.Contains((int)wmoMat.texture2) || resetName)
-                                )
+                            if (wmoMat.texture2 != 0 && (Namer.NeedsName((int)wmoMat.texture2) || overrideTex2 || resetName))
                                 AddWMOTextureName(wmoMat.texture2, texture2Filename, true, resetName || overrideTex2);
 
-                            if (
-                                wmoMat.texture3 != 0 &&
-                                (!Namer.IDToNameLookup.ContainsKey((int)wmoMat.texture3) || overrideTex3 || Namer.placeholderNames.Contains((int)wmoMat.texture3) || resetName)
-                                )
+                            if (wmoMat.texture3 != 0 && (Namer.NeedsName((int)wmoMat.texture3) || overrideTex3 || resetName))
                                 AddWMOTextureName(wmoMat.texture3, texture3Filename, true, resetName || overrideTex3);
                         }
                         else if (wmoMat.shader == 22 || wmoMat.shader == 23)
@@ -340,7 +330,7 @@ namespace WoWNamingLib.Namers
                                     continue;
 
                                 var placeholderFilename = wmoFilename.Replace(".wmo", "_" + textureFDID + ".blp");
-                                if (!Namer.IDToNameLookup.ContainsKey((int)textureFDID) || resetName)
+                                if (Namer.NeedsName((int)textureFDID) || resetName)
                                     AddWMOTextureName(textureFDID, placeholderFilename, true, true);
                             }
                         }
@@ -353,7 +343,7 @@ namespace WoWNamingLib.Namers
                                     continue;
 
                                 var placeholderFilename = wmoFilename.Replace(".wmo", "_" + textureFDID + ".blp");
-                                if (!Namer.IDToNameLookup.ContainsKey((int)textureFDID) || resetName)
+                                if (Namer.NeedsName((int)textureFDID) || resetName)
                                     AddWMOTextureName(textureFDID, placeholderFilename, true, true);
                             }
                         }
@@ -377,7 +367,7 @@ namespace WoWNamingLib.Namers
                             var minimapFDID = uint.Parse(wmtRow["FileDataID"].ToString());
 
                             if (
-                                Namer.IDToNameLookup.ContainsKey((int)minimapFDID) &&
+                                !Namer.NeedsName((int)minimapFDID) &&
                                 !resetName &&
                                 !Namer.IDToNameLookup[(int)minimapFDID].Contains("/autogen-names")
                                 )
@@ -387,7 +377,7 @@ namespace WoWNamingLib.Namers
                             var blockX = uint.Parse(wmtRow["BlockX"].ToString());
                             var blockY = uint.Parse(wmtRow["BlockY"].ToString());
 
-                            if (wmoFilename.ToLower().StartsWith("world/wmo/"))
+                            if (wmoFilename.StartsWith("world/wmo/", StringComparison.OrdinalIgnoreCase))
                             {
                                 var minimapFilename = "World/Minimaps/WMO/" + wmoFilename.Substring(10).Replace(".wmo", "_" + groupNum.ToString().PadLeft(3, '0') + "_" + blockX.ToString().PadLeft(2, '0') + "_" + blockY.ToString().PadLeft(2, '0') + ".blp");
 
@@ -404,7 +394,7 @@ namespace WoWNamingLib.Namers
                     {
                         foreach (var newLight in wmo.newLights)
                         {
-                            if (newLight.lightCookieFileID == 0 || Namer.IDToNameLookup.ContainsKey((int)newLight.lightCookieFileID))
+                            if (newLight.lightCookieFileID == 0 || !Namer.NeedsName((int)newLight.lightCookieFileID))
                                 continue;
 
                             NewFileManager.AddNewFile(newLight.lightCookieFileID, wmoFilename.Replace(".wmo", "_lightcookie_" + newLight.lightCookieFileID + ".blp"), true);
@@ -416,12 +406,12 @@ namespace WoWNamingLib.Namers
 
         private static void AddWMOTextureName(uint fileDataID, string filename, bool updateIfExists = true, bool forceUpdate = false)
         {
-            if(Namer.IDToNameLookup.TryGetValue((int)fileDataID, out var currentName))
+            if (Namer.IDToNameLookup.TryGetValue((int)fileDataID, out var currentName))
             {
                 if (currentName.StartsWith("dungeon", StringComparison.CurrentCultureIgnoreCase))
                     return;
             }
-            
+
             NewFileManager.AddNewFile(fileDataID, filename, updateIfExists, forceUpdate);
         }
 
@@ -580,11 +570,6 @@ namespace WoWNamingLib.Namers
                 {
                     groupFileDataID = wmofile.groupFileDataIDs[i];
                 }
-
-                //if (!Namer.IDToNameLookup.ContainsKey(groupFileDataID))
-                //{
-                //    //Console.WriteLine("Missing WMO group name for " + groupFileDataID);
-                //}
             }
 
             return wmofile;

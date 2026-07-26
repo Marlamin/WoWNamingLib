@@ -1,6 +1,4 @@
-﻿using DBCD;
-
-namespace WoWNamingLib.Services
+﻿namespace WoWNamingLib.Services
 {
     public static class SoundKitHelper
     {
@@ -16,7 +14,7 @@ namespace WoWNamingLib.Services
             if (!soundKitChildDB.AvailableColumns.Contains("ParentSoundKitID") || !soundKitChildDB.AvailableColumns.Contains("SoundKitID"))
                 throw new Exception("SoundKitChild DB2 does not contain ParentSoundKitID or SoundKitID columns");
 
-            foreach(var soundKitChild in soundKitChildDB.Values)
+            foreach (var soundKitChild in soundKitChildDB.Values)
             {
                 var parentSoundKitID = (uint)soundKitChild["ParentSoundKitID"];
                 var soundKitID = (uint)soundKitChild["SoundKitID"];
@@ -55,9 +53,9 @@ namespace WoWNamingLib.Services
 
             Console.WriteLine("Building recursive SoundKit map");
             // Loop over each SoundKitID and add all child SoundKitIDs
-            foreach(var soundKitID in SoundKitEntryMap.Keys.ToList())
+            foreach (var soundKitID in SoundKitEntryMap.Keys.ToList())
             {
-                if(SoundKitEntryMap.TryGetValue(soundKitID, out var FDIDs))
+                if (SoundKitEntryMap.TryGetValue(soundKitID, out var FDIDs))
                     SoundKitMap[soundKitID] = new List<int>(FDIDs);
                 else
                     SoundKitMap[soundKitID] = new List<int>();
@@ -83,7 +81,7 @@ namespace WoWNamingLib.Services
         {
             var fileDataIDs = new List<int>();
 
-            foreach(var childSoundKitID in GetChildSoundKits(soundKitID))
+            foreach (var childSoundKitID in GetChildSoundKits(soundKitID))
             {
                 if (SoundKitEntryMap.TryGetValue(childSoundKitID, out var FDIDs))
                     fileDataIDs.AddRange(FDIDs);
@@ -104,7 +102,7 @@ namespace WoWNamingLib.Services
             if (SoundKitMap.Count == 0)
                 Initialize();
 
-            if(SoundKitMap.TryGetValue(soundKitID, out List<int>? fdids))
+            if (SoundKitMap.TryGetValue(soundKitID, out List<int>? fdids))
                 return fdids;
             else
                 return new List<int>();

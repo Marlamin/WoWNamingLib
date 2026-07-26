@@ -30,6 +30,8 @@ namespace WoWNamingLib.Namers
             var scnEntries = Namer.IDToNameLookup.Where(x => x.Value.EndsWith(".scn")).ToDictionary(x => Path.GetFileNameWithoutExtension(x.Value).ToLower(), x => x.Key);
 
             var baseEntries = JsonSerializer.Deserialize<ManifestEntry[]>(File.ReadAllText(definitionDir + "\\..\\manifest.json"));
+            if (baseEntries == null)
+                throw new Exception("Failed to parse DBD manifest");
 
             foreach (var baseEntry in baseEntries)
             {
@@ -47,7 +49,7 @@ namespace WoWNamingLib.Namers
 
                 var fileName = "DBFilesClient/" + baseEntry.tableName + ".db2";
 
-                if (!Namer.IDToNameLookup.ContainsKey(baseEntry.db2FileDataID) || Namer.IDToNameLookup[baseEntry.db2FileDataID] != fileName)
+                if (!Namer.IDToNameLookup.TryGetValue(baseEntry.db2FileDataID, out string? db2Name) || db2Name != fileName)
                     NewFileManager.AddNewFile(baseEntry.db2FileDataID, fileName, true);
 
             }

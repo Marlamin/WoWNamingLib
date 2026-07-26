@@ -10,11 +10,11 @@ namespace WoWNamingLib.Namers
             foreach (var tmRow in terrainMaterialDB.Values)
             {
                 var envMapD = int.Parse(tmRow["EnvMapDiffuseFileID"].ToString());
-                if (envMapD != 0 && !Namer.IDToNameLookup.ContainsKey(envMapD))
+                if (envMapD != 0 && Namer.NeedsName(envMapD))
                     NewFileManager.AddNewFile(envMapD, "tileset/terrain cube maps/tcm_" + tmRow["ID"] + "_" + envMapD + ".blp");
 
                 var envMapS = int.Parse(tmRow["EnvMapSpecularFileID"].ToString());
-                if (envMapS != 0 && !Namer.IDToNameLookup.ContainsKey(envMapS))
+                if (envMapS != 0 && Namer.NeedsName(envMapS))
                     NewFileManager.AddNewFile(envMapS, "tileset/terrain cube maps/tcm_" + tmRow["ID"] + "_s_" + envMapS + ".blp");
             }
 
@@ -52,7 +52,7 @@ namespace WoWNamingLib.Namers
                         continue;
 
                     var frameCount = frameCountArray[i];
-                    if(frameCount > 1)
+                    if (frameCount > 1)
                     {
                         if (!liquidTexture.Contains("%d"))
                         {
@@ -60,9 +60,9 @@ namespace WoWNamingLib.Namers
                             continue;
                         }
 
-                        for(var j = 1; j < frameCount + 1; j++)
+                        for (var j = 1; j < frameCount + 1; j++)
                         {
-                            foreach(var liquidTypeXTexture in liquidTypeXTextures)
+                            foreach (var liquidTypeXTexture in liquidTypeXTextures)
                             {
                                 if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
                                 {
@@ -79,7 +79,7 @@ namespace WoWNamingLib.Namers
                         {
                             if (liquidTypeXTexture.OrderIndex == orderIndex && liquidTypeXTexture.FileDataID != 0)
                             {
-                                if(liquidTexture.Contains("%d"))
+                                if (liquidTexture.Contains("%d"))
                                 {
                                     Console.WriteLine("!!! FrameCount == 1 but %d in texture name: " + liquidTexture);
                                     continue;

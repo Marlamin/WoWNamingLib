@@ -100,7 +100,7 @@ namespace WoWNamingLib.Namers
                         if (loadingScreenDB.TryGetValue(loadingScreenID, out var loadingScreenRow))
                         {
                             var mainImage = int.Parse(loadingScreenRow["MainImageFileDataID"].ToString()!);
-                            if (mainImage != 0 && (!Namer.IDToNameLookup.ContainsKey(mainImage) || Namer.placeholderNames.Contains(mainImage)))
+                            if (mainImage != 0 && Namer.NeedsName(mainImage))
                             {
                                 var expansion = int.Parse(mapRow["ExpansionID"].ToString()!);
                                 var mapName = CleanName(mapRow["MapName_lang"].ToString()!);
@@ -117,7 +117,7 @@ namespace WoWNamingLib.Namers
                                 if (loadingScreenDB.TryGetValue(loadingScreenID2, out var loadingScreenRow2))
                                 {
                                     var mainImage = int.Parse(loadingScreenRow2["MainImageFileDataID"].ToString()!);
-                                    if (mainImage != 0 && (!Namer.IDToNameLookup.ContainsKey(mainImage) || Namer.placeholderNames.Contains(mainImage)))
+                                    if (mainImage != 0 && Namer.NeedsName(mainImage))
                                     {
                                         var expansion = int.Parse(mapRow["ExpansionID"].ToString()!);
                                         var mapName = CleanName(mapRow["MapName_lang"].ToString()!);
@@ -212,7 +212,7 @@ namespace WoWNamingLib.Namers
 
                             foreach (var (rowIndex, colIndex, fileDataID) in tileList)
                             {
-                                if (!Namer.IDToNameLookup.ContainsKey(fileDataID) || Namer.placeholderNames.Contains(fileDataID))
+                                if (Namer.NeedsName(fileDataID))
                                 {
                                     var tileIndex = rowIndex * tilesPerRow + colIndex + 1; // +1 because thats how blizzard does it
                                     var newName = basename + "/" + name + tileIndex + "_" + fileDataID + ".blp";
@@ -242,7 +242,7 @@ namespace WoWNamingLib.Namers
                         var iconFileDataID = int.Parse(manifestInterfaceItemIconRow["ID"].ToString()!);
                         if (iconFileDataID != 0)
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                            if (Namer.NeedsName(iconFileDataID))
                                 unknownIconList.Add(iconFileDataID);
                         }
                     }
@@ -253,7 +253,7 @@ namespace WoWNamingLib.Namers
                         var iconFileDataID = int.Parse(manifestInterfaceActionIconRow["ID"].ToString()!);
                         if (iconFileDataID != 0)
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                            if (Namer.NeedsName(iconFileDataID))
                                 unknownIconList.Add(iconFileDataID);
                         }
                     }
@@ -266,7 +266,7 @@ namespace WoWNamingLib.Namers
                         var iconFileDataID = int.Parse(spellMiscRow["SpellIconFileDataID"].ToString()!);
                         if (iconFileDataID != 0)
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey(iconFileDataID) || Namer.placeholderNames.Contains(iconFileDataID))
+                            if (Namer.NeedsName(iconFileDataID))
                             {
                                 unknownIconList.Add(iconFileDataID);
                                 if (spellNameDB.TryGetValue(spellID, out var spellNameRow))
@@ -280,7 +280,7 @@ namespace WoWNamingLib.Namers
                         var activeIconFileDataID = int.Parse(spellMiscRow["ActiveIconFileDataID"].ToString()!);
                         if (activeIconFileDataID != 0)
                         {
-                            if (!Namer.IDToNameLookup.ContainsKey(activeIconFileDataID) || Namer.placeholderNames.Contains(activeIconFileDataID))
+                            if (Namer.NeedsName(activeIconFileDataID))
                             {
                                 unknownIconList.Add(activeIconFileDataID);
                                 if (spellNameDB.TryGetValue(spellID, out var spellNameRow))
@@ -372,7 +372,7 @@ namespace WoWNamingLib.Namers
                         if (fdidByName == 0)
                             Console.WriteLine("No FDID found for splash screen: Interface/Splash/Splash" + textureKitName + ".blp");
 
-                        if (fdidByName != 0 && (!Namer.IDToNameLookup.ContainsKey(fdidByName) || Namer.placeholderNames.Contains(fdidByName)))
+                        if (fdidByName != 0 && Namer.NeedsName(fdidByName))
                         {
                             var newName = "Interface/Splash/Splash" + textureKitName + ".blp";
                             NewFileManager.AddNewFile(fdidByName, newName, true, true);

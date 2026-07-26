@@ -16,7 +16,7 @@ namespace WoWNamingLib.Namers
             foreach (var decalPropertiesRow in decalPropertiesDB.Values)
             {
                 var decalFileDataID = int.Parse(decalPropertiesRow["Field_11_2_0_61476_024"].ToString()!);
-                if (decalFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey(decalFileDataID))
+                if (decalFileDataID != 0 && Namer.NeedsName(decalFileDataID))
                 {
                     NewFileManager.AddNewFile(decalFileDataID, "spells/textures/decal_" + decalPropertiesRow.ID + "_" + decalFileDataID + ".blp");
                 }

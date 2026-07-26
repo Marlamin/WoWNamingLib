@@ -33,7 +33,7 @@ namespace WoWNamingLib.Namers
 
                 foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                 {
-                    if (Namer.IDToNameLookup.ContainsKey(soundFDID))
+                    if (!Namer.NeedsName(soundFDID))
                         continue;
 
                     if (soundFDID == 0)
@@ -130,7 +130,7 @@ namespace WoWNamingLib.Namers
                 {
                     foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID(normalSoundIDs[i]))
                     {
-                        if (Namer.IDToNameLookup.ContainsKey(soundFDID))
+                        if (!Namer.NeedsName(soundFDID))
                             continue;
 
                         if (soundFDID == 0)

@@ -48,11 +48,11 @@
                 var needsCheck = false;
 
                 var colorGradingFileDataID = int.Parse(ldRow["ColorGradingFileDataID"].ToString());
-                if (colorGradingFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey(colorGradingFileDataID))
+                if (colorGradingFileDataID != 0 && Namer.NeedsName(colorGradingFileDataID))
                     needsCheck = true;
 
                 var darkerColorGradingFileDataID = int.Parse(ldRow["DarkerColorGradingFileDataID"].ToString());
-                if (darkerColorGradingFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey(darkerColorGradingFileDataID))
+                if (darkerColorGradingFileDataID != 0 && Namer.NeedsName(darkerColorGradingFileDataID))
                     needsCheck = true;
 
                 if (!needsCheck)

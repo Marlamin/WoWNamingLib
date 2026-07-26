@@ -116,10 +116,10 @@ namespace WoWNamingLib.Namers
 
                                 foreach (var soundFDID in SoundKitHelper.GetFDIDsByKitID((uint)soundKitEvent.soundKitID))
                                 {
-                                    if (Namer.IDToNameLookup.ContainsKey(soundFDID) && !Namer.placeholderNames.Contains(soundFDID))
+                                    if (!Namer.NeedsName(soundFDID))
                                         continue;
 
-                                    NewFileManager.AddNewFile(soundFDID, "Sound/Music/" + GetFolderName(soundFDID) + "/SceneScript_unknown_" + sceneScriptTextRow.ID  + "_" + soundFDID + ".mp3", Namer.placeholderNames.Contains(soundFDID));
+                                    NewFileManager.AddNewFile(soundFDID, "Sound/Music/" + GetFolderName(soundFDID) + "/SceneScript_unknown_" + sceneScriptTextRow.ID + "_" + soundFDID + ".mp3", Namer.placeholderNames.Contains(soundFDID));
                                 }
 
                                 doneSoundKits.Add((uint)soundKitEvent.soundKitID);

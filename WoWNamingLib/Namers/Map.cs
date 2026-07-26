@@ -15,7 +15,7 @@ namespace WoWNamingLib.Namers
             if (wdtFileDataID == 0)
                 return;
 
-            if (!Namer.IDToNameLookup.ContainsKey((int)wdtFileDataID))
+            if (Namer.NeedsName((int)wdtFileDataID))
                 NewFileManager.AddNewFile(wdtFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdt", true);
 
             using (var ms = new MemoryStream())
@@ -34,25 +34,25 @@ namespace WoWNamingLib.Namers
 
                 var mapFiles = ProcessWDT(ms);
 
-                if (mapFiles.lgtFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.lgtFileDataID))
+                if (mapFiles.lgtFileDataID != 0 && Namer.NeedsName((int)mapFiles.lgtFileDataID))
                     NewFileManager.AddNewFile(mapFiles.lgtFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_lgt.wdt", true);
 
-                if (mapFiles.occFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.occFileDataID))
+                if (mapFiles.occFileDataID != 0 && Namer.NeedsName((int)mapFiles.occFileDataID))
                     NewFileManager.AddNewFile(mapFiles.occFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_occ.wdt", true);
 
-                if (mapFiles.mpvFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.mpvFileDataID))
+                if (mapFiles.mpvFileDataID != 0 && Namer.NeedsName((int)mapFiles.mpvFileDataID))
                     NewFileManager.AddNewFile(mapFiles.mpvFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_mpv.wdt", true);
 
-                if (mapFiles.texFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.texFileDataID))
+                if (mapFiles.texFileDataID != 0 && Namer.NeedsName((int)mapFiles.texFileDataID))
                     NewFileManager.AddNewFile(mapFiles.texFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".tex", true);
 
-                if (mapFiles.fogsFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.fogsFileDataID))
+                if (mapFiles.fogsFileDataID != 0 && Namer.NeedsName((int)mapFiles.fogsFileDataID))
                     NewFileManager.AddNewFile(mapFiles.fogsFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_fogs.wdt", true);
 
-                if (mapFiles.wdlFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.wdlFileDataID))
+                if (mapFiles.wdlFileDataID != 0 && Namer.NeedsName((int)mapFiles.wdlFileDataID))
                     NewFileManager.AddNewFile(mapFiles.wdlFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + ".wdl", true);
 
-                if (mapFiles.pd4FileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)mapFiles.pd4FileDataID))
+                if (mapFiles.pd4FileDataID != 0 && Namer.NeedsName((int)mapFiles.pd4FileDataID))
                     Console.WriteLine("Found PD4!!!!!!!!!!!!!!! WDT FDID: " + wdtFileDataID + " pd4 fdid: " + mapFiles.pd4FileDataID);
 
                 if (mapFiles.tileFileDataIDs == null && wdtFileDataID != 0)
@@ -66,10 +66,10 @@ namespace WoWNamingLib.Namers
                     var adt = tile.Key;
                     var files = tile.Value;
 
-                    if (files.rootADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.rootADT))
+                    if (files.rootADT != 0 && Namer.NeedsName((int)files.rootADT))
                         NewFileManager.AddNewFile(files.rootADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + ".adt", true);
 
-                    if (files.obj0ADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.obj0ADT))
+                    if (files.obj0ADT != 0 && Namer.NeedsName((int)files.obj0ADT))
                         NewFileManager.AddNewFile(files.obj0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj0.adt", true);
 
                     if (files.obj0ADT != 0 && int.TryParse(mapDirectory, out int wmapID) && wmapID > 2221)
@@ -93,7 +93,7 @@ namespace WoWNamingLib.Namers
                             {
                                 foreach (var wmoFileDataID in adtObj.wmoFileDataIDs)
                                 {
-                                    if (wmoFileDataID != 0 && !Namer.IDToNameLookup.ContainsKey((int)wmoFileDataID))
+                                    if (wmoFileDataID != 0 && Namer.NeedsName((int)wmoFileDataID))
                                         NewFileManager.AddNewFile(wmoFileDataID, "world/wmo/autogen-names/unknown-fdid/map-" + wmapID + "/" + wmoFileDataID + ".wmo");
                                 }
                             }
@@ -101,10 +101,10 @@ namespace WoWNamingLib.Namers
                         }
                     }
 
-                    if (files.obj1ADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.obj1ADT))
+                    if (files.obj1ADT != 0 && Namer.NeedsName((int)files.obj1ADT))
                         NewFileManager.AddNewFile(files.obj1ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj1.adt", true);
 
-                    if (files.tex0ADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.tex0ADT))
+                    if (files.tex0ADT != 0 && Namer.NeedsName((int)files.tex0ADT))
                         NewFileManager.AddNewFile(files.tex0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_tex0.adt", true);
 
                     // Tileset is pretty slow, only enable once per major patch
@@ -129,7 +129,7 @@ namespace WoWNamingLib.Namers
                             {
                                 foreach (var diffuseFDID in adtTex.diffuseTextureFileDataIDs)
                                 {
-                                    if (diffuseFDID != 0 && (!Namer.IDToNameLookup.ContainsKey((int)diffuseFDID) || Namer.IDToNameLookup[(int)diffuseFDID].Contains(diffuseFDID.ToString())))
+                                    if (diffuseFDID != 0 && Namer.NeedsName((int)diffuseFDID))
                                     {
                                         var overrideDID = false;
 
@@ -171,41 +171,41 @@ namespace WoWNamingLib.Namers
                         }
                     }
 
-                    if (files.lodADT != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.lodADT))
+                    if (files.lodADT != 0 && Namer.NeedsName((int)files.lodADT))
                         NewFileManager.AddNewFile(files.lodADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_lod.adt", true);
 
-                    if (files.minimapTexture != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.minimapTexture))
+                    if (files.minimapTexture != 0 && Namer.NeedsName((int)files.minimapTexture))
                         NewFileManager.AddNewFile(files.minimapTexture, "world/minimaps/" + mapDirectory + "/map" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
 
-                    if (files.mapTexture != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.mapTexture))
+                    if (files.mapTexture != 0 && Namer.NeedsName((int)files.mapTexture))
                         NewFileManager.AddNewFile(files.mapTexture, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
 
-                    if (files.mapTextureN != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.mapTextureN))
+                    if (files.mapTextureN != 0 && Namer.NeedsName((int)files.mapTextureN))
                         NewFileManager.AddNewFile(files.mapTextureN, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + "_n.blp", true);
                 }
 
-                if(mapFiles.tileFileDataIDs2 != null)
+                if (mapFiles.tileFileDataIDs2 != null)
                 {
                     Console.WriteLine("Map " + mapDirectory + " has tileFileDataIDs2, processing..");
                     foreach (var tile in mapFiles.tileFileDataIDs2)
                     {
                         var adt = tile.Key;
                         var files = tile.Value;
-                        if (files.unknown0 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown0))
+                        if (files.unknown0 != 0 && Namer.NeedsName((int)files.unknown0))
                             NewFileManager.AddNewFile(files.unknown0, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk0.bin", true);
-                        if (files.unknown1 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown1))
+                        if (files.unknown1 != 0 && Namer.NeedsName((int)files.unknown1))
                             NewFileManager.AddNewFile(files.unknown1, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk1.bin", true);
-                        if (files.unknown2 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown2))
+                        if (files.unknown2 != 0 && Namer.NeedsName((int)files.unknown2))
                             NewFileManager.AddNewFile(files.unknown2, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk2.bin", true);
-                        if (files.unknown3 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown3))
+                        if (files.unknown3 != 0 && Namer.NeedsName((int)files.unknown3))
                             NewFileManager.AddNewFile(files.unknown3, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk3.bin", true);
-                        if (files.unknown4 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown4))
+                        if (files.unknown4 != 0 && Namer.NeedsName((int)files.unknown4))
                             NewFileManager.AddNewFile(files.unknown4, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk4.bin", true);
-                        if (files.unknown5 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown5))
+                        if (files.unknown5 != 0 && Namer.NeedsName((int)files.unknown5))
                             NewFileManager.AddNewFile(files.unknown5, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk5.bin", true);
-                        if (files.unknown6 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown6))
+                        if (files.unknown6 != 0 && Namer.NeedsName((int)files.unknown6))
                             NewFileManager.AddNewFile(files.unknown6, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk6.bin", true);
-                        if (files.unknown7 != 0 && !Namer.IDToNameLookup.ContainsKey((int)files.unknown7))
+                        if (files.unknown7 != 0 && Namer.NeedsName((int)files.unknown7))
                             NewFileManager.AddNewFile(files.unknown7, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk7.bin", true);
                     }
                 }

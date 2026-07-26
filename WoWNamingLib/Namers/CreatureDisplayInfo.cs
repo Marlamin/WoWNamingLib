@@ -24,7 +24,7 @@ namespace WoWNamingLib.Namers
                     continue;
                 }
 
-                if(overrideID != 0 && overrideID != modelFileDataID)
+                if (overrideID != 0 && overrideID != modelFileDataID)
                     continue;
 
                 if (!Namer.IDToNameLookup.TryGetValue(modelFileDataID, out var modelFileName))
@@ -39,7 +39,7 @@ namespace WoWNamingLib.Namers
                     if (
                         textureVariationFDID != 0 &&
                             (
-                                Namer.placeholderNames.Contains(textureVariationFDID) ||
+                                Namer.NeedsName(textureVariationFDID) ||
                                 (Namer.IDToNameLookup.TryGetValue(textureVariationFDID, out var currentName) && currentName == "creature/" + Path.GetFileNameWithoutExtension(modelFileName) + "/" + Path.GetFileNameWithoutExtension(modelFileName) + "_" + textureVariationFDID + ".blp")
                             )
                         )

@@ -8,10 +8,10 @@ namespace WoWNamingLib.Namers
         {
             var reverseCHashLookup = new Dictionary<string, int>();
 
-            foreach(var entry in idToHashes)
+            foreach (var entry in idToHashes)
             {
                 var cHash = Convert.ToHexStringLower(entry.Value);
-                if(!reverseCHashLookup.ContainsKey(cHash))
+                if (!reverseCHashLookup.ContainsKey(cHash))
                     reverseCHashLookup[cHash] = entry.Key;
             }
 

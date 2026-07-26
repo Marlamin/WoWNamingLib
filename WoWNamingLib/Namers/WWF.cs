@@ -9,7 +9,7 @@ namespace WoWNamingLib.Namers
             var wxpDB = Namer.LoadDBC("WeatherXParticulate");
             if (!wxpDB.AvailableColumns.Contains("FileDataID") || !wxpDB.AvailableColumns.Contains("ParentWeatherID"))
             {
-                Console.WriteLine("WeatherXParticulate is missing required columns, skipping..."); 
+                Console.WriteLine("WeatherXParticulate is missing required columns, skipping...");
                 return;
             }
 
@@ -17,7 +17,7 @@ namespace WoWNamingLib.Namers
             {
                 var fileDataID = int.Parse(wxpEntry["FileDataID"]!.ToString()!);
                 var parentWeatherID = uint.Parse(wxpEntry["ParentWeatherID"]!.ToString()!);
-                if (!Namer.IDToNameLookup.ContainsKey(fileDataID))
+                if (Namer.NeedsName(fileDataID))
                     NewFileManager.AddNewFile(fileDataID, "Environments/ParticulateVolumes/pvdata/unkweather" + parentWeatherID + "_" + fileDataID + ".pvdata");
             }
 

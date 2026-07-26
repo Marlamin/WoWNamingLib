@@ -265,7 +265,7 @@ namespace WoWNamingLib.Namers
             {"bd37536470149f6d2b216e03184af9f4", "ARMORREFLECT3" }
         };
 
-        public static void Name(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int> filter = null)
+        public static void Name(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int>? filter = null)
         {
             knownHashes = knownHashes.Concat(additionalHashes).ToDictionary(x => x.Key, x => x.Value);
 
@@ -276,18 +276,22 @@ namespace WoWNamingLib.Namers
 
                 var contenthash = Convert.ToHexStringLower(idToHash.Value);
 
-                if (!Namer.IDToNameLookup.ContainsKey(idToHash.Key))
+                if (Namer.NeedsName(idToHash.Key))
                 {
+                    var isRangeMapped = false;
+                    if(Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentMapName) && currentMapName.Contains("exp"))
+                        isRangeMapped = true;
+
                     // maptexture_n
-                    if (contenthash.Equals("93eb33c44532ea7e4f62666417beaa6a", StringComparison.CurrentCultureIgnoreCase))
+                    if (contenthash.Equals("93eb33c44532ea7e4f62666417beaa6a", StringComparison.Ordinal) && !isRangeMapped)
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/maptextures/" + idToHash.Key + "_n.blp", true, true);
 
                     // maptexture
-                    if (contenthash.Equals("77beda3cb2c5709fc953c9d21e1d2414", StringComparison.CurrentCultureIgnoreCase))
+                    if (contenthash.Equals("77beda3cb2c5709fc953c9d21e1d2414", StringComparison.Ordinal) && !isRangeMapped)
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/maptextures/" + idToHash.Key + ".blp", true, true);
 
                     // minimaps
-                    if(contenthash.Equals("ef3ae8b80605064fadc0515b10c82ef2", StringComparison.CurrentCultureIgnoreCase))
+                    if (contenthash.Equals("ef3ae8b80605064fadc0515b10c82ef2", StringComparison.Ordinal) && !isRangeMapped)
                         NewFileManager.AddNewFile(idToHash.Key, "unkmaps/minimaps/" + idToHash.Key + ".blp", true, true);
                 }
 
@@ -298,7 +302,7 @@ namespace WoWNamingLib.Namers
                 if (!knownHashes.TryGetValue(contenthash, out var knownName))
                     continue;
 
-                if (!Namer.placeholderNames.Contains(idToHash.Key))
+                if (!Namer.NeedsName(idToHash.Key))
                     continue;
 
                 if (Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentName))
@@ -306,7 +310,7 @@ namespace WoWNamingLib.Namers
                     if (!string.IsNullOrEmpty(currentName) && !currentName.StartsWith("models/unktextures", StringComparison.CurrentCultureIgnoreCase))
                     {
                         var currentDir = Path.GetDirectoryName(currentName);
-                        var newFilename = currentDir.Replace("\\", "/") + "/" + knownName + ".blp";
+                        var newFilename = currentDir!.Replace("\\", "/") + "/" + knownName + ".blp";
                         NewFileManager.AddNewFile(idToHash.Key, newFilename, true, true);
                         continue;
                     }
@@ -318,7 +322,7 @@ namespace WoWNamingLib.Namers
 
         private static bool overrideCheck(bool overrideName, uint fdid, bool forceOverride)
         {
-            return fdid != 0 && (forceOverride || overrideName || !Namer.IDToNameLookup.ContainsKey((int)fdid) || Namer.placeholderNames.Contains((int)fdid));
+            return fdid != 0 && (forceOverride || overrideName || Namer.NeedsName((int)fdid));
         }
     }
 }

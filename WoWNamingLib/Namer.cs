@@ -27,6 +27,7 @@ namespace WoWNamingLib
         public static bool isInitialized = false;
         public static bool IsTACTSharpInit = false;
         public static bool AllowCaseRenames = false;
+        public static bool SkipAPIRequests = false;
 
         public static Func<int, uint> GetAddedInPatch = (int fileDataID) => { return 0; };
         public static Func<int, string, bool> SetCreatureNameForFDID = (int fileDataID, string name) => { return false; };
@@ -158,6 +159,11 @@ namespace WoWNamingLib
         public static Dictionary<int, string> GetNewFiles()
         {
             return NewFileManager.ReturnNewNames();
+        }
+
+        public static bool NeedsName(int fileDataID)
+        {
+            return !Namer.IDToNameLookup.ContainsKey(fileDataID) || Namer.placeholderNames.Contains(fileDataID);
         }
 
         public static void ClearNewFiles()
@@ -378,7 +384,7 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameM2(uint fileDataID, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
+        public static void NameM2(uint fileDataID, bool forceFullRun = false, Dictionary<uint, string>? objectModelNames = null)
         {
             try
             {
@@ -391,7 +397,7 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameM2s(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string> objectModelNames = null)
+        public static void NameM2s(List<uint> fileDataIDs, bool forceFullRun = false, Dictionary<uint, string>? objectModelNames = null)
         {
             try
             {
@@ -446,7 +452,7 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameByContentHashes(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int> filter = null)
+        public static void NameByContentHashes(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int>? filter = null)
         {
             try
             {

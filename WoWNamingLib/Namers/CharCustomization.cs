@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using WoWNamingLib.Services;
+﻿using WoWNamingLib.Services;
 
 namespace WoWNamingLib
 {
@@ -112,20 +111,20 @@ namespace WoWNamingLib
                 {
                     foreach (var chrCustFDID in chrCustFDIDs)
                     {
-                        if (!Namer.IDToNameLookup.ContainsKey(chrCustFDID) || Namer.placeholderNames.Contains(chrCustFDID))
+                        if (Namer.NeedsName(chrCustFDID))
                             continueNaming = true;
                     }
                 }
 
                 if (tfdMapE.TryGetValue(chrCustMaterialResID, out var chrCustFDIDE))
                 {
-                    if (!Namer.IDToNameLookup.ContainsKey(chrCustFDIDE) || Namer.placeholderNames.Contains(chrCustFDIDE))
+                    if (Namer.NeedsName(chrCustFDIDE))
                         continueNaming = true;
                 }
 
                 if (tfdMapS.TryGetValue(chrCustMaterialResID, out var chrCustFDIDS))
                 {
-                    if (!Namer.IDToNameLookup.ContainsKey(chrCustFDIDS) || Namer.placeholderNames.Contains(chrCustFDIDS))
+                    if (Namer.NeedsName(chrCustFDIDS))
                         continueNaming = true;
                 }
 
@@ -155,15 +154,15 @@ namespace WoWNamingLib
                 {
                     foreach (var chrCustFDID in chrCustFDIDs)
                     {
-                        if (chrCustFDID != 0 && (!Namer.IDToNameLookup.ContainsKey(chrCustFDID) || Namer.placeholderNames.Contains(chrCustFDID)))
+                        if (chrCustFDID != 0 && Namer.NeedsName(chrCustFDID))
                             NewFileManager.AddNewFile(chrCustFDID, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString().Replace(" ", "_").ToLower() + "_" + chrCustFDID + ".blp", true);
                     }
                 }
 
-                if (chrCustFDIDE != 0 && (!Namer.IDToNameLookup.ContainsKey(chrCustFDIDE) || Namer.placeholderNames.Contains(chrCustFDIDE)))
+                if (chrCustFDIDE != 0 && Namer.NeedsName(chrCustFDIDE))
                     NewFileManager.AddNewFile(chrCustFDIDE, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString().Replace(" ", "_").ToLower() + "_e_" + chrCustFDIDE + ".blp", true);
 
-                if (chrCustFDIDS != 0 && (!Namer.IDToNameLookup.ContainsKey(chrCustFDIDS) || Namer.placeholderNames.Contains(chrCustFDIDS)))
+                if (chrCustFDIDS != 0 && Namer.NeedsName(chrCustFDIDS))
                     NewFileManager.AddNewFile(chrCustFDIDS, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString().Replace(" ", "_").ToLower() + "_s_" + chrCustFDIDS + ".blp", true);
             }
         }

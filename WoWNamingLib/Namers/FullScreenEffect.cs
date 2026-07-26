@@ -33,14 +33,14 @@ namespace WoWNamingLib.Namers
             foreach (var fseRow in fullScreenEffectDB.Values)
             {
                 var overlayFDID = uint.Parse(fseRow["OverlayTextureFileDataID"].ToString());
-                if (overlayFDID != 0 && !Namer.IDToNameLookup.ContainsKey((int)overlayFDID))
+                if (overlayFDID != 0 && Namer.NeedsName((int)overlayFDID))
                     NewFileManager.AddNewFile(overlayFDID, "spells/textures/fullscreeneffect_" + overlayFDID + ".blp");
 
                 if (textureBlendSetMap.TryGetValue(uint.Parse(fseRow["TextureBlendSetID"].ToString()), out var tbsFDIDs))
                 {
                     foreach (var tbsFDID in tbsFDIDs)
                     {
-                        if (tbsFDID != 0 && !Namer.IDToNameLookup.ContainsKey((int)tbsFDID))
+                        if (tbsFDID != 0 && Namer.NeedsName((int)tbsFDID))
                             NewFileManager.AddNewFile(tbsFDID, "spells/textures/fullscreeneffect_blend_" + tbsFDID + ".blp");
                     }
                 }
