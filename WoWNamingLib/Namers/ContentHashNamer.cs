@@ -262,7 +262,12 @@ namespace WoWNamingLib.Namers
             {"b7aec926eba320b8f2e2d69fc53d4cae", "10FX_Lava_Scroll_09" },
             {"7eea920dcc172b963fedb8d22ebf4bec", "10FX_WaterFall_StaticAlpha_02" },
             {"06d08361558f336f87c8118a455ec994", "10FX_Goo_Sphere_01" },
-            {"bd37536470149f6d2b216e03184af9f4", "ARMORREFLECT3" }
+            {"bd37536470149f6d2b216e03184af9f4", "ARMORREFLECT3" },
+            {"aaecc0aaef9b59f7810e2eb0a983f227", "OrbReflect" },
+            {"15210ed75a5669d29c0698fd9609c1dd", "OrbReflect02" },
+            {"26bdc3f7827dee2cb2873cee34547b93", "OrbReflect_Reverse" },
+            {"e6e48c9f4a5e1add8472830e75527f53", "OrbReflectBright" },
+            {"914e7f962066a2b4cd582790f9e1667f", "OrbReflect_BabyEye_Additive" }
         };
 
         public static void Name(Dictionary<int, byte[]> idToHashes, Dictionary<string, string> additionalHashes, List<int>? filter = null)
