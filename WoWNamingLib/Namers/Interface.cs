@@ -215,8 +215,9 @@ namespace WoWNamingLib.Namers
                                 if (Namer.NeedsName(fileDataID))
                                 {
                                     var tileIndex = rowIndex * tilesPerRow + colIndex + 1; // +1 because thats how blizzard does it
-                                    var newName = basename + "/" + name + tileIndex + "_" + fileDataID + ".blp";
-                                    NewFileManager.AddNewFile(fileDataID, newName, true);
+                                    var newName = basename + "/" + name + "/" + name + tileIndex + ".blp";
+                                    if(!NewFileManager.AddNewFileByname(newName))
+                                        NewFileManager.AddNewFile(fileDataID, basename + "/" + name + "/" + name + tileIndex + "_" + fileDataID + ".blp", true);
                                 }
                             }
                         }
