@@ -39,13 +39,15 @@ namespace WoWNamingLib.Services
             newFiles.Clear();
         }
 
-        public static void AddNewFileByname(string filename)
+        public static bool AddNewFileByname(string filename)
         {
             var fdid = CASCManager.GetFileDataIDByName(filename).Result;
             if (fdid == 0)
-                return;
+                return false;
 
             AddNewFile(fdid, filename, true, true);
+
+            return true;
         }
 
         // Overload for old namer code compatibility
