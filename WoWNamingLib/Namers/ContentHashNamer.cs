@@ -301,7 +301,7 @@ namespace WoWNamingLib.Namers
                 }
 
                 // Black/empty textures
-                if (contenthash == "8660736128e3cd4e244cfd1f32f205ef" || contenthash == "6168c9a0f30f7e811493dc8c6bc24c9f" || contenthash == "d3f5f62a715c7fa4d9ac22bac27a530e")
+                if (contenthash == "8660736128e3cd4e244cfd1f32f205ef" || contenthash == "6168c9a0f30f7e811493dc8c6bc24c9f" || contenthash == "d3f5f62a715c7fa4d9ac22bac27a530e" || contenthash == "8f2b25f293846f617401acc66771b0f5")
                     continue;
 
                 if (!knownHashes.TryGetValue(contenthash, out var knownName))
