@@ -64,7 +64,7 @@ namespace WoWNamingLib.Namers
             {"4057bfcefe7b622f40c0ee66fc883495", "ArmorReflect_Hard_Orange" },
             {"a081c993e1171f2a569b4381aece5762", "Fire_FlameLicks_DissolveFBs_Blend" },
             {"404287bae656f0dccef312988b725e5d", "oldglass3" },
-            {"1b0c8e7d6bc9b48131f8013d0431ef6a", "ArmorReflect7" },
+            {"1b0c8e7d6bc9b48131f8013d0431ef6a", "Organic_Smooth" },
             {"e593865b187c40b40252a893f038dc28", "ember_chunky_blankmorerotation_A" },
             {"d59164c89070cedd331859937cbef2fa", "fb_shadoweataway_warlock_small_ba" },
             {"2ed9baf0d006c3de327656333e7838e7", "wispymagic_hori_warlockshadow_purple_128" },
