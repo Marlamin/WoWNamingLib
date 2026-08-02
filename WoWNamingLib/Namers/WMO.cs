@@ -43,7 +43,7 @@ namespace WoWNamingLib.Namers
             var wmoMinimapTextureMap = new Dictionary<uint, List<DBCD.DBCDRow>>();
             foreach (var wmtRow in wmoMinimapTextureDB.Values)
             {
-                var wmoID = uint.Parse(wmtRow["WMOID"].ToString());
+                var wmoID = uint.Parse(wmtRow["WMOID"].ToString()!);
 
                 if (!wmoMinimapTextureMap.ContainsKey(wmoID))
                 {
@@ -59,15 +59,15 @@ namespace WoWNamingLib.Namers
             var wmoAreaTableMap = new Dictionary<uint, List<uint>>();
             foreach (var wmatRow in wmoAreaTableDB.Values)
             {
-                var wmoID = uint.Parse(wmatRow["WMOID"].ToString());
+                var wmoID = uint.Parse(wmatRow["WMOID"].ToString()!);
 
                 if (!wmoAreaTableMap.ContainsKey(wmoID))
                 {
-                    wmoAreaTableMap.Add(wmoID, new List<uint>() { uint.Parse(wmatRow["AreaTableID"].ToString()) });
+                    wmoAreaTableMap.Add(wmoID, new List<uint>() { uint.Parse(wmatRow["AreaTableID"].ToString()!) });
                 }
                 else
                 {
-                    wmoAreaTableMap[wmoID].Add(uint.Parse(wmatRow["AreaTableID"].ToString()));
+                    wmoAreaTableMap[wmoID].Add(uint.Parse(wmatRow["AreaTableID"].ToString()!));
                 }
             }
 
@@ -75,7 +75,7 @@ namespace WoWNamingLib.Namers
             var areaTableMap = new Dictionary<uint, string>();
             foreach (var atRow in areaTableDB.Values)
             {
-                areaTableMap.Add(uint.Parse(atRow["ID"].ToString()), atRow["ZoneName"].ToString());
+                areaTableMap.Add(uint.Parse(atRow["ID"].ToString()!), atRow["ZoneName"].ToString()!);
             }
 
             var mapDB = Namer.LoadDBC("Map");
@@ -179,13 +179,13 @@ namespace WoWNamingLib.Namers
 
                             foreach (var areaEntry in areaTableDB.Values)
                             {
-                                if (int.Parse(areaEntry["ParentAreaID"].ToString()) != 0)
+                                if (int.Parse(areaEntry["ParentAreaID"].ToString()!) != 0)
                                     continue;
 
-                                if (int.Parse(areaEntry["ContinentID"].ToString()) != parentMap)
+                                if (int.Parse(areaEntry["ContinentID"].ToString()!) != parentMap)
                                     continue;
 
-                                wmoFilename = "World/WMO/autogen-names/" + areaEntry["ZoneName"].ToString().ToLower() + "/" + wmo.header.wmoID + ".wmo";
+                                wmoFilename = "World/WMO/autogen-names/" + areaEntry["ZoneName"].ToString()!.ToLower() + "/" + wmo.header.wmoID + ".wmo";
                                 NewFileManager.AddNewFile(fdid, wmoFilename, true);
                                 resetName = true;
 
@@ -364,7 +364,7 @@ namespace WoWNamingLib.Namers
                     {
                         foreach (var wmtRow in wmtRows)
                         {
-                            var minimapFDID = uint.Parse(wmtRow["FileDataID"].ToString());
+                            var minimapFDID = uint.Parse(wmtRow["FileDataID"].ToString()!);
 
                             if (
                                 !Namer.NeedsName((int)minimapFDID) &&
@@ -373,9 +373,9 @@ namespace WoWNamingLib.Namers
                                 )
                                 continue;
 
-                            var groupNum = uint.Parse(wmtRow["GroupNum"].ToString());
-                            var blockX = uint.Parse(wmtRow["BlockX"].ToString());
-                            var blockY = uint.Parse(wmtRow["BlockY"].ToString());
+                            var groupNum = uint.Parse(wmtRow["GroupNum"].ToString()!);
+                            var blockX = uint.Parse(wmtRow["BlockX"].ToString()!);
+                            var blockY = uint.Parse(wmtRow["BlockY"].ToString()!);
 
                             if (wmoFilename.StartsWith("world/wmo/", StringComparison.OrdinalIgnoreCase))
                             {

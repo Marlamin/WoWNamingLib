@@ -26,9 +26,8 @@ namespace WoWNamingLib.Namers
                     file.CopyTo(ms);
                     ms.Position = 0;
                 }
-                catch (Exception e)
+                catch
                 {
-                    //  Console.WriteLine("Unable to open WDT " + mapDirectory + " (" + wdtFileDataID + "): " + e.Message);
                     return;
                 }
 
@@ -55,133 +54,130 @@ namespace WoWNamingLib.Namers
                 if (mapFiles.pd4FileDataID != 0 && Namer.NeedsName((int)mapFiles.pd4FileDataID))
                     Console.WriteLine("Found PD4!!!!!!!!!!!!!!! WDT FDID: " + wdtFileDataID + " pd4 fdid: " + mapFiles.pd4FileDataID);
 
-                if (mapFiles.tileFileDataIDs == null && wdtFileDataID != 0)
+                if (mapFiles.tileFileDataIDs != null)
                 {
-                    // Console.WriteLine("Map " + mapDirectory + " has no tiles, skipping..");
-                    return;
-                }
-
-                foreach (var tile in mapFiles.tileFileDataIDs)
-                {
-                    var adt = tile.Key;
-                    var files = tile.Value;
-
-                    if (files.rootADT != 0 && Namer.NeedsName((int)files.rootADT))
-                        NewFileManager.AddNewFile(files.rootADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + ".adt", true);
-
-                    if (files.obj0ADT != 0 && Namer.NeedsName((int)files.obj0ADT))
-                        NewFileManager.AddNewFile(files.obj0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj0.adt", true);
-
-                    if (files.obj0ADT != 0 && int.TryParse(mapDirectory, out int wmapID) && wmapID > 2221)
+                    foreach (var tile in mapFiles.tileFileDataIDs)
                     {
-                        using (var objMS = new MemoryStream())
+                        var adt = tile.Key;
+                        var files = tile.Value;
+
+                        if (files.rootADT != 0 && Namer.NeedsName((int)files.rootADT))
+                            NewFileManager.AddNewFile(files.rootADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + ".adt", true);
+
+                        if (files.obj0ADT != 0 && Namer.NeedsName((int)files.obj0ADT))
+                            NewFileManager.AddNewFile(files.obj0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj0.adt", true);
+
+                        if (files.obj0ADT != 0 && int.TryParse(mapDirectory, out int wmapID) && wmapID > 2221)
                         {
-                            try
+                            using (var objMS = new MemoryStream())
                             {
-                                var file = CASCManager.GetFileByID(files.obj0ADT).Result;
-                                file.CopyTo(objMS);
-                                objMS.Position = 0;
-                            }
-                            catch (Exception e)
-                            {
-                                continue;
-                            }
-
-                            var adtObj = ReadObjADTFile(objMS);
-
-                            if (adtObj.wmoFileDataIDs != null)
-                            {
-                                foreach (var wmoFileDataID in adtObj.wmoFileDataIDs)
+                                try
                                 {
-                                    if (wmoFileDataID != 0 && Namer.NeedsName((int)wmoFileDataID))
-                                        NewFileManager.AddNewFile(wmoFileDataID, "world/wmo/autogen-names/unknown-fdid/map-" + wmapID + "/" + wmoFileDataID + ".wmo");
+                                    var file = CASCManager.GetFileByID(files.obj0ADT).Result;
+                                    file.CopyTo(objMS);
+                                    objMS.Position = 0;
                                 }
-                            }
-
-                        }
-                    }
-
-                    if (files.obj1ADT != 0 && Namer.NeedsName((int)files.obj1ADT))
-                        NewFileManager.AddNewFile(files.obj1ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj1.adt", true);
-
-                    if (files.tex0ADT != 0 && Namer.NeedsName((int)files.tex0ADT))
-                        NewFileManager.AddNewFile(files.tex0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_tex0.adt", true);
-
-                    // Tileset is pretty slow, only enable once per major patch
-                    if (files.tex0ADT != 0 && int.TryParse(mapDirectory, out int mapID) && mapID > 2221)
-                    {
-                        using (var texMS = new MemoryStream())
-                        {
-                            try
-                            {
-                                var file = CASCManager.GetFileByID(files.tex0ADT).Result;
-                                file.CopyTo(texMS);
-                                texMS.Position = 0;
-                            }
-                            catch (Exception e)
-                            {
-                                continue;
-                            }
-
-                            var adtTex = ReadTexADTFile(texMS);
-
-                            if (adtTex.diffuseTextureFileDataIDs != null)
-                            {
-                                foreach (var diffuseFDID in adtTex.diffuseTextureFileDataIDs)
+                                catch
                                 {
-                                    if (diffuseFDID != 0 && Namer.NeedsName((int)diffuseFDID))
+                                    continue;
+                                }
+
+                                var adtObj = ReadObjADTFile(objMS);
+
+                                if (adtObj.wmoFileDataIDs != null)
+                                {
+                                    foreach (var wmoFileDataID in adtObj.wmoFileDataIDs)
                                     {
-                                        var overrideDID = false;
-
-                                        if (Namer.IDToNameLookup.ContainsKey((int)diffuseFDID) && Namer.IDToNameLookup[(int)diffuseFDID].EndsWith(diffuseFDID.ToString() + ".blp"))
-                                            overrideDID = true;
-
-                                        NewFileManager.AddNewFile(diffuseFDID, "tileset/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_" + diffuseFDID + "_s.blp", overrideDID, overrideDID);
+                                        if (wmoFileDataID != 0 && Namer.NeedsName((int)wmoFileDataID))
+                                            NewFileManager.AddNewFile(wmoFileDataID, "world/wmo/autogen-names/unknown-fdid/map-" + wmapID + "/" + wmoFileDataID + ".wmo");
                                     }
                                 }
+
                             }
+                        }
 
-                            if (adtTex.heightTextureFileDataIDs != null)
+                        if (files.obj1ADT != 0 && Namer.NeedsName((int)files.obj1ADT))
+                            NewFileManager.AddNewFile(files.obj1ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_obj1.adt", true);
+
+                        if (files.tex0ADT != 0 && Namer.NeedsName((int)files.tex0ADT))
+                            NewFileManager.AddNewFile(files.tex0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_tex0.adt", true);
+
+                        // Tileset is pretty slow, only enable once per major patch
+                        if (files.tex0ADT != 0 && int.TryParse(mapDirectory, out int mapID) && mapID > 2221)
+                        {
+                            using (var texMS = new MemoryStream())
                             {
-                                foreach (var heightFDID in adtTex.heightTextureFileDataIDs)
+                                try
                                 {
-                                    if (heightFDID != 0 && (!Namer.IDToNameLookup.ContainsKey((int)heightFDID) || Namer.IDToNameLookup[(int)heightFDID].Contains(heightFDID.ToString())))
+                                    var file = CASCManager.GetFileByID(files.tex0ADT).Result;
+                                    file.CopyTo(texMS);
+                                    texMS.Position = 0;
+                                }
+                                catch
+                                {
+                                    continue;
+                                }
+
+                                var adtTex = ReadTexADTFile(texMS);
+
+                                if (adtTex.diffuseTextureFileDataIDs != null)
+                                {
+                                    foreach (var diffuseFDID in adtTex.diffuseTextureFileDataIDs)
                                     {
-                                        var overrideDID = false;
+                                        if (diffuseFDID != 0 && Namer.NeedsName((int)diffuseFDID))
+                                        {
+                                            var overrideDID = false;
 
-                                        if (Namer.IDToNameLookup.ContainsKey((int)heightFDID) && Namer.IDToNameLookup[(int)heightFDID].EndsWith(heightFDID.ToString() + ".blp"))
-                                            overrideDID = true;
+                                            if (Namer.IDToNameLookup.ContainsKey((int)diffuseFDID) && Namer.IDToNameLookup[(int)diffuseFDID].EndsWith(diffuseFDID.ToString() + ".blp"))
+                                                overrideDID = true;
 
-                                        NewFileManager.AddNewFile(heightFDID, "tileset/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_" + heightFDID + "_h.blp", overrideDID, overrideDID);
+                                            NewFileManager.AddNewFile(diffuseFDID, "tileset/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_" + diffuseFDID + "_s.blp", overrideDID, overrideDID);
+                                        }
                                     }
                                 }
+
+                                if (adtTex.heightTextureFileDataIDs != null)
+                                {
+                                    foreach (var heightFDID in adtTex.heightTextureFileDataIDs)
+                                    {
+                                        if (heightFDID != 0 && (!Namer.IDToNameLookup.ContainsKey((int)heightFDID) || Namer.IDToNameLookup[(int)heightFDID].Contains(heightFDID.ToString())))
+                                        {
+                                            var overrideDID = false;
+
+                                            if (Namer.IDToNameLookup.ContainsKey((int)heightFDID) && Namer.IDToNameLookup[(int)heightFDID].EndsWith(heightFDID.ToString() + ".blp"))
+                                                overrideDID = true;
+
+                                            NewFileManager.AddNewFile(heightFDID, "tileset/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_" + heightFDID + "_h.blp", overrideDID, overrideDID);
+                                        }
+                                    }
+                                }
+
+                                //if(adtTex.colorGradings != null)
+                                //{
+                                //    for(var ci = 0; ci < adtTex.colorGradings.Length; ci++)
+                                //    {
+                                //        var colorGrading = adtTex.colorGradings[ci];
+                                //        if(colorGrading.colorGradingRampFileDataID == 0 && colorGrading.colorGradingFileDataID == 0)
+                                //            continue;
+
+                                //        Console.WriteLine(mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + " color grading FDID: " + colorGrading.colorGradingFileDataID + " ramp FDID: " + colorGrading.colorGradingRampFileDataID + ", diffuse FDID: " + adtTex.diffuseTextureFileDataIDs[ci] + ", unk: " + colorGrading.unk0 + " " + colorGrading.unk1);
+                                //    }
+                                //}
                             }
-
-                            //if(adtTex.colorGradings != null)
-                            //{
-                            //    for(var ci = 0; ci < adtTex.colorGradings.Length; ci++)
-                            //    {
-                            //        var colorGrading = adtTex.colorGradings[ci];
-                            //        if(colorGrading.colorGradingRampFileDataID == 0 && colorGrading.colorGradingFileDataID == 0)
-                            //            continue;
-
-                            //        Console.WriteLine(mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + " color grading FDID: " + colorGrading.colorGradingFileDataID + " ramp FDID: " + colorGrading.colorGradingRampFileDataID + ", diffuse FDID: " + adtTex.diffuseTextureFileDataIDs[ci] + ", unk: " + colorGrading.unk0 + " " + colorGrading.unk1);
-                            //    }
-                            //}
                         }
+
+                        if (files.lodADT != 0 && Namer.NeedsName((int)files.lodADT))
+                            NewFileManager.AddNewFile(files.lodADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_lod.adt", true);
+
+                        if (files.minimapTexture != 0 && Namer.NeedsName((int)files.minimapTexture))
+                            NewFileManager.AddNewFile(files.minimapTexture, "world/minimaps/" + mapDirectory + "/map" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
+
+                        if (files.mapTexture != 0 && Namer.NeedsName((int)files.mapTexture))
+                            NewFileManager.AddNewFile(files.mapTexture, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
+
+                        if (files.mapTextureN != 0 && Namer.NeedsName((int)files.mapTextureN))
+                            NewFileManager.AddNewFile(files.mapTextureN, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + "_n.blp", true);
                     }
-
-                    if (files.lodADT != 0 && Namer.NeedsName((int)files.lodADT))
-                        NewFileManager.AddNewFile(files.lodADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_lod.adt", true);
-
-                    if (files.minimapTexture != 0 && Namer.NeedsName((int)files.minimapTexture))
-                        NewFileManager.AddNewFile(files.minimapTexture, "world/minimaps/" + mapDirectory + "/map" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
-
-                    if (files.mapTexture != 0 && Namer.NeedsName((int)files.mapTexture))
-                        NewFileManager.AddNewFile(files.mapTexture, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + ".blp", true);
-
-                    if (files.mapTextureN != 0 && Namer.NeedsName((int)files.mapTextureN))
-                        NewFileManager.AddNewFile(files.mapTextureN, "world/maptextures/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1.ToString().PadLeft(2, '0') + "_" + adt.Item2.ToString().PadLeft(2, '0') + "_n.blp", true);
                 }
 
                 if (mapFiles.tileFileDataIDs2 != null)
@@ -295,9 +291,9 @@ namespace WoWNamingLib.Namers
                 foreach (var entry in mapDB.Values)
                 {
                     var mapDirectory = entry["Directory"].ToString();
-                    var preloadFileDataID = uint.Parse(entry["PreloadFileDataID"].ToString());
+                    var preloadFileDataID = uint.Parse(entry["PreloadFileDataID"].ToString()!);
 
-                    if (preloadFileDataID == 0)
+                    if (preloadFileDataID == 0 || !Namer.NeedsName((int)preloadFileDataID))
                         continue;
 
                     NewFileManager.AddNewFile(preloadFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_preload.wdt", true);

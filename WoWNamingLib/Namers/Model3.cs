@@ -11,8 +11,6 @@ namespace WoWNamingLib.Namers
             {
                 Console.WriteLine("Naming M3 " + fdid);
 
-                var encrypted = false;
-
                 using (var ms = new MemoryStream())
                 {
                     try
@@ -23,7 +21,7 @@ namespace WoWNamingLib.Namers
 
                         var bin = new BinaryReader(ms);
                         if (bin.ReadUInt64() == 0)
-                            encrypted = true;
+                            continue;
 
                         ms.Position = 0;
                     }
@@ -47,7 +45,7 @@ namespace WoWNamingLib.Namers
                             NewFileManager.AddNewFile(fdid, name, true);
                         }
 
-                        var folder = Path.GetDirectoryName(name);
+                        var folder = Path.GetDirectoryName(name)!;
 
                         foreach (var instance in model.Instances.Instances)
                         {

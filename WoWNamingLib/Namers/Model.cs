@@ -1270,7 +1270,7 @@ namespace WoWNamingLib.Namers
                         //{
                         //    currentModelName = Path.GetFileNameWithoutExtension(existingName);
                         //}
-                        else if (objectModelNames.Count > 0 && objectModelNames.TryGetValue(fdid, out var objectName))
+                        else if (objectModelNames != null && objectModelNames.Count > 0 && objectModelNames.TryGetValue(fdid, out var objectName))
                         {
                             Console.WriteLine("Found object name " + objectName + " for FDID " + fdid);
                             Namer.placeholderNames.Add((int)fdid);
