@@ -246,13 +246,14 @@ namespace WoWNamingLib.Namers
 
             var namedMaps = new List<string>();
 
+            var isClassic = !mapDB.AvailableColumns.Contains("WdtFileDataID");
             foreach (var entry in mapDB.Values)
             {
                 var mapDirectory = entry["Directory"].ToString();
 
-                if (mapDB.AvailableColumns.Contains("WdtFileDataID"))
+                if (!isClassic)
                 {
-                    var wdtFileDataID = uint.Parse(entry["WdtFileDataID"].ToString());
+                    var wdtFileDataID = uint.Parse(entry["WdtFileDataID"].ToString()!);
                     NameMap(mapDirectory!, wdtFileDataID);
                 }
                 else
