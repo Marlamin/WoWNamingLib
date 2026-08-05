@@ -11,49 +11,57 @@ namespace WoWNamingLib
             var tfdMapE = new Dictionary<int, int>();
 
             var textureFileData = Namer.LoadDBC("TextureFileData");
+            if(!textureFileData.AvailableColumns.Contains("UsageType") || !textureFileData.AvailableColumns.Contains("MaterialResourcesID") || !textureFileData.AvailableColumns.Contains("FileDataID"))
+                throw new Exception("TextureFileData.db2 is missing required columns");
 
             foreach (var tfdRow in textureFileData.Values)
             {
-                var usageType = uint.Parse(tfdRow["UsageType"].ToString());
-                var materialResourcesID = int.Parse(tfdRow["MaterialResourcesID"].ToString());
+                var usageType = uint.Parse(tfdRow["UsageType"].ToString()!);
+                var materialResourcesID = int.Parse(tfdRow["MaterialResourcesID"].ToString()!);
 
                 if (usageType == 0)
                 {
                     if (tfdMap.ContainsKey(materialResourcesID))
                     {
-                        tfdMap[materialResourcesID].Add(int.Parse(tfdRow["FileDataID"].ToString()));
+                        tfdMap[materialResourcesID].Add(int.Parse(tfdRow["FileDataID"].ToString()!));
                     }
                     else
                     {
-                        tfdMap.TryAdd(materialResourcesID, new List<int>() { int.Parse(tfdRow["FileDataID"].ToString()) });
+                        tfdMap.TryAdd(materialResourcesID, new List<int>() { int.Parse(tfdRow["FileDataID"].ToString()!) });
                     }
                 }
                 else if (usageType == 1)
                 {
-                    tfdMapS.TryAdd(int.Parse(tfdRow["MaterialResourcesID"].ToString()), int.Parse(tfdRow["FileDataID"].ToString()));
+                    tfdMapS.TryAdd(int.Parse(tfdRow["MaterialResourcesID"].ToString()!), int.Parse(tfdRow["FileDataID"].ToString()!));
                 }
                 else if (usageType == 2)
                 {
-                    tfdMapE.TryAdd(int.Parse(tfdRow["MaterialResourcesID"].ToString()), int.Parse(tfdRow["FileDataID"].ToString()));
+                    tfdMapE.TryAdd(int.Parse(tfdRow["MaterialResourcesID"].ToString()!), int.Parse(tfdRow["FileDataID"].ToString()!));
                 }
             }
 
             var cmdDB = Namer.LoadDBC("CreatureModelData");
+            if (!cmdDB.AvailableColumns.Contains("FileDataID") || !cmdDB.AvailableColumns.Contains("ID"))
+                throw new Exception("CreatureModelData.db2 is missing required columns");
+
             var cmdIDToFDIDMap = new Dictionary<uint, int>();
 
             foreach (var cmdEntry in cmdDB.Values)
             {
-                var mFDID = int.Parse(cmdEntry["FileDataID"].ToString());
-                cmdIDToFDIDMap.Add(uint.Parse(cmdEntry["ID"].ToString()), mFDID);
+                var mFDID = int.Parse(cmdEntry["FileDataID"].ToString()!);
+                cmdIDToFDIDMap.Add(uint.Parse(cmdEntry["ID"].ToString()!), mFDID);
             }
 
             var creatureDisplayInfoDB = Namer.LoadDBC("CreatureDisplayInfo");
+            if (!creatureDisplayInfoDB.AvailableColumns.Contains("ModelID") || !creatureDisplayInfoDB.AvailableColumns.Contains("ID"))
+                throw new Exception("CreatureDisplayInfo.db2 is missing required columns");
+
             var cdiToFDIDMap = new Dictionary<uint, int>();
             foreach (var cdiRow in creatureDisplayInfoDB.Values)
             {
-                if (cmdIDToFDIDMap.TryGetValue(uint.Parse(cdiRow["ModelID"].ToString()), out var fdid))
+                if (cmdIDToFDIDMap.TryGetValue(uint.Parse(cdiRow["ModelID"].ToString()!), out var fdid))
                 {
-                    cdiToFDIDMap.Add(uint.Parse(cdiRow["ID"].ToString()), fdid);
+                    cdiToFDIDMap.Add(uint.Parse(cdiRow["ID"].ToString()!), fdid);
                 }
             }
 
@@ -61,49 +69,51 @@ namespace WoWNamingLib
             var chrModelMap = new Dictionary<uint, DBCD.DBCDRow>();
             foreach (var chrModelRow in chrModelDB.Values)
             {
-                chrModelMap.Add(uint.Parse(chrModelRow["ID"].ToString()), chrModelRow);
+                chrModelMap.Add(uint.Parse(chrModelRow["ID"].ToString()!), chrModelRow);
             }
 
             var chrCustomizationMaterialDB = Namer.LoadDBC("ChrCustomizationMaterial");
             var chrCustomizationMaterialMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var chrCustMaterialRow in chrCustomizationMaterialDB.Values)
             {
-                chrCustomizationMaterialMap.Add(int.Parse(chrCustMaterialRow["ID"].ToString()), chrCustMaterialRow);
+                chrCustomizationMaterialMap.Add(int.Parse(chrCustMaterialRow["ID"].ToString()!), chrCustMaterialRow);
             }
 
             var chrCustomizationOptionDB = Namer.LoadDBC("ChrCustomizationOption");
             var chrCustomizationOptionMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var chrCustOptionRow in chrCustomizationOptionDB.Values)
             {
-                chrCustomizationOptionMap.Add(int.Parse(chrCustOptionRow["ID"].ToString()), chrCustOptionRow);
+                chrCustomizationOptionMap.Add(int.Parse(chrCustOptionRow["ID"].ToString()!), chrCustOptionRow);
             }
 
             var chrCustomizationChoiceDB = Namer.LoadDBC("ChrCustomizationChoice");
             var chrCustomizationChoiceMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var chrCustChoiceRow in chrCustomizationChoiceDB.Values)
             {
-                chrCustomizationChoiceMap.Add(int.Parse(chrCustChoiceRow["ID"].ToString()), chrCustChoiceRow);
+                chrCustomizationChoiceMap.Add(int.Parse(chrCustChoiceRow["ID"].ToString()!), chrCustChoiceRow);
             }
 
             var chrCustomizationCategoryDB = Namer.LoadDBC("ChrCustomizationCategory");
             var chrCustomizationCategoryMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var chrCustCategoryRow in chrCustomizationCategoryDB.Values)
             {
-                chrCustomizationCategoryMap.Add(int.Parse(chrCustCategoryRow["ID"].ToString()), chrCustCategoryRow);
+                chrCustomizationCategoryMap.Add(int.Parse(chrCustCategoryRow["ID"].ToString()!), chrCustCategoryRow);
             }
 
             var chrCustomizationElementDB = Namer.LoadDBC("ChrCustomizationElement");
+            if(!chrCustomizationElementDB.AvailableColumns.Contains("ChrCustomizationMaterialID"))
+                throw new Exception("ChrCustomizationElement.db2 is missing required columns");
 
             foreach (var chrCustElementRow in chrCustomizationElementDB.Values)
             {
-                var chrCustMaterialID = int.Parse(chrCustElementRow["ChrCustomizationMaterialID"].ToString());
+                var chrCustMaterialID = int.Parse(chrCustElementRow["ChrCustomizationMaterialID"].ToString()!);
                 if (chrCustMaterialID == 0)
                     continue;
 
                 if (!chrCustomizationMaterialMap.TryGetValue(chrCustMaterialID, out var chrCustMatRow))
                     continue;
 
-                var chrCustMaterialResID = int.Parse(chrCustMatRow["MaterialResourcesID"].ToString());
+                var chrCustMaterialResID = int.Parse(chrCustMatRow["MaterialResourcesID"].ToString()!);
 
                 var continueNaming = false;
 
@@ -131,19 +141,19 @@ namespace WoWNamingLib
                 if (!continueNaming)
                     continue;
 
-                var chrCustChoiceID = int.Parse(chrCustElementRow["ChrCustomizationChoiceID"].ToString());
+                var chrCustChoiceID = int.Parse(chrCustElementRow["ChrCustomizationChoiceID"].ToString()!);
                 if (!chrCustomizationChoiceMap.TryGetValue(chrCustChoiceID, out var choiceRow))
                     continue;
 
-                var chrCustOptionID = int.Parse(choiceRow["ChrCustomizationOptionID"].ToString());
+                var chrCustOptionID = int.Parse(choiceRow["ChrCustomizationOptionID"].ToString()!);
                 if (!chrCustomizationOptionMap.TryGetValue(chrCustOptionID, out var optionRow))
                     continue;
 
-                var chrModelID = uint.Parse(optionRow["ChrModelID"].ToString());
+                var chrModelID = uint.Parse(optionRow["ChrModelID"].ToString()!);
                 if (!chrModelMap.TryGetValue(chrModelID, out var modelRow))
                     continue;
 
-                var cdiID = uint.Parse(modelRow["DisplayID"].ToString());
+                var cdiID = uint.Parse(modelRow["DisplayID"].ToString()!);
                 if (!cdiToFDIDMap.TryGetValue(cdiID, out var chrModelFileDataID))
                     continue;
 
@@ -155,15 +165,15 @@ namespace WoWNamingLib
                     foreach (var chrCustFDID in chrCustFDIDs)
                     {
                         if (chrCustFDID != 0 && Namer.NeedsName(chrCustFDID))
-                            NewFileManager.AddNewFile(chrCustFDID, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString().Replace(" ", "_").ToLower() + "_" + chrCustFDID + ".blp", true);
+                            NewFileManager.AddNewFile(chrCustFDID, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString()!.Replace(" ", "_").ToLower() + "_" + chrCustFDID + ".blp", true);
                     }
                 }
 
                 if (chrCustFDIDE != 0 && Namer.NeedsName(chrCustFDIDE))
-                    NewFileManager.AddNewFile(chrCustFDIDE, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString().Replace(" ", "_").ToLower() + "_e_" + chrCustFDIDE + ".blp", true);
+                    NewFileManager.AddNewFile(chrCustFDIDE, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString()!.Replace(" ", "_").ToLower() + "_e_" + chrCustFDIDE + ".blp", true);
 
                 if (chrCustFDIDS != 0 && Namer.NeedsName(chrCustFDIDS))
-                    NewFileManager.AddNewFile(chrCustFDIDS, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString().Replace(" ", "_").ToLower() + "_s_" + chrCustFDIDS + ".blp", true);
+                    NewFileManager.AddNewFile(chrCustFDIDS, Path.GetDirectoryName(chrModelFilename) + "/" + Path.GetFileNameWithoutExtension(chrModelFilename) + "_" + optionRow["Name_lang"].ToString()!.Replace(" ", "_").ToLower() + "_s_" + chrCustFDIDS + ".blp", true);
             }
         }
     }

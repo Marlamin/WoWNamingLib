@@ -29,7 +29,7 @@
             var mapMap = new Dictionary<uint, string>();
             foreach (var mapRow in mapDB.Values)
             {
-                mapMap.Add(uint.Parse(mapRow["ID"].ToString()), mapRow["Directory"].ToString());
+                mapMap.Add(uint.Parse(mapRow["ID"].ToString()!), mapRow["Directory"].ToString()!);
             }
 
             var lightDataDB = Namer.LoadDBC("LightData");
@@ -40,25 +40,25 @@
             var lightSkyboxMap = new Dictionary<uint, DBCD.DBCDRow>();
             foreach (var lsRow in lightSkyboxDB.Values)
             {
-                lightSkyboxMap.Add(uint.Parse(lsRow["ID"].ToString()), lsRow);
+                lightSkyboxMap.Add(uint.Parse(lsRow["ID"].ToString()!), lsRow);
             }
 
             foreach (var ldRow in lightDataDB.Values)
             {
                 var needsCheck = false;
 
-                var colorGradingFileDataID = int.Parse(ldRow["ColorGradingFileDataID"].ToString());
+                var colorGradingFileDataID = int.Parse(ldRow["ColorGradingFileDataID"].ToString()!);
                 if (colorGradingFileDataID != 0 && Namer.NeedsName(colorGradingFileDataID))
                     needsCheck = true;
 
-                var darkerColorGradingFileDataID = int.Parse(ldRow["DarkerColorGradingFileDataID"].ToString());
+                var darkerColorGradingFileDataID = int.Parse(ldRow["DarkerColorGradingFileDataID"].ToString()!);
                 if (darkerColorGradingFileDataID != 0 && Namer.NeedsName(darkerColorGradingFileDataID))
                     needsCheck = true;
 
                 if (!needsCheck)
                     continue;
 
-                var lightParamID = ushort.Parse(ldRow["LightParamID"].ToString());
+                var lightParamID = ushort.Parse(ldRow["LightParamID"].ToString()!);
 
                 foreach (var lRow in lightDB.Values)
                 {
@@ -68,7 +68,7 @@
                         if (lightParamArr[i] != lightParamID)
                             continue;
 
-                        if (!mapMap.TryGetValue(uint.Parse(lRow["ContinentID"].ToString()), out var mapName))
+                        if (!mapMap.TryGetValue(uint.Parse(lRow["ContinentID"].ToString()!), out var mapName))
                         {
                             Console.WriteLine("[ColorGrading] Map " + lRow["ContinentID"].ToString() + " is not known in Map.db2");
                             continue;
@@ -76,7 +76,7 @@
 
                         foreach (var zlRow in zoneLightDB.Values)
                         {
-                            if (uint.Parse(zlRow["LightID"].ToString()) == uint.Parse(lRow["ID"].ToString()))
+                            if (uint.Parse(zlRow["LightID"].ToString()!) == uint.Parse(lRow["ID"].ToString()!))
                             {
                                 Console.WriteLine("[ColorGrading] Manual naming required, info: " + colorGradingFileDataID + " " + darkerColorGradingFileDataID + ": Matched ZoneLight " + zlRow["Name"].ToString());
                             }
@@ -86,10 +86,10 @@
 
                 foreach (var lpRow in lightParamsDB.Values)
                 {
-                    if (ushort.Parse(lpRow["ID"].ToString()) != lightParamID)
+                    if (ushort.Parse(lpRow["ID"].ToString()!) != lightParamID)
                         continue;
 
-                    var lightSkyboxID = ushort.Parse(lpRow["LightSkyboxID"].ToString());
+                    var lightSkyboxID = ushort.Parse(lpRow["LightSkyboxID"].ToString()!);
 
                     if (lightSkyboxID != 0 && lightSkyboxMap.TryGetValue(lightSkyboxID, out var lsRow))
                     {

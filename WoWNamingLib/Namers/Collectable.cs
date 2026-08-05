@@ -27,18 +27,18 @@ namespace WoWNamingLib.Namers
 
             foreach (var tfdRow in textureFileData.Values)
             {
-                var usageType = uint.Parse(tfdRow["UsageType"].ToString());
-                var materialResourcesID = int.Parse(tfdRow["MaterialResourcesID"].ToString());
+                var usageType = uint.Parse(tfdRow["UsageType"].ToString()!);
+                var materialResourcesID = int.Parse(tfdRow["MaterialResourcesID"].ToString()!);
 
                 if (usageType == 0)
                 {
                     if (tfdMap.ContainsKey(materialResourcesID))
                     {
-                        tfdMap[materialResourcesID].Add(uint.Parse(tfdRow["FileDataID"].ToString()));
+                        tfdMap[materialResourcesID].Add(uint.Parse(tfdRow["FileDataID"].ToString()!));
                     }
                     else
                     {
-                        tfdMap.TryAdd(materialResourcesID, new List<uint>() { uint.Parse(tfdRow["FileDataID"].ToString()) });
+                        tfdMap.TryAdd(materialResourcesID, new List<uint>() { uint.Parse(tfdRow["FileDataID"].ToString()!) });
                     }
                 }
             }
@@ -47,8 +47,8 @@ namespace WoWNamingLib.Namers
             var mfdMap = new Dictionary<int, List<uint>>();
             foreach (var mfdRow in modelFileData.Values)
             {
-                var fileDataID = uint.Parse(mfdRow["FileDataID"].ToString());
-                var modelResourcesID = int.Parse(mfdRow["ModelResourcesID"].ToString());
+                var fileDataID = uint.Parse(mfdRow["FileDataID"].ToString()!);
+                var modelResourcesID = int.Parse(mfdRow["ModelResourcesID"].ToString()!);
 
                 if (mfdMap.ContainsKey(modelResourcesID))
                 {
@@ -64,21 +64,21 @@ namespace WoWNamingLib.Namers
             var idiMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var idiRow in itemDisplayInfo.Values)
             {
-                idiMap.Add(int.Parse(idiRow["ID"].ToString()), idiRow);
+                idiMap.Add(int.Parse(idiRow["ID"].ToString()!), idiRow);
             }
 
             var itemAppearance = Namer.LoadDBC("ItemAppearance");
             var iaMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var iaRow in itemAppearance.Values)
             {
-                iaMap.Add(int.Parse(iaRow["ID"].ToString()), iaRow);
+                iaMap.Add(int.Parse(iaRow["ID"].ToString()!), iaRow);
             }
 
             var itemModifiedAppearance = Namer.LoadDBC("ItemModifiedAppearance");
             var imaMap = new Dictionary<int, DBCD.DBCDRow>();
             foreach (var imaRow in itemModifiedAppearance.Values)
             {
-                imaMap.Add(int.Parse(imaRow["ID"].ToString()), imaRow);
+                imaMap.Add(int.Parse(imaRow["ID"].ToString()!), imaRow);
             }
 
             var cfdDB = Namer.LoadDBC("ComponentModelFileData");
@@ -103,17 +103,15 @@ namespace WoWNamingLib.Namers
                             if (itemM2FDID == 0)
                                 continue;
 
-                            if (itemModelSuffixes.ContainsKey(itemM2FDID))
+                            if (itemModelSuffixes.ContainsKey(itemM2FDID))  
                                 continue;
 
                             if (cfdDB.TryGetValue(int.Parse(itemM2FDID.ToString()), out var cfdRow))
                             {
-                                if (!racePrefix.TryGetValue(uint.Parse(cfdRow["RaceID"].ToString()), out string miniComponentRace))
-                                {
+                                if (!racePrefix.TryGetValue(uint.Parse(cfdRow["RaceID"].ToString()!), out string? miniComponentRace))
                                     miniComponentRace = "xx";
-                                }
 
-                                var miniComponentGender = uint.Parse(cfdRow["GenderIndex"].ToString()) switch
+                                var miniComponentGender = uint.Parse(cfdRow["GenderIndex"].ToString()!) switch
                                 {
                                     0 => "m",
                                     1 => "f",
@@ -214,10 +212,10 @@ namespace WoWNamingLib.Namers
                     var mrID = ((int[])itemDisplayInfoRow["ModelResourcesID"])[i];
                     var mmrID = ((int[])itemDisplayInfoRow["ModelMaterialResourcesID"])[i];
 
-                    if (mrID != 0 && mfdMap.TryGetValue(mrID, out List<uint> modelFileDataIDs))
+                    if (mrID != 0 && mfdMap.TryGetValue(mrID, out List<uint>? modelFileDataIDs))
                         collectableEntry.ModelFDIDs.AddRange(modelFileDataIDs);
 
-                    if (mmrID != 0 && tfdMap.TryGetValue(mmrID, out List<uint> textureFileDataIDs))
+                    if (mmrID != 0 && tfdMap.TryGetValue(mmrID, out List<uint>? textureFileDataIDs))
                         collectableEntry.TextureFDIDs.AddRange(textureFileDataIDs);
                 }
 

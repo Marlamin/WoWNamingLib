@@ -8,10 +8,10 @@ namespace WoWNamingLib.Utils
     public static class SceneScriptParser
     {
         public static bool DebugOutput = true;
-        private static IDBCDStorage sceneScriptPackageDB;
-        private static IDBCDStorage sceneScriptPackageMemberDB;
-        private static IDBCDStorage sceneScriptDB;
-        private static IDBCDStorage sceneScriptTextDB;
+        private static IDBCDStorage? sceneScriptPackageDB;
+        private static IDBCDStorage? sceneScriptPackageMemberDB;
+        private static IDBCDStorage? sceneScriptDB;
+        private static IDBCDStorage? sceneScriptTextDB;
 
         public static string CompilePackage(uint sceneScriptPackageID, string name = "", bool includeSubPackages = true)
         {
@@ -66,16 +66,16 @@ namespace WoWNamingLib.Utils
             // script.Append("\n\n-- WoW.tools debug output: SceneScript name: " + (string)sceneScriptTextRow["Name"] + "\n\n");
 
             script.Append(sceneScriptTextRow["Script"]);
-            while (int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()) != 0)
+            while (int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()!) != 0)
             {
-                if (!sceneScriptDB.ContainsKey(int.Parse(sceneScriptRow["NextSceneScriptID"].ToString())))
+                if (!sceneScriptDB.ContainsKey(int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()!)))
                 {
-                    script.Append("\n\n-- WoW.tools debug output: !!! SceneScript ID " + int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()) + " not found, possibly encrypted\n\n");
+                    script.Append("\n\n-- WoW.tools debug output: !!! SceneScript ID " + int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()!) + " not found, possibly encrypted\n\n");
                     continue;
                 }
 
-                sceneScriptTextRow = sceneScriptTextDB[int.Parse(sceneScriptRow["NextSceneScriptID"].ToString())];
-                sceneScriptRow = sceneScriptDB[int.Parse(sceneScriptRow["NextSceneScriptID"].ToString())];
+                sceneScriptTextRow = sceneScriptTextDB[int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()!)];
+                sceneScriptRow = sceneScriptDB[int.Parse(sceneScriptRow["NextSceneScriptID"].ToString()!)];
 
                 script.Append(sceneScriptTextRow["Script"]);
             }
@@ -313,7 +313,7 @@ end
                 {
                     var eventTime = (float)eventKey.Number;
                     var subTable = table.Get(key).ToObject<Table>().Get(eventKey).ToObject<Table>();
-                    musicProperty.events.Add(eventTime, new MusicEvent { soundKitID = int.Parse(subTable["soundKitID"].ToString()) });
+                    musicProperty.events.Add(eventTime, new MusicEvent { soundKitID = int.Parse(subTable["soundKitID"].ToString()!) });
                 }
             }
 
@@ -329,7 +329,7 @@ end
                 {
                     var eventTime = (float)eventKey.Number;
                     var subTable = table.Get(key).ToObject<Table>().Get(eventKey).ToObject<Table>();
-                    groundSnapProperty.events.TryAdd(eventTime, new GroundSnapEvent { snap = bool.Parse(subTable["snap"].ToString()) });
+                    groundSnapProperty.events.TryAdd(eventTime, new GroundSnapEvent { snap = bool.Parse(subTable["snap"].ToString()!) });
                 }
             }
 
@@ -527,7 +527,7 @@ end
                 {
                     var eventTime = (float)eventKey.Number;
                     var subTable = table.Get(key).ToObject<Table>().Get(eventKey).ToObject<Table>();
-                    property.events.Add(eventTime, new CustomScriptEvent { script = subTable["script"].ToString() });
+                    property.events.Add(eventTime, new CustomScriptEvent { script = subTable["script"].ToString()! });
                 }
             }
 
@@ -543,7 +543,7 @@ end
                 {
                     var eventTime = (float)eventKey.Number;
                     var subTable = table.Get(key).ToObject<Table>().Get(eventKey).ToObject<Table>();
-                    property.events.TryAdd(eventTime, new ScaleEvent { scale = float.Parse(subTable["scale"].ToString()), duration = float.Parse(subTable["duration"].ToString()) });
+                    property.events.TryAdd(eventTime, new ScaleEvent { scale = float.Parse(subTable["scale"].ToString()!), duration = float.Parse(subTable["duration"].ToString()!) });
                 }
             }
 
@@ -559,7 +559,7 @@ end
                 {
                     var eventTime = (float)eventKey.Number;
                     var subTable = table.Get(key).ToObject<Table>().Get(eventKey).ToObject<Table>();
-                    property.events.TryAdd(eventTime, new FadeEvent { alpha = float.Parse(subTable["alpha"].ToString()), time = float.Parse(subTable["time"].ToString()) });
+                    property.events.TryAdd(eventTime, new FadeEvent { alpha = float.Parse(subTable["alpha"].ToString()!), time = float.Parse(subTable["time"].ToString()!) });
                 }
             }
 
@@ -578,13 +578,13 @@ end
                     property.events.Add(eventTime,
                         new FadeRegionEvent
                         {
-                            enabled = bool.Parse(subTable["enabled"].ToString()),
-                            radius = float.Parse(subTable["radius"].ToString()),
-                            includePlayer = bool.Parse(subTable["includePlayer"].ToString()),
-                            excludePlayers = bool.Parse(subTable["excludePlayers"].ToString()),
-                            excludeNonPlayers = bool.Parse(subTable["excludeNonPlayers"].ToString()),
-                            includeSounds = bool.Parse(subTable["includeSounds"].ToString()),
-                            includeWMOs = bool.Parse(subTable["includeWMOs"].ToString())
+                            enabled = bool.Parse(subTable["enabled"].ToString()!),
+                            radius = float.Parse(subTable["radius"].ToString()!),
+                            includePlayer = bool.Parse(subTable["includePlayer"].ToString()!),
+                            excludePlayers = bool.Parse(subTable["excludePlayers"].ToString()!),
+                            excludeNonPlayers = bool.Parse(subTable["excludeNonPlayers"].ToString()!),
+                            includeSounds = bool.Parse(subTable["includeSounds"].ToString()!),
+                            includeWMOs = bool.Parse(subTable["includeWMOs"].ToString()!)
                         }
                     );
                 }
@@ -606,9 +606,9 @@ end
                     property.events.Add(eventTime,
                         new SheatheEvent
                         {
-                            isSheathed = bool.Parse(subTable["isSheathed"].ToString()),
-                            isRanged = bool.Parse(subTable["isRanged"].ToString()),
-                            animated = bool.Parse(subTable["animated"].ToString()),
+                            isSheathed = bool.Parse(subTable["isSheathed"].ToString()!),
+                            isRanged = bool.Parse(subTable["isRanged"].ToString()!),
+                            animated = bool.Parse(subTable["animated"].ToString()!),
                         }
                     );
                 }
@@ -683,10 +683,10 @@ end
                     property.events.Add(eventTime,
                         new EquipWeaponEvent
                         {
-                            itemID = int.Parse(subTable["itemID"].ToString()),
-                            MainHand = bool.Parse(subTable["MainHand"].ToString()),
-                            OffHand = bool.Parse(subTable["OffHand"].ToString()),
-                            Ranged = bool.Parse(subTable["Ranged"].ToString()),
+                            itemID = int.Parse(subTable["itemID"].ToString()!),
+                            MainHand = bool.Parse(subTable["MainHand"].ToString()!),
+                            OffHand = bool.Parse(subTable["OffHand"].ToString()!),
+                            Ranged = bool.Parse(subTable["Ranged"].ToString()!),
                         }
                     );
                 }
@@ -707,7 +707,7 @@ end
                     foreach (var propertyKey in subTable.Keys)
                     {
                         var value = subTable.Get(propertyKey);
-                        object formattedValue = null;
+                        object? formattedValue = null;
                         switch (value.Type)
                         {
                             case DataType.String:

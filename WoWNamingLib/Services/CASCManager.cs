@@ -6,18 +6,18 @@ namespace WoWNamingLib.Services
     {
         private static HttpClient client = new HttpClient();
         public static List<int> AvailableFDIDs = new();
-        public static string BuildName;
+        public static string BuildName = "";
         public static TACTSharp.Jenkins96 Hasher = new TACTSharp.Jenkins96();
         public static HashSet<ulong> OfficialLookups = new();
         public static Dictionary<int, ulong> LookupMap = new();
 
-        private static BuildInstance buildInstance;
+        private static BuildInstance? buildInstance;
 
         private static Lock verifiedListfileLock = new();
 
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
-            return new MemoryStream(buildInstance.OpenFileByFDID(filedataid));
+            return new MemoryStream(buildInstance!.OpenFileByFDID(filedataid));
         }
 
         public static bool FileExists(int fileDataID)
@@ -27,11 +27,11 @@ namespace WoWNamingLib.Services
 
         public static async Task<Stream> GetFileByName(string name)
         {
-            Stream file = null;
+            Stream? file = null;
 
             using (var jenkins = new TACTSharp.Jenkins96())
             {
-                file = new MemoryStream(buildInstance.OpenFileByFDID(buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
+                file = new MemoryStream(buildInstance!.OpenFileByFDID(buildInstance.Root!.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
             }
 
             return file;
@@ -41,7 +41,7 @@ namespace WoWNamingLib.Services
         {
             using (var jenkins = new TACTSharp.Jenkins96())
             {
-                var entries = buildInstance.Root.GetEntriesByLookup(jenkins.ComputeHash(name));
+                var entries = buildInstance!.Root!.GetEntriesByLookup(jenkins.ComputeHash(name));
                 if (entries.Count == 0)
                     return 0;
                 return (int)entries[0].fileDataID;
@@ -52,7 +52,7 @@ namespace WoWNamingLib.Services
         {
             using (var jenkins = new TACTSharp.Jenkins96())
             {
-                var entries = buildInstance.Root.GetEntriesByFDID((uint)filedataid);
+                var entries = buildInstance!.Root!.GetEntriesByFDID((uint)filedataid);
                 if (entries.Count == 0)
                     return 0;
                 return entries[0].lookup;
@@ -62,7 +62,7 @@ namespace WoWNamingLib.Services
         public static void InitializeTACT(ref BuildInstance build)
         {
             CASCManager.buildInstance = build;
-            BuildName = build.BuildConfig.Values["build-name"][0];
+            BuildName = build.BuildConfig!.Values["build-name"][0];
         }
 
         public static void MergeLookups(Dictionary<int, ulong> lookups)

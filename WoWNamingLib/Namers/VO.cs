@@ -30,7 +30,7 @@ namespace WoWNamingLib.Namers
                     var sceneScriptRow = sceneScriptDB[sceneScriptTextRow.ID];
 
                     // Skip partial scenescripts (these are compiled in with the main one)
-                    if (int.Parse(sceneScriptRow["FirstSceneScriptID"].ToString()) != 0)
+                    if (int.Parse(sceneScriptRow["FirstSceneScriptID"].ToString()!) != 0)
                         continue;
 
                     var parsedScript = SceneScriptParser.CompileScript(sceneScriptTextRow.ID);
@@ -186,10 +186,10 @@ namespace WoWNamingLib.Namers
                         {
                             if (soundKits[0] != 0)
                             {
-                                if (!textToSoundKitID.ContainsKey(broadcastText["Text_lang"].ToString()))
-                                    textToSoundKitID.Add(broadcastText["Text_lang"].ToString(), new List<uint>());
+                                if (!textToSoundKitID.ContainsKey(broadcastText["Text_lang"].ToString()!))
+                                    textToSoundKitID.Add(broadcastText["Text_lang"].ToString()!, new List<uint>());
 
-                                textToSoundKitID[broadcastText["Text_lang"].ToString()].Add(soundKits[0]);
+                                textToSoundKitID[broadcastText["Text_lang"].ToString()!].Add(soundKits[0]);
                             }
                         }
 
@@ -197,10 +197,10 @@ namespace WoWNamingLib.Namers
                         {
                             if (soundKits[1] != 0)
                             {
-                                if (!textToSoundKitID.ContainsKey(broadcastText["Text1_lang"].ToString()))
-                                    textToSoundKitID.Add(broadcastText["Text1_lang"].ToString(), new List<uint>());
+                                if (!textToSoundKitID.ContainsKey(broadcastText["Text1_lang"].ToString()!))
+                                    textToSoundKitID.Add(broadcastText["Text1_lang"].ToString()!, new List<uint>());
 
-                                textToSoundKitID[broadcastText["Text1_lang"].ToString()].Add(soundKits[1]);
+                                textToSoundKitID[broadcastText["Text1_lang"].ToString()!].Add(soundKits[1]);
                             }
                         }
                     }
@@ -273,7 +273,7 @@ namespace WoWNamingLib.Namers
                 if (creatureNameTable != null)
                     creatureName = creatureNameTable.Get("enUS").String;
 
-                if (string.IsNullOrEmpty(creatureName) && !creatureNames.TryGetValue(creatureID, out creatureName))
+                if (string.IsNullOrEmpty(creatureName) && !creatureNames.TryGetValue(creatureID, out creatureName!))
                     continue;
 
                 var broadcastText = npcTable.Get(key).ToObject<Table>().Get("BroadcastText").ToObject<Table>();
@@ -332,7 +332,7 @@ namespace WoWNamingLib.Namers
             {
                 var creatureID = (uint)key.Number;
 
-                if (!creatureNames.TryGetValue(creatureID, out string creatureName))
+                if (!creatureNames.TryGetValue(creatureID, out string? creatureName))
                     continue;
 
                 var quotes = npcTable.Get(key).ToObject<Table>().Get("quotes").ToObject<Table>();
@@ -368,7 +368,7 @@ namespace WoWNamingLib.Namers
             {
                 var creatureID = uint.Parse(key.String);
 
-                if (!creatureNames.TryGetValue(creatureID, out string creatureName))
+                if (!creatureNames.TryGetValue(creatureID, out string? creatureName))
                 {
                     Console.WriteLine("No NPC name found for creature ID " + creatureID + ", skipping!");
                     continue;

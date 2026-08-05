@@ -7,8 +7,8 @@ namespace WoWNamingLib.Namers
     {
         private static Dictionary<uint, DBCD.DBCDRow> CSDMap = new();
         private static Dictionary<uint, List<(string TerrainType, uint SoundID, uint SoundIDSplash)>> CreatureFootstepMap = new();
-        private static IDBCDStorage CSDDB;
-        private static IDBCDStorage CSFDB;
+        private static IDBCDStorage? CSDDB;
+        private static IDBCDStorage? CSFDB;
 
         private static void NameCSDSounds(uint csdID, uint modelFDID, uint displayID = 0)
         {
@@ -45,11 +45,11 @@ namespace WoWNamingLib.Namers
                 return;
             }
 
-            foreach (var col in CSDDB.AvailableColumns)
+            foreach (var col in CSDDB!.AvailableColumns)
             {
                 if (col == "SoundFootstepID")
                 {
-                    var footstepID = uint.Parse(csdRow[col].ToString());
+                    var footstepID = uint.Parse(csdRow[col].ToString()!);
                     if (CreatureFootstepMap.TryGetValue(footstepID, out var footstepSounds))
                     {
                         foreach (var footstepSound in footstepSounds)
@@ -97,7 +97,7 @@ namespace WoWNamingLib.Namers
                 }
                 else if (colType == typeof(int) || colType == typeof(uint))
                 {
-                    var soundKitID = uint.Parse(csdRow[col].ToString());
+                    var soundKitID = uint.Parse(csdRow[col].ToString()!);
                     if (soundKitID == 0)
                         continue;
 
@@ -121,12 +121,12 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            foreach (var creatureSoundFidget in CSFDB.Values)
+            foreach (var creatureSoundFidget in CSFDB!.Values)
             {
-                if (csdID != uint.Parse(creatureSoundFidget["CreatureSoundDataID"].ToString()))
+                if (csdID != uint.Parse(creatureSoundFidget["CreatureSoundDataID"].ToString()!))
                     continue;
 
-                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(creatureSoundFidget["Fidget"].ToString())))
+                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(creatureSoundFidget["Fidget"].ToString()!)))
                 {
                     if (Namer.NeedsName((int)soundFileDataID))
                     {
@@ -178,7 +178,7 @@ namespace WoWNamingLib.Namers
 
                 foreach (var csdEntry in CSDDB.Values)
                 {
-                    CSDMap.Add(uint.Parse(csdEntry["ID"].ToString()), csdEntry);
+                    CSDMap.Add(uint.Parse(csdEntry["ID"].ToString()!), csdEntry);
                 }
             }
 
@@ -187,10 +187,10 @@ namespace WoWNamingLib.Namers
 
             foreach (var cmdEntry in cmdDB.Values)
             {
-                var mFDID = uint.Parse(cmdEntry["FileDataID"].ToString());
-                var csdID = uint.Parse(cmdEntry["SoundID"].ToString());
+                var mFDID = uint.Parse(cmdEntry["FileDataID"].ToString()!);
+                var csdID = uint.Parse(cmdEntry["SoundID"].ToString()!);
 
-                cmdIDToFDIDMap.Add(uint.Parse(cmdEntry["ID"].ToString()), mFDID);
+                cmdIDToFDIDMap.Add(uint.Parse(cmdEntry["ID"].ToString()!), mFDID);
             }
 
             CreatureFootstepMap.Clear();
@@ -198,17 +198,17 @@ namespace WoWNamingLib.Namers
             var terrainTypeDB = Namer.LoadDBC("TerrainTypeSounds");
             var terrainTypeLookup = new Dictionary<uint, string>();
             foreach (var terrainTypeEntry in terrainTypeDB.Values)
-                terrainTypeLookup.Add(uint.Parse(terrainTypeEntry["ID"].ToString()), terrainTypeEntry["Name"].ToString());
+                terrainTypeLookup.Add(uint.Parse(terrainTypeEntry["ID"].ToString()!), terrainTypeEntry["Name"].ToString()!);
 
             foreach (var footstepTerrainRow in footstepTerrainLookupDB.Values)
             {
-                var creatureFootstepID = uint.Parse(footstepTerrainRow["CreatureFootstepID"].ToString());
-                var terrainSoundID = int.Parse(footstepTerrainRow["TerrainSoundID"].ToString());
+                var creatureFootstepID = uint.Parse(footstepTerrainRow["CreatureFootstepID"].ToString()!);
+                var terrainSoundID = int.Parse(footstepTerrainRow["TerrainSoundID"].ToString()!);
                 if (terrainSoundID == -1)
                     continue;
 
-                var soundID = uint.Parse(footstepTerrainRow["SoundID"].ToString());
-                var soundIDSplash = uint.Parse(footstepTerrainRow["SoundIDSplash"].ToString());
+                var soundID = uint.Parse(footstepTerrainRow["SoundID"].ToString()!);
+                var soundIDSplash = uint.Parse(footstepTerrainRow["SoundIDSplash"].ToString()!);
 
                 if (!CreatureFootstepMap.ContainsKey(creatureFootstepID))
                     CreatureFootstepMap.Add(creatureFootstepID, new List<(string TerrainType, uint SoundID, uint SoundIDSplash)>());
@@ -225,14 +225,14 @@ namespace WoWNamingLib.Namers
             var cmdToCDIMap = new Dictionary<uint, uint>(); // only care about first occurence here really
             foreach (var cdiRow in creatureDisplayInfoDB.Values)
             {
-                var displayID = uint.Parse(cdiRow["ID"].ToString());
-                var modelID = uint.Parse(cdiRow["ModelID"].ToString());
+                var displayID = uint.Parse(cdiRow["ID"].ToString()!);
+                var modelID = uint.Parse(cdiRow["ModelID"].ToString()!);
 
                 cdiMap.Add(displayID, cdiRow);
                 if (cmdIDToFDIDMap.TryGetValue(modelID, out var fdid))
                 {
                     cdiToFDIDMap.Add(displayID, fdid);
-                    NameCSDSounds(uint.Parse(cdiRow["SoundID"].ToString()), fdid, displayID);
+                    NameCSDSounds(uint.Parse(cdiRow["SoundID"].ToString()!), fdid, displayID);
                 }
 
                 cmdToCDIMap.TryAdd(modelID, displayID);
@@ -240,9 +240,9 @@ namespace WoWNamingLib.Namers
 
             foreach (var cmdEntry in cmdDB.Values)
             {
-                var cmdID = uint.Parse(cmdEntry["ID"].ToString());
-                var mFDID = uint.Parse(cmdEntry["FileDataID"].ToString());
-                var csdID = uint.Parse(cmdEntry["SoundID"].ToString());
+                var cmdID = uint.Parse(cmdEntry["ID"].ToString()!);
+                var mFDID = uint.Parse(cmdEntry["FileDataID"].ToString()!);
+                var csdID = uint.Parse(cmdEntry["SoundID"].ToString()!);
 
                 if (mFDID == 0 || csdID == 0)
                     continue;
@@ -261,8 +261,8 @@ namespace WoWNamingLib.Namers
             var spellXSpellVisualMap = new Dictionary<uint, List<uint>>();
             foreach (var svsRow in spellXSpellVisualDB.Values)
             {
-                var spellID = uint.Parse(svsRow["SpellID"].ToString());
-                var spellVisualID = uint.Parse(svsRow["SpellVisualID"].ToString());
+                var spellID = uint.Parse(svsRow["SpellID"].ToString()!);
+                var spellVisualID = uint.Parse(svsRow["SpellVisualID"].ToString()!);
 
                 if (!spellXSpellVisualMap.TryGetValue(spellID, out List<uint>? spellVisuals))
                 {
@@ -279,7 +279,7 @@ namespace WoWNamingLib.Namers
 
             foreach (var sveRow in spellVisualEventDB.Values)
             {
-                var spellVisualID = uint.Parse(sveRow["SpellVisualID"].ToString());
+                var spellVisualID = uint.Parse(sveRow["SpellVisualID"].ToString()!);
 
                 if (!spellVisualEventsByVisualIDMap.TryGetValue(spellVisualID, out List<DBCDRow>? spellVisualEvents))
                 {
@@ -296,9 +296,9 @@ namespace WoWNamingLib.Namers
 
             foreach (var svkeRow in spellVisualKitEffectDB.Values)
             {
-                var parentSpellVisualKitID = uint.Parse(svkeRow["ParentSpellVisualKitID"].ToString());
-                var effectType = uint.Parse(svkeRow["EffectType"].ToString());
-                var effectValue = uint.Parse(svkeRow["Effect"].ToString());
+                var parentSpellVisualKitID = uint.Parse(svkeRow["ParentSpellVisualKitID"].ToString()!);
+                var effectType = uint.Parse(svkeRow["EffectType"].ToString()!);
+                var effectValue = uint.Parse(svkeRow["Effect"].ToString()!);
 
                 if (effectType != 5)
                     continue;
@@ -314,9 +314,9 @@ namespace WoWNamingLib.Namers
             var objectEffectPackageMap = new Dictionary<uint, List<(uint GroupID, uint StateType)>>();
             foreach (var oepeRow in objectEffectPackageElemDB.Values)
             {
-                var objectEffectPackageID = uint.Parse(oepeRow["ObjectEffectPackageID"].ToString());
-                var objectEffectGroupID = uint.Parse(oepeRow["ObjectEffectGroupID"].ToString());
-                var stateType = uint.Parse(oepeRow["StateType"].ToString());
+                var objectEffectPackageID = uint.Parse(oepeRow["ObjectEffectPackageID"].ToString()!);
+                var objectEffectGroupID = uint.Parse(oepeRow["ObjectEffectGroupID"].ToString()!);
+                var stateType = uint.Parse(oepeRow["StateType"].ToString()!);
 
                 if (!objectEffectPackageMap.TryGetValue(objectEffectPackageID, out List<(uint GroupID, uint StateType)>? objectEffects))
                 {
@@ -358,18 +358,18 @@ namespace WoWNamingLib.Namers
 
             foreach (var mxdRow in mountXDisplay.Values)
             {
-                mountXCDIMap.TryAdd(uint.Parse(mxdRow["MountID"].ToString()), uint.Parse(mxdRow["CreatureDisplayInfoID"].ToString()));
+                mountXCDIMap.TryAdd(uint.Parse(mxdRow["MountID"].ToString()!), uint.Parse(mxdRow["CreatureDisplayInfoID"].ToString()!));
 
-                var cdiID = uint.Parse(mxdRow["CreatureDisplayInfoID"].ToString());
+                var cdiID = uint.Parse(mxdRow["CreatureDisplayInfoID"].ToString()!);
                 if (cdiToFDIDMap.TryGetValue(cdiID, out var mFDID))
                 {
-                    mountToFDID.TryAdd(uint.Parse(mxdRow["MountID"].ToString()), mFDID);
+                    mountToFDID.TryAdd(uint.Parse(mxdRow["MountID"].ToString()!), mFDID);
                 }
             }
 
             foreach (var mountRow in mountDB.Values)
             {
-                var mountID = uint.Parse(mountRow["ID"].ToString());
+                var mountID = uint.Parse(mountRow["ID"].ToString()!);
 
                 // ObjectPackage logic
                 if (mountXCDIMap.TryGetValue(mountID, out var cdiID))
@@ -377,7 +377,7 @@ namespace WoWNamingLib.Namers
                     if (!cdiMap.TryGetValue(cdiID, out var cdiRow))
                         continue;
 
-                    var objectEffectPackageID = uint.Parse(cdiRow["ObjectEffectPackageID"].ToString());
+                    var objectEffectPackageID = uint.Parse(cdiRow["ObjectEffectPackageID"].ToString()!);
                     if (objectEffectPackageMap.TryGetValue(objectEffectPackageID, out var objectEffectPackages))
                     {
                         foreach (var objectEffectPackageRef in objectEffectPackages)
@@ -386,8 +386,8 @@ namespace WoWNamingLib.Namers
                             {
                                 foreach (var objectEffect in objectEffects)
                                 {
-                                    var effectType = uint.Parse(objectEffect["EffectRecType"].ToString());
-                                    var effectRecID = uint.Parse(objectEffect["EffectRecID"].ToString());
+                                    var effectType = uint.Parse(objectEffect["EffectRecType"].ToString()!);
+                                    var effectRecID = uint.Parse(objectEffect["EffectRecID"].ToString()!);
 
                                     if (effectType != 1 || effectRecID == 0)
                                         continue;
@@ -440,7 +440,7 @@ namespace WoWNamingLib.Namers
                     }
                 }
 
-                var sourceSpellID = uint.Parse(mountRow["SourceSpellID"].ToString());
+                var sourceSpellID = uint.Parse(mountRow["SourceSpellID"].ToString()!);
                 if (!spellXSpellVisualMap.TryGetValue(sourceSpellID, out var spellVisuals))
                 {
                     continue;
@@ -455,7 +455,7 @@ namespace WoWNamingLib.Namers
 
                     foreach (var spellVisualEvent in spellVisualEvents)
                     {
-                        if (!spellVisualKitSoundEffectMap.TryGetValue(uint.Parse(spellVisualEvent["SpellVisualKitID"].ToString()), out var spellVisualKitSoundEffects))
+                        if (!spellVisualKitSoundEffectMap.TryGetValue(uint.Parse(spellVisualEvent["SpellVisualKitID"].ToString()!), out var spellVisualKitSoundEffects))
                         {
                             continue;
                         }
@@ -471,7 +471,7 @@ namespace WoWNamingLib.Namers
 
                                         var castTime = "precast";
                                         var soundLoop = "loop";
-                                        var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString());
+                                        var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString()!);
 
                                         switch (startEvent)
                                         {
@@ -548,9 +548,9 @@ namespace WoWNamingLib.Namers
             var soundAmbienceFlavorMap = new Dictionary<uint, List<(uint SoundKitIDDay, uint SoundKitIDNight, uint AmbienceID0, uint AmbienceID1)>>();
             foreach (var soundAmbienceFlavorRow in soundAmbienceFlavorDB.Values)
             {
-                var soundAmbienceID = uint.Parse(soundAmbienceFlavorRow["SoundAmbienceID"].ToString());
-                var soundKitIDDay = uint.Parse(soundAmbienceFlavorRow["SoundEntriesIDDay"].ToString());
-                var soundKitIDNight = uint.Parse(soundAmbienceFlavorRow["SoundEntriesIDNight"].ToString());
+                var soundAmbienceID = uint.Parse(soundAmbienceFlavorRow["SoundAmbienceID"].ToString()!);
+                var soundKitIDDay = uint.Parse(soundAmbienceFlavorRow["SoundEntriesIDDay"].ToString()!);
+                var soundKitIDNight = uint.Parse(soundAmbienceFlavorRow["SoundEntriesIDNight"].ToString()!);
 
                 if (soundAmbienceFlavorMap.TryGetValue(soundAmbienceID, out List<(uint SoundKitIDDay, uint SoundKitIDNight, uint AmbienceID0, uint AmbienceID1)>? current))
                 {
@@ -565,7 +565,7 @@ namespace WoWNamingLib.Namers
             var soundAmbienceDB = Namer.LoadDBC("SoundAmbience");
             foreach (var soundAmbienceRow in soundAmbienceDB.Values)
             {
-                var soundAmbienceID = uint.Parse(soundAmbienceRow["ID"].ToString());
+                var soundAmbienceID = uint.Parse(soundAmbienceRow["ID"].ToString()!);
                 var ambienceIDs = (uint[])soundAmbienceRow["AmbienceID"];
 
                 if (soundAmbienceFlavorMap.TryGetValue(soundAmbienceID, out List<(uint SoundKitIDDay, uint SoundKitIDNight, uint AmbienceID0, uint AmbienceID1)>? current))
@@ -581,8 +581,8 @@ namespace WoWNamingLib.Namers
             var areaTableDB = Namer.LoadDBC("AreaTable");
             foreach (var areaTableRow in areaTableDB.Values)
             {
-                var ambienceID = uint.Parse(areaTableRow["AmbienceID"].ToString());
-                var zoneName = areaTableRow["ZoneName"].ToString().ToLower();
+                var ambienceID = uint.Parse(areaTableRow["AmbienceID"].ToString()!);
+                var zoneName = areaTableRow["ZoneName"].ToString()!.ToLower();
 
                 if (soundAmbienceFlavorMap.TryGetValue(ambienceID, out var soundAmbienceIDs))
                 {
@@ -655,7 +655,7 @@ namespace WoWNamingLib.Namers
                                     continue;
                                 }
 
-                                if (!cdiToFDIDMap.TryGetValue(uint.Parse(cdiRow["ID"].ToString()), out var mFDID))
+                                if (!cdiToFDIDMap.TryGetValue(uint.Parse(cdiRow["ID"].ToString()!), out var mFDID))
                                 {
                                     continue;
                                 }
@@ -695,8 +695,8 @@ namespace WoWNamingLib.Namers
             var soundEmitterDB = Namer.LoadDBC("SoundEmitters");
             foreach (var soundEmitter in soundEmitterDB.Values)
             {
-                var soundKitID = uint.Parse(soundEmitter["SoundEntriesID"].ToString());
-                var emitterName = soundEmitter["Name"].ToString().Replace("\\", "").Replace("/", "").Replace(" ", "").Replace(",", "_").Replace("'", "");
+                var soundKitID = uint.Parse(soundEmitter["SoundEntriesID"].ToString()!);
+                var emitterName = soundEmitter["Name"].ToString()!.Replace("\\", "").Replace("/", "").Replace(" ", "").Replace(",", "_").Replace("'", "");
 
                 var soundCounter = 0;
                 foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
@@ -759,7 +759,7 @@ namespace WoWNamingLib.Namers
 
             foreach (var spellRow in spellDB.Values)
             {
-                var spellID = uint.Parse(spellRow["ID"].ToString());
+                var spellID = uint.Parse(spellRow["ID"].ToString()!);
                 var spellName = "";
 
                 if (!spellNameDB.TryGetValue((int)spellID, out var spellNameRow))
@@ -785,7 +785,7 @@ namespace WoWNamingLib.Namers
 
                     foreach (var spellVisualEvent in spellVisualEvents)
                     {
-                        if (!spellVisualKitSoundEffectMap.TryGetValue(uint.Parse(spellVisualEvent["SpellVisualKitID"].ToString()), out var spellVisualKitSoundEffects))
+                        if (!spellVisualKitSoundEffectMap.TryGetValue(uint.Parse(spellVisualEvent["SpellVisualKitID"].ToString()!), out var spellVisualKitSoundEffects))
                         {
                             continue;
                         }
@@ -799,7 +799,7 @@ namespace WoWNamingLib.Namers
 
                                 var castTime = "precast";
                                 var soundLoop = "loop";
-                                var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString());
+                                var startEvent = uint.Parse(spellVisualEvent["StartEvent"].ToString()!);
 
                                 switch (startEvent)
                                 {
@@ -847,7 +847,7 @@ namespace WoWNamingLib.Namers
                                 if (spellVisualEvent["EndEvent"].ToString() == "13")
                                     soundLoop = "oneshot";
 
-                                var cleanSpellname = spellName.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("&", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
+                                var cleanSpellname = spellName!.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("&", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
 
                                 var filename = "Sound/Spell/" + cleanSpellname + "_" + castTime + "_" + soundLoop + "_" + soundKitFDID + ".ogg";
                                 NewFileManager.AddNewFile(soundKitFDID, filename);

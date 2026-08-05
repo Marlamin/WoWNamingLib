@@ -21,7 +21,7 @@ namespace WoWNamingLib.Namers
                 var manifestInterfaceData = Namer.LoadDBC("ManifestInterfaceData");
                 foreach (var midRow in manifestInterfaceData.Values)
                 {
-                    var fdid = int.Parse(midRow["ID"].ToString());
+                    var fdid = int.Parse(midRow["ID"].ToString()!);
                     var filename = midRow["FilePath"].ToString() + midRow["FileName"].ToString();
                     filename = filename.Replace("\\", "/");
 

@@ -414,7 +414,7 @@ namespace WoWNamingLib.Namers
 
             NewFileManager.AddNewFile(fileDataID, filename, updateIfExists, forceUpdate);
         }
-
+#pragma warning disable 0649
         public struct WorldModel
         {
             public MOHD header;
@@ -491,7 +491,7 @@ namespace WoWNamingLib.Namers
             public byte flags;
             public byte materialID;
         }
-
+#pragma warning restore 0649
         private static WorldModel ParseWMO(MemoryStream stream)
         {
             var wmofile = new WorldModel();

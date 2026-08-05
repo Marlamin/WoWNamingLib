@@ -7,36 +7,37 @@ namespace WoWNamingLib.Namers
         public static void Name()
         {
             var textureBlendSetDB = Namer.LoadDBC("TextureBlendSet");
+            if(!textureBlendSetDB.AvailableColumns.Contains("ID") || !textureBlendSetDB.AvailableColumns.Contains("TextureFileDataID"))
+                throw new Exception("TextureBlendSet.db2 is missing required columns");
+
             var textureBlendSetMap = new Dictionary<uint, List<uint>>();
             foreach (var tbsRow in textureBlendSetDB.Values)
             {
-                var ID = uint.Parse(tbsRow["ID"].ToString());
+                var ID = uint.Parse(tbsRow["ID"].ToString()!);
                 var tFDIDs = (uint[])tbsRow["TextureFileDataID"];
                 foreach (var tFDID in tFDIDs)
                 {
                     if (tFDID == 0)
                         continue;
 
-                    if (!textureBlendSetMap.ContainsKey(ID))
-                    {
+                    if (!textureBlendSetMap.TryGetValue(ID, out List<uint>? blendSets))
                         textureBlendSetMap.Add(ID, new List<uint>() { tFDID });
-                    }
                     else
-                    {
-                        textureBlendSetMap[ID].Add(tFDID);
-                    }
+                        blendSets.Add(tFDID);
                 }
             }
 
             var fullScreenEffectDB = Namer.LoadDBC("FullScreenEffect");
+            if (!fullScreenEffectDB.AvailableColumns.Contains("OverlayTextureFileDataID") || !fullScreenEffectDB.AvailableColumns.Contains("TextureBlendSetID"))
+                throw new Exception("FullScreenEffect.db2 is missing required columns");
 
             foreach (var fseRow in fullScreenEffectDB.Values)
             {
-                var overlayFDID = uint.Parse(fseRow["OverlayTextureFileDataID"].ToString());
+                var overlayFDID = uint.Parse(fseRow["OverlayTextureFileDataID"].ToString()!);
                 if (overlayFDID != 0 && Namer.NeedsName((int)overlayFDID))
                     NewFileManager.AddNewFile(overlayFDID, "spells/textures/fullscreeneffect_" + overlayFDID + ".blp");
 
-                if (textureBlendSetMap.TryGetValue(uint.Parse(fseRow["TextureBlendSetID"].ToString()), out var tbsFDIDs))
+                if (textureBlendSetMap.TryGetValue(uint.Parse(fseRow["TextureBlendSetID"].ToString()!), out var tbsFDIDs))
                 {
                     foreach (var tbsFDID in tbsFDIDs)
                     {

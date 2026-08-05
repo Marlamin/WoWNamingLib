@@ -9,11 +9,11 @@ namespace WoWNamingLib.Namers
             var terrainMaterialDB = Namer.LoadDBC("TerrainMaterial");
             foreach (var tmRow in terrainMaterialDB.Values)
             {
-                var envMapD = int.Parse(tmRow["EnvMapDiffuseFileID"].ToString());
+                var envMapD = int.Parse(tmRow["EnvMapDiffuseFileID"].ToString()!);
                 if (envMapD != 0 && Namer.NeedsName(envMapD))
                     NewFileManager.AddNewFile(envMapD, "tileset/terrain cube maps/tcm_" + tmRow["ID"] + "_" + envMapD + ".blp");
 
-                var envMapS = int.Parse(tmRow["EnvMapSpecularFileID"].ToString());
+                var envMapS = int.Parse(tmRow["EnvMapSpecularFileID"].ToString()!);
                 if (envMapS != 0 && Namer.NeedsName(envMapS))
                     NewFileManager.AddNewFile(envMapS, "tileset/terrain cube maps/tcm_" + tmRow["ID"] + "_s_" + envMapS + ".blp");
             }
@@ -24,17 +24,17 @@ namespace WoWNamingLib.Namers
             var liquidTypeXTextureLookup = new Dictionary<int, List<(int FileDataID, int OrderIndex)>>();
             foreach (var ltxRow in liquidTypeXTextureDB.Values)
             {
-                if (!liquidTypeXTextureLookup.ContainsKey(int.Parse(ltxRow["LiquidTypeID"].ToString())))
-                    liquidTypeXTextureLookup.Add(int.Parse(ltxRow["LiquidTypeID"].ToString()), new List<(int FileDataID, int OrderIndex)>());
+                if (!liquidTypeXTextureLookup.ContainsKey(int.Parse(ltxRow["LiquidTypeID"].ToString()!)))
+                    liquidTypeXTextureLookup.Add(int.Parse(ltxRow["LiquidTypeID"].ToString()!), new List<(int FileDataID, int OrderIndex)>());
 
-                liquidTypeXTextureLookup[int.Parse(ltxRow["LiquidTypeID"].ToString())].Add(
-                    (int.Parse(ltxRow["FileDataID"].ToString()), int.Parse(ltxRow["OrderIndex"].ToString()))
+                liquidTypeXTextureLookup[int.Parse(ltxRow["LiquidTypeID"].ToString()!)].Add(
+                    (int.Parse(ltxRow["FileDataID"].ToString()!), int.Parse(ltxRow["OrderIndex"].ToString()!))
                 );
             }
 
             foreach (var liquidTypeRow in liquidTypeDB.Values)
             {
-                var liquidTypeID = int.Parse(liquidTypeRow["ID"].ToString());
+                var liquidTypeID = int.Parse(liquidTypeRow["ID"].ToString()!);
                 var liquidType = liquidTypeRow["Name"].ToString();
                 var liquidTextureArray = (string[])liquidTypeRow["Texture"];
                 var frameCountArray = (byte[])liquidTypeRow["FrameCountTexture"];
