@@ -501,6 +501,18 @@ namespace WoWNamingLib
             }
         }
 
+        public static void NameMovies()
+        {
+            try
+            {
+                Movie.Name();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during movie naming: " + e.Message);
+            }
+        }
+
         public static string NameSingleVO(int fileDataID, string creatureName)
         {
             return VO.NameSingle(fileDataID, creatureName);
