@@ -150,8 +150,12 @@ namespace WoWNamingLib.Services
 
                         )
                         {
-                            Console.WriteLine("Skipping " + fileDataID + ", useless placeholder override: " + currentFileName + " => " + filename);
-                            return;
+
+                            if(filename.Length < currentFileName.Length)
+                            {
+                                Console.WriteLine("Skipping " + fileDataID + ", useless placeholder override: " + currentFileName + " => " + filename);
+                                return;
+                            }
                         }
                     }
 
