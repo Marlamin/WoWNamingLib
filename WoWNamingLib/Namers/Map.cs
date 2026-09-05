@@ -103,7 +103,7 @@ namespace WoWNamingLib.Namers
                             NewFileManager.AddNewFile(files.tex0ADT, "world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_tex0.adt", true);
 
                         // Tileset is pretty slow, only enable once per major patch
-                        if (files.tex0ADT != 0 && int.TryParse(mapDirectory, out int mapID) && mapID > 2221)
+                        if (files.tex0ADT != 0 && int.TryParse(mapDirectory, out int mapID) && mapID > 2601) // current cutoff: more recent than khaz algar
                         {
                             using (var texMS = new MemoryStream())
                             {
