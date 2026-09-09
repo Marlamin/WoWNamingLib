@@ -1,4 +1,5 @@
-﻿using WoWNamingLib.Services;
+﻿using System.Text;
+using WoWNamingLib.Services;
 using WoWNamingLib.Utils;
 
 namespace WoWNamingLib.Namers
@@ -232,8 +233,11 @@ namespace WoWNamingLib.Namers
             }
         }
 
-        public static void Name()
+        public static void Name(List<int>? unnamedADTs = null)
         {
+            if (unnamedADTs == null)
+                unnamedADTs = new List<int>();
+
             var mapDB = Namer.LoadDBC("Map");
             if (!mapDB.AvailableColumns.Contains("Directory") && !mapDB.AvailableColumns.Contains("WdtFileDataID"))
             {
@@ -299,6 +303,134 @@ namespace WoWNamingLib.Namers
                     NewFileManager.AddNewFile(preloadFileDataID, "world/maps/" + mapDirectory + "/" + mapDirectory + "_preload.wdt", true);
                 }
             }
+
+            // Run through still-unnamed ADTs and name them with PHs
+
+            // TODO: Look nearby for current coords?
+            var currentCoord = "";
+            unnamedADTs.Sort(); // sort so ADTs are in the right order for coord-shared naming
+
+            foreach (var unnamedADT in unnamedADTs)
+            {
+                if(!CASCManager.FileExists(unnamedADT))
+                    continue;
+
+                if(!Namer.NeedsName(unnamedADT))
+                    continue;
+
+                using (var stream = CASCManager.GetFileByID((uint)unnamedADT).Result)
+                {
+                    var coord = GetCoordFromFile(stream);
+                    stream.Position = 0;
+                    var type = GetTypeFromFile(stream);
+
+                    if (coord != "")
+                    {
+                        currentCoord = coord;
+                        NewFileManager.AddNewFile(unnamedADT, "unkmaps/maps/" + unnamedADT + "_" + currentCoord + ".adt");
+                    }
+                    else
+                    {
+                        NewFileManager.AddNewFile(unnamedADT, "unkmaps/maps/" + unnamedADT + "_" + currentCoord + "_" + type + ".adt");
+                    }
+                }
+            }
+        }
+
+        private static string GetTypeFromFile(Stream adtStream)
+        {
+            var bin = new BinaryReader(adtStream);
+
+            long position = 0;
+
+            var chunks = new List<string>();
+
+            while (position < adtStream.Length)
+            {
+                adtStream.Position = position;
+                var chunkNameBytes = bin.ReadBytes(4);
+                var chunkName = Encoding.ASCII.GetString(chunkNameBytes);
+                var chunkSize = bin.ReadUInt32();
+
+                position = adtStream.Position + chunkSize;
+                chunks.Add(chunkName);
+            }
+
+            if (chunks.Contains("DMLM") || chunks.Contains("DDLM"))
+                return "obj1";
+
+            if (chunks.Contains("FDDM") || chunks.Contains("FDOM"))
+                return "obj0";
+
+            if (chunks.Contains("PMAM") || chunks.Contains("XETM") || chunks.Contains("DIDM") || chunks.Contains("DIHM"))
+                return "tex0";
+
+            if (chunks.Contains("VLLM") || chunks.Contains("ILLM") || chunks.Contains("DNLM"))
+                return "lod";
+
+            return "root";
+        }
+
+        private static string GetCoordFromFile(Stream adtStream)
+        {
+            var bin = new BinaryReader(adtStream);
+            long position = 0;
+            var chunks = new List<string>();
+            while (position < adtStream.Length)
+            {
+                adtStream.Position = position;
+                var chunkNameBytes = bin.ReadBytes(4);
+                var chunkName = Encoding.ASCII.GetString(chunkNameBytes);
+                var chunkSize = bin.ReadUInt32();
+
+                position = adtStream.Position + chunkSize;
+                chunks.Add(chunkName);
+            }
+
+            if (chunks.Contains("DMLM") || chunks.Contains("DDLM"))
+                return "";
+
+            if (chunks.Contains("FDDM") || chunks.Contains("FDOM"))
+                return "";
+
+            if (chunks.Contains("PMAM") || chunks.Contains("XETM") || chunks.Contains("DIDM") || chunks.Contains("DIHM"))
+                return "";
+
+            if (chunks.Contains("VLLM") || chunks.Contains("ILLM") || chunks.Contains("DNLM"))
+                return "";
+
+            adtStream.Position = 0;
+            position = 0;
+            while (position < adtStream.Length)
+            {
+                adtStream.Position = position;
+                var chunkNameBytes = bin.ReadBytes(4);
+                var chunkName = Encoding.ASCII.GetString(chunkNameBytes);
+                var chunkSize = bin.ReadUInt32();
+
+                position = adtStream.Position + chunkSize;
+
+                switch (chunkName)
+                {
+                    case "KNCM":
+                        if (chunkSize > 0)
+                        {
+                            bin.ReadBytes(104);
+                            var x = bin.ReadSingle();
+                            var y = bin.ReadSingle();
+                            var z = bin.ReadSingle();
+
+                            var firstCoord = 32 - Math.Floor((y - 533 / 16) / 533.33333) - 1;
+                            var secondCoord = 32 - Math.Floor((x - 533 / 16) / 533.33333) - 1;
+
+                            return firstCoord + "_" + secondCoord;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return "";
         }
 
         public struct MapFileDataIDs

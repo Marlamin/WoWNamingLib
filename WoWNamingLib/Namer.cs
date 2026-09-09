@@ -421,11 +421,11 @@ namespace WoWNamingLib
             }
         }
 
-        public static void NameMap()
+        public static void NameMap(List<int>? unnamedADTs = null)
         {
             try
             {
-                Map.Name();
+                Map.Name(unnamedADTs);
             }
             catch (Exception e)
             {
