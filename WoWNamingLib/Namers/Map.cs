@@ -188,8 +188,8 @@ namespace WoWNamingLib.Namers
                     {
                         var adt = tile.Key;
                         var files = tile.Value;
-                        if (files.unknown0 != 0 && Namer.NeedsName((int)files.unknown0))
-                            NewFileManager.AddNewFile(files.unknown0, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk0.bin", true);
+                        if (files.liquidFlowTexture != 0 && Namer.NeedsName((int)files.liquidFlowTexture))
+                            NewFileManager.AddNewFile(files.liquidFlowTexture, "World/LiquidFlow/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + ".blp", true);
                         if (files.unknown1 != 0 && Namer.NeedsName((int)files.unknown1))
                             NewFileManager.AddNewFile(files.unknown1, "unkmaps/world/maps/" + mapDirectory + "/" + mapDirectory + "_" + adt.Item1 + "_" + adt.Item2 + "_unk1.bin", true);
                         if (files.unknown2 != 0 && Namer.NeedsName((int)files.unknown2))
@@ -460,7 +460,7 @@ namespace WoWNamingLib.Namers
 
         public struct TileFileDataIDs2
         {
-            public uint unknown0;
+            public uint liquidFlowTexture;
             public uint unknown1;
             public uint unknown2;
             public uint unknown3;
