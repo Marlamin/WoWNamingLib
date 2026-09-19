@@ -433,6 +433,18 @@ namespace WoWNamingLib
             }
         }
 
+        public static void NameDAT(List<int>? unnamedDATs = null)
+        {
+            try
+            {
+                Map.NameDat(unnamedDATs);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Exception during DAT naming: " + e.Message);
+            }
+        }
+
         public static void NameWMO(uint fileDataID = 0)
         {
             try

@@ -6,6 +6,31 @@ namespace WoWNamingLib.Namers
 {
     public static class Map
     {
+        public static void NameDat(List<int>? unnamedDATs)
+        {
+            if (unnamedDATs == null)
+                return;
+
+            foreach(var unnamedDAT in unnamedDATs)
+            {
+                if (!Namer.NeedsName(unnamedDAT))
+                    continue;
+
+                using (var file = CASCManager.GetFileByID((uint)unnamedDAT).Result)
+                {
+                    var mapAndCoord = GetCoordFromFile(file);
+                    if (mapAndCoord == "")
+                        continue;
+
+                    var split = mapAndCoord.Split('_');
+                    var mapID = split[0];
+                    var coord = split[1] + "_" + split[2];
+
+                    NewFileManager.AddNewFile(unnamedDAT, "World/Maps/" + mapID + "/area_" + coord + ".dat", true);
+                }
+            }
+        }
+
         private static void NameMap(string mapDirectory, uint wdtFileDataID = 0)
         {
             var isClassic = wdtFileDataID == 0;
@@ -397,6 +422,50 @@ namespace WoWNamingLib.Namers
                 return "";
 
             if (chunks.Contains("VLLM") || chunks.Contains("ILLM") || chunks.Contains("DNLM"))
+                return "";
+
+            if(chunks.Contains("COLA"))
+            {
+                adtStream.Position = 0;
+                position = 0;
+                while (position < adtStream.Length)
+                {
+                    adtStream.Position = position;
+                    var chunkNameBytes = bin.ReadBytes(4);
+                    var chunkName = Encoding.ASCII.GetString(chunkNameBytes);
+                    var chunkSize = bin.ReadUInt32();
+
+                    position = adtStream.Position + chunkSize;
+
+                    switch (chunkName)
+                    {
+                        case "COLA":
+                            if (chunkSize > 0)
+                            {
+                                var mapID = bin.ReadUInt32();
+                                var x0 = bin.ReadUInt32();
+                                var y0 = bin.ReadUInt32();
+                                var x1 = bin.ReadUInt32();
+                                var y1 = bin.ReadUInt32();
+
+                                if(x0 != x1 || y0 != y1)
+                                {
+                                    Console.WriteLine("!!!! DAT COORD MISMATCH, MapID: " + mapID + ", x0: " + x0 + ", y0: " + y0 + ", x1: " + x1 + ", y1: " + y1);
+                                    return "";
+                                }
+
+                                return mapID + "_" + x0 + "_" + y0;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                return "";
+            }
+
+            if(chunks.Contains("RDHA") || chunks.Contains("KNCA"))
                 return "";
 
             adtStream.Position = 0;
