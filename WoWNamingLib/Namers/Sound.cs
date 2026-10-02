@@ -713,32 +713,35 @@ namespace WoWNamingLib.Namers
             // RTPC
             try
             {
-                var rtpcDB = Namer.LoadDBC("RTPC");
-                if (!rtpcDB.AvailableColumns.Contains("ID") || !rtpcDB.AvailableColumns.Contains("SoundKitID"))
-                    throw new Exception("RTPC.db2 missing ID or SoundKitID columns");
-
-                var rtpcToSoundKitMap = new Dictionary<uint, uint>();
-
-                foreach (var rtpcRow in rtpcDB.Values)
+                if (CASCManager.FileExists(3405439))
                 {
-                    var rtpcID = uint.Parse(rtpcRow["ID"].ToString()!);
-                    var soundKitID = uint.Parse(rtpcRow["SoundKitID"].ToString()!);
-                    rtpcToSoundKitMap.Add(rtpcID, soundKitID);
-                }
+                    var rtpcDB = Namer.LoadDBC("RTPC");
+                    if (!rtpcDB.AvailableColumns.Contains("ID") || !rtpcDB.AvailableColumns.Contains("SoundKitID"))
+                        throw new Exception("RTPC.db2 missing ID or SoundKitID columns");
 
-                var rtpcDataDB = Namer.LoadDBC("RTPCData");
-                if (!rtpcDataDB.AvailableColumns.Contains("ID") || !rtpcDataDB.AvailableColumns.Contains("CreatureID") || !rtpcDataDB.AvailableColumns.Contains("SpellID"))
-                    throw new Exception("RTPCData.db2 missing ID, CreatureID or SpellID columns");
+                    var rtpcToSoundKitMap = new Dictionary<uint, uint>();
 
-                foreach (var rtpcDataRow in rtpcDataDB.Values)
-                {
-                    if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()!), out uint soundKitID))
+                    foreach (var rtpcRow in rtpcDB.Values)
                     {
-                        foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
+                        var rtpcID = uint.Parse(rtpcRow["ID"].ToString()!);
+                        var soundKitID = uint.Parse(rtpcRow["SoundKitID"].ToString()!);
+                        rtpcToSoundKitMap.Add(rtpcID, soundKitID);
+                    }
+
+                    var rtpcDataDB = Namer.LoadDBC("RTPCData");
+                    if (!rtpcDataDB.AvailableColumns.Contains("ID") || !rtpcDataDB.AvailableColumns.Contains("CreatureID") || !rtpcDataDB.AvailableColumns.Contains("SpellID"))
+                        throw new Exception("RTPCData.db2 missing ID, CreatureID or SpellID columns");
+
+                    foreach (var rtpcDataRow in rtpcDataDB.Values)
+                    {
+                        if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()!), out uint soundKitID))
                         {
-                            if (Namer.NeedsName((int)soundFile))
+                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                             {
-                                Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
+                                if (Namer.NeedsName((int)soundFile))
+                                {
+                                    Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
+                                }
                             }
                         }
                     }
@@ -863,37 +866,55 @@ namespace WoWNamingLib.Namers
             try
             {
                 var soundKitDebug = new List<string>();
-                var soundKitNameDB = Namer.LoadDBC("SoundKitName");
-                foreach (var sknRow in soundKitNameDB.Values)
+
+                if (CASCManager.FileExists(1665033))
                 {
-                    var name = sknRow["Name"].ToString()!;
-                    name = System.Text.RegularExpressions.Regex.Replace(name, @"\[[^\]]*\]", "").Trim();
-
-                    // Attempt to extract creature name
-
-                    if (name.StartsWith("VO_"))
+                    var soundKitNameDB = Namer.LoadDBC("SoundKitName");
+                    foreach (var sknRow in soundKitNameDB.Values)
                     {
-                        var soundKitID = uint.Parse(sknRow["ID"].ToString()!);
-                        var creatureName = System.Text.RegularExpressions.Regex.Match(name, @"VO_\d+_(.+)_\d+_[A-Z]").Groups[1].Value;
+                        var name = sknRow["Name"].ToString()!;
+                        name = System.Text.RegularExpressions.Regex.Replace(name, @"\[[^\]]*\]", "").Trim();
 
-                        if (creatureName == "")
+                        // Attempt to extract creature name
+
+                        if (name.StartsWith("VO_"))
                         {
-                            Console.WriteLine("Got empty creature name for sound " + name);
-                            continue;
-                        }
+                            var soundKitID = uint.Parse(sknRow["ID"].ToString()!);
+                            var creatureName = System.Text.RegularExpressions.Regex.Match(name, @"VO_\d+_(.+)_\d+_[A-Z]").Groups[1].Value;
 
-                        Console.WriteLine(soundKitID + " : " + name + " => " + creatureName);
-                        soundKitDebug.Add(soundKitID + " : " + name + " => " + creatureName);
-                        var newName = "Sound/Creature/" + creatureName + "/" + name + ".ogg";
-                        if (creatureName.StartsWith("PC_"))
-                            newName = "Sound/Character/" + creatureName + "/" + name + ".ogg";
-
-                        var fdids = SoundKitHelper.GetFDIDsByKitID(soundKitID);
-                        if (fdids.Count > 1)
-                        {
-                            Console.WriteLine("!!! Got " + fdids.Count + " FDIDs for SoundKitID " + soundKitID);
-                            foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
+                            if (creatureName == "")
                             {
+                                Console.WriteLine("Got empty creature name for sound " + name);
+                                continue;
+                            }
+
+                            Console.WriteLine(soundKitID + " : " + name + " => " + creatureName);
+                            soundKitDebug.Add(soundKitID + " : " + name + " => " + creatureName);
+                            var newName = "Sound/Creature/" + creatureName + "/" + name + ".ogg";
+                            if (creatureName.StartsWith("PC_"))
+                                newName = "Sound/Character/" + creatureName + "/" + name + ".ogg";
+
+                            var fdids = SoundKitHelper.GetFDIDsByKitID(soundKitID);
+                            if (fdids.Count > 1)
+                            {
+                                Console.WriteLine("!!! Got " + fdids.Count + " FDIDs for SoundKitID " + soundKitID);
+                                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
+                                {
+                                    if (Namer.IDToNameLookup.TryGetValue((int)soundFileDataID, out var currentName))
+                                    {
+                                        Console.WriteLine("\t" + soundFileDataID + ": " + currentName + " => " + newName);
+                                        soundKitDebug.Add("\t" + soundFileDataID + ": " + currentName + " => " + newName);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("\t" + soundFileDataID + ": UNKNOWN => " + newName);
+                                        soundKitDebug.Add("\t" + soundFileDataID + ": UNKNOWN => " + newName);
+                                    }
+                                }
+                            }
+                            else if (fdids.Count == 1)
+                            {
+                                var soundFileDataID = fdids[0];
                                 if (Namer.IDToNameLookup.TryGetValue((int)soundFileDataID, out var currentName))
                                 {
                                     Console.WriteLine("\t" + soundFileDataID + ": " + currentName + " => " + newName);
@@ -904,28 +925,14 @@ namespace WoWNamingLib.Namers
                                     Console.WriteLine("\t" + soundFileDataID + ": UNKNOWN => " + newName);
                                     soundKitDebug.Add("\t" + soundFileDataID + ": UNKNOWN => " + newName);
                                 }
-                            }
-                        }
-                        else if (fdids.Count == 1)
-                        {
-                            var soundFileDataID = fdids[0];
-                            if (Namer.IDToNameLookup.TryGetValue((int)soundFileDataID, out var currentName))
-                            {
-                                Console.WriteLine("\t" + soundFileDataID + ": " + currentName + " => " + newName);
-                                soundKitDebug.Add("\t" + soundFileDataID + ": " + currentName + " => " + newName);
-                            }
-                            else
-                            {
-                                Console.WriteLine("\t" + soundFileDataID + ": UNKNOWN => " + newName);
-                                soundKitDebug.Add("\t" + soundFileDataID + ": UNKNOWN => " + newName);
-                            }
 
-                            if (CASCManager.FileExists(soundFileDataID))
-                                NewFileManager.AddNewFile(soundFileDataID, newName, true);
+                                if (CASCManager.FileExists(soundFileDataID))
+                                    NewFileManager.AddNewFile(soundFileDataID, newName, true);
+                            }
                         }
                     }
+                    File.WriteAllLines("SoundKitNameDebug.txt", soundKitDebug);
                 }
-                File.WriteAllLines("SoundKitNameDebug.txt", soundKitDebug);
             }
             catch (Exception e)
             {
