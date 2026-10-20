@@ -144,7 +144,7 @@ namespace WoWNamingLib.Namers
                         NewFileManager.AddNewFile(fdid, wmoFilename, true);
                     }
 
-                    resetName = true;
+                  //  resetName = true;
 
                     if (wmoFilename.StartsWith("world/wmo/autogen-names/unknown", StringComparison.OrdinalIgnoreCase))
                     {

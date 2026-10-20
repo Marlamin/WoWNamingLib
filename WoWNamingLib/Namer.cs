@@ -426,6 +426,7 @@ namespace WoWNamingLib
             try
             {
                 Map.Name(unnamedADTs);
+                Namer.ReloadPlaceholders(); // reload placeholders so contenthash naming won't touch maptextures and such
             }
             catch (Exception e)
             {

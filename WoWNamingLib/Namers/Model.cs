@@ -1787,17 +1787,17 @@ namespace WoWNamingLib.Namers
                             overrideName = true;
                         }
 
-                        if (overrideCheck(overrideName, fdid, forceOverrideName))
-                            NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
+                        if (overrideCheck(overrideName, fdid, forceOverrideName, folder + "/" + currentModelName + ".m2"))
+                            NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", true, forceOverrideName);
 
                         if (encrypted)
                             continue;
 
-                        if (overrideCheck(overrideName, m2.physFileID, forceOverrideName))
-                            NewFileManager.AddNewFile(m2.physFileID, folder + "/" + currentModelName + ".phys", overrideCheck(overrideName, m2.physFileID, forceOverrideName), forceOverrideName);
+                        if (overrideCheck(overrideName, m2.physFileID, forceOverrideName, folder + "/" + currentModelName + ".phys"))
+                            NewFileManager.AddNewFile(m2.physFileID, folder + "/" + currentModelName + ".phys", true, forceOverrideName);
 
-                        if (overrideCheck(overrideName, m2.skelFileID, forceOverrideName))
-                            NewFileManager.AddNewFile(m2.skelFileID, folder + "/" + currentModelName + ".skel", overrideCheck(overrideName, m2.skelFileID, forceOverrideName), forceOverrideName);
+                        if (overrideCheck(overrideName, m2.skelFileID, forceOverrideName, folder + "/" + currentModelName + ".skel"))
+                            NewFileManager.AddNewFile(m2.skelFileID, folder + "/" + currentModelName + ".skel", true, forceOverrideName);
 
                         if (m2.skelFileID != 0)
                             Skel.Name(m2.skelFileID, currentModelName, folder, overrideName);
@@ -1806,7 +1806,7 @@ namespace WoWNamingLib.Namers
                         {
                             var M2baseName = Path.GetFileNameWithoutExtension(Namer.IDToNameLookup[(int)fdid]);
                             if (!M2baseName.Equals(currentModelName, StringComparison.OrdinalIgnoreCase) && !folder.StartsWith("item", StringComparison.OrdinalIgnoreCase))
-                                NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName), forceOverrideName);
+                                NewFileManager.AddNewFile(fdid, folder + "/" + currentModelName + ".m2", overrideCheck(overrideName, fdid, forceOverrideName, folder + "/" + currentModelName + ".m2"), forceOverrideName);
                         }
 
                         if (m2.skinFileDataIDs != null)
@@ -1815,16 +1815,18 @@ namespace WoWNamingLib.Namers
                             {
                                 if (i > (m2.nViews - 1))
                                 {
-                                    if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
+                                    var lodSkinName = folder + "/" + currentModelName + "_lod" + (i - m2.nViews + 1).ToString().PadLeft(2, '0') + ".skin";
+                                    if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName, lodSkinName))
                                     {
-                                        NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + "_lod" + (i - m2.nViews + 1).ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
+                                        NewFileManager.AddNewFile(m2.skinFileDataIDs[i], lodSkinName, true, forceOverrideName);
                                     }
                                 }
                                 else
                                 {
-                                    if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName))
+                                    var skinName = folder + "/" + currentModelName + i.ToString().PadLeft(2, '0') + ".skin";
+                                    if (overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName, skinName))
                                     {
-                                        NewFileManager.AddNewFile(m2.skinFileDataIDs[i], folder + "/" + currentModelName + i.ToString().PadLeft(2, '0') + ".skin", overrideCheck(overrideName, m2.skinFileDataIDs[i], forceOverrideName), forceOverrideName);
+                                        NewFileManager.AddNewFile(m2.skinFileDataIDs[i], skinName, true, forceOverrideName);
                                     }
                                 }
                             }
@@ -1840,8 +1842,9 @@ namespace WoWNamingLib.Namers
                                 if (!Namer.NeedsName((int)m2.textureFileDataIDs[i]))
                                     continue;
 
-                                if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName))
-                                    NewFileManager.AddNewFile(m2.textureFileDataIDs[i], folder + "/" + currentModelName + "_" + m2.textureFileDataIDs[i] + ".blp", overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName), forceOverrideName);
+                                var phTextureName = folder + "/" + currentModelName + "_" + m2.textureFileDataIDs[i] + ".blp";
+                                if (overrideCheck(overrideName, m2.textureFileDataIDs[i], forceOverrideName, phTextureName))
+                                    NewFileManager.AddNewFile(m2.textureFileDataIDs[i], phTextureName, true, forceOverrideName);
                             }
                         }
 
@@ -1955,8 +1958,9 @@ namespace WoWNamingLib.Namers
                                 if (anim.fileDataID == 0)
                                     continue;
 
-                                if (overrideCheck(overrideName, anim.fileDataID, forceOverrideName))
-                                    NewFileManager.AddNewFile(anim.fileDataID, folder + "/" + currentModelName + anim.animID.ToString().PadLeft(4, '0') + "-" + anim.subAnimID.ToString().PadLeft(2, '0') + ".anim", overrideCheck(overrideName, anim.fileDataID, forceOverrideName), forceOverrideName);
+                                var animName = folder + "/" + currentModelName + anim.animID.ToString().PadLeft(4, '0') + "-" + anim.subAnimID.ToString().PadLeft(2, '0') + ".anim";
+                                if (overrideCheck(overrideName, anim.fileDataID, forceOverrideName, animName))
+                                    NewFileManager.AddNewFile(anim.fileDataID, animName, true, forceOverrideName);
                             }
                         }
 
@@ -1967,8 +1971,9 @@ namespace WoWNamingLib.Namers
                                 if (m2.boneFileDataIDs[i] == 0)
                                     continue;
 
-                                if (overrideCheck(overrideName, m2.boneFileDataIDs[i], forceOverrideName))
-                                    NewFileManager.AddNewFile(m2.boneFileDataIDs[i], folder + "/" + currentModelName + "_" + m2.boneFileDataIDs[i] + ".bone", overrideCheck(overrideName, m2.boneFileDataIDs[i], forceOverrideName), forceOverrideName);
+                                var boneName = folder + "/" + currentModelName + "_" + m2.boneFileDataIDs[i] + ".bone";
+                                if (overrideCheck(overrideName, m2.boneFileDataIDs[i], forceOverrideName, boneName))
+                                    NewFileManager.AddNewFile(m2.boneFileDataIDs[i], boneName, true, forceOverrideName);
                             }
                         }
 
@@ -2000,8 +2005,9 @@ namespace WoWNamingLib.Namers
                                 {
                                     foreach (var soundKitFDID in SoundKitHelper.GetFDIDsByKitID(ev.data))
                                     {
-                                        if (overrideCheck(overrideName, (uint)soundKitFDID, forceOverrideName))
-                                            NewFileManager.AddNewFile(soundKitFDID, "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg", true);
+                                        var soundName = "sound/doodad/go_" + currentModelName + "_" + soundType + "_" + soundKitFDID + ".ogg";
+                                        if (overrideCheck(overrideName, (uint)soundKitFDID, forceOverrideName, soundName))
+                                            NewFileManager.AddNewFile(soundKitFDID, soundName, true, forceOverrideName);
                                     }
                                 }
                             }
@@ -2029,8 +2035,14 @@ namespace WoWNamingLib.Namers
             }
         }
 
-        private static bool overrideCheck(bool overrideName, uint fdid, bool forceOverride)
+        private static bool overrideCheck(bool overrideName, uint fdid, bool forceOverride, string incomingName = "")
         {
+            // if there's a name already in the lookup, and it's not the same as the incoming name, we should override it to keep model names consistent
+            if (!string.IsNullOrEmpty(incomingName))
+                if(Namer.IDToNameLookup.TryGetValue((int)fdid, out var existingName))
+                    if(!existingName.Equals(incomingName, StringComparison.OrdinalIgnoreCase))
+                        return true;
+
             return fdid != 0 && (forceOverride || overrideName || Namer.NeedsName((int)fdid));
         }
 

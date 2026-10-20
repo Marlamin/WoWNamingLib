@@ -20,7 +20,7 @@ namespace WoWNamingLib.Namers
                 if (Namer.NeedsName(idToHash.Key))
                 {
                     var isRangeMapped = false;
-                    if(Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentMapName) && currentMapName.Contains("exp"))
+                    if (Namer.IDToNameLookup.TryGetValue(idToHash.Key, out var currentMapName) && currentMapName.Contains("exp"))
                         isRangeMapped = true;
 
                     // maptexture_n
