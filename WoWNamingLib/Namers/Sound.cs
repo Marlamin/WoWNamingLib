@@ -48,6 +48,9 @@ namespace WoWNamingLib.Namers
 
             foreach (var col in CSDDB!.AvailableColumns)
             {
+                if (col == "ID")
+                    continue;
+
                 if (col == "SoundFootstepID")
                 {
                     var footstepID = uint.Parse(csdRow[col].ToString()!);
@@ -720,52 +723,6 @@ namespace WoWNamingLib.Namers
             }
             #endregion
 
-            #region RTPC
-            // RTPC
-            try
-            {
-                if (CASCManager.FileExists(3405439))
-                {
-                    var rtpcDB = Namer.LoadDBC("RTPC");
-                    if (!rtpcDB.AvailableColumns.Contains("ID") || !rtpcDB.AvailableColumns.Contains("SoundKitID"))
-                        throw new Exception("RTPC.db2 missing ID or SoundKitID columns");
-
-                    var rtpcToSoundKitMap = new Dictionary<uint, uint>();
-
-                    foreach (var rtpcRow in rtpcDB.Values)
-                    {
-                        var rtpcID = uint.Parse(rtpcRow["ID"].ToString()!);
-                        var soundKitID = uint.Parse(rtpcRow["SoundKitID"].ToString()!);
-                        rtpcToSoundKitMap.Add(rtpcID, soundKitID);
-                    }
-
-                    var rtpcDataDB = Namer.LoadDBC("RTPCData");
-                    if (!rtpcDataDB.AvailableColumns.Contains("ID") || !rtpcDataDB.AvailableColumns.Contains("CreatureID") || !rtpcDataDB.AvailableColumns.Contains("SpellID"))
-                        throw new Exception("RTPCData.db2 missing ID, CreatureID or SpellID columns");
-
-                    foreach (var rtpcDataRow in rtpcDataDB.Values)
-                    {
-                        if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()!), out uint soundKitID))
-                        {
-                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
-                            {
-                                if (Namer.NeedsName((int)soundFile))
-                                {
-                                    Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + rtpcDataRow["SpellID"].ToString() + ") " + soundFile);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error loading RTPC: " + e.Message);
-            }
-
-            // End of RTPC
-            #endregion
-
             #region Spells
             // Spells
             var spellDB = Namer.LoadDBC("Spell");
@@ -853,8 +810,26 @@ namespace WoWNamingLib.Namers
                                     case 12:
                                         castTime = "channelend";
                                         break;
+                                    case 23:
+                                        castTime = "rampup";
+                                        break;
+                                    case 24:
+                                        castTime = "rampunk";
+                                        break;
+                                    case 14:
+                                        castTime = "areaoccupied";
+                                        break;
+                                    case 16:
+                                        castTime = "areavacant";
+                                        break;
+                                    case 15:
+                                    case 17:
+                                    case 18:
+                                    case 19:
+                                    case 20:
+                                    case 21:
                                     default:
-                                        Console.WriteLine(" Start event " + startEvent + " needs supporting");
+                                        Console.WriteLine(" Start event " + startEvent + " needs supporting (SKIT " + spellVisualKitSoundEffect + " FDID " + soundKitFDID + ")");
                                         break;
                                 }
 
@@ -871,6 +846,68 @@ namespace WoWNamingLib.Namers
                 }
             }
             #endregion
+
+            #region RTPC
+            // RTPC
+            try
+            {
+                if (CASCManager.FileExists(3405439))
+                {
+                    var rtpcDB = Namer.LoadDBC("RTPC");
+                    if (!rtpcDB.AvailableColumns.Contains("ID") || !rtpcDB.AvailableColumns.Contains("SoundKitID"))
+                        throw new Exception("RTPC.db2 missing ID or SoundKitID columns");
+
+                    var rtpcToSoundKitMap = new Dictionary<uint, uint>();
+
+                    foreach (var rtpcRow in rtpcDB.Values)
+                    {
+                        var rtpcID = uint.Parse(rtpcRow["ID"].ToString()!);
+                        var soundKitID = uint.Parse(rtpcRow["SoundKitID"].ToString()!);
+                        rtpcToSoundKitMap.Add(rtpcID, soundKitID);
+                    }
+
+                    var rtpcDataDB = Namer.LoadDBC("RTPCData");
+                    if (!rtpcDataDB.AvailableColumns.Contains("ID") || !rtpcDataDB.AvailableColumns.Contains("CreatureID") || !rtpcDataDB.AvailableColumns.Contains("SpellID"))
+                        throw new Exception("RTPCData.db2 missing ID, CreatureID or SpellID columns");
+
+                    foreach (var rtpcDataRow in rtpcDataDB.Values)
+                    {
+                        if (rtpcToSoundKitMap.TryGetValue(uint.Parse(rtpcDataRow["ID"].ToString()!), out uint soundKitID))
+                        {
+                            foreach (var soundFile in SoundKitHelper.GetFDIDsByKitID(soundKitID))
+                            {
+                                if (Namer.NeedsName((int)soundFile))
+                                {
+                                    var spellName = "";
+                                    var spellID = int.Parse(rtpcDataRow["SpellID"].ToString()!);
+                                    if(spellID != 0 && spellNameDB.TryGetValue(spellID, out var spellNameRow))
+                                    {
+                                        spellName = spellNameRow["Name_lang"].ToString();
+
+                                        var cleanSpellname = spellName!.Replace(" ", "").Replace("'", "").Replace("-", "").Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "").Replace(":", "").Replace(";", "").Replace("DNT", "").Replace("&", "").Replace("+", "").Replace("<", "").Replace(">", "").Replace("!", "");
+
+                                        var filename = "Sound/Spell/RTPC/" + cleanSpellname + "_" + soundFile + ".ogg";
+                                        NewFileManager.AddNewFile(soundFile, filename);
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("RTPC " + rtpcDataRow["ID"].ToString() + " (SoundKitID " + soundKitID + ", Creature " + rtpcDataRow["CreatureID"].ToString() + ", Spell " + spellID + ") " + soundFile);
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error loading RTPC: " + e.Message);
+            }
+
+            // End of RTPC
+            #endregion
+
 
             #region SoundKitName
             // Attempt SoundKitName naming (older builds)
