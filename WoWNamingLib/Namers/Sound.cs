@@ -6,9 +6,10 @@ namespace WoWNamingLib.Namers
     class Sound
     {
         private static Dictionary<uint, DBCD.DBCDRow> CSDMap = new();
+        private static Dictionary<uint, List<DBCD.DBCDRow>> CSFDMap = new();
+
         private static Dictionary<uint, List<(string TerrainType, uint SoundID, uint SoundIDSplash)>> CreatureFootstepMap = new();
         private static IDBCDStorage? CSDDB;
-        private static IDBCDStorage? CSFDB;
 
         private static void NameCSDSounds(uint csdID, uint modelFDID, uint displayID = 0)
         {
@@ -121,20 +122,21 @@ namespace WoWNamingLib.Namers
                 }
             }
 
-            foreach (var creatureSoundFidget in CSFDB!.Values)
+            if (CSFDMap.TryGetValue(csdID, out var creatureSoundFidgets))
             {
-                if (csdID != uint.Parse(creatureSoundFidget["CreatureSoundDataID"].ToString()!))
-                    continue;
-
-                foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(creatureSoundFidget["Fidget"].ToString()!)))
+                foreach (var creatureSoundFidget in creatureSoundFidgets)
                 {
-                    if (Namer.NeedsName((int)soundFileDataID))
+                    foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(uint.Parse(creatureSoundFidget["Fidget"].ToString()!)))
                     {
-                        NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_fidget" + creatureSoundFidget["Index"].ToString() + "_" + soundFileDataID + ".ogg");
+                        if (Namer.NeedsName((int)soundFileDataID))
+                        {
+                            NewFileManager.AddNewFile(soundFileDataID, "Sound/Creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_fidget" + creatureSoundFidget["Index"].ToString() + "_" + soundFileDataID + ".ogg");
+                        }
                     }
                 }
             }
         }
+
         public static void Name(bool partialSuggestions = false)
         {
             #region UI sound naming
@@ -174,11 +176,20 @@ namespace WoWNamingLib.Namers
             if (CSDMap.Count == 0)
             {
                 CSDDB = Namer.LoadDBC("CreatureSoundData");
-                CSFDB = Namer.LoadDBC("CreatureSoundFidget");
 
                 foreach (var csdEntry in CSDDB.Values)
                 {
                     CSDMap.Add(uint.Parse(csdEntry["ID"].ToString()!), csdEntry);
+                }
+
+                var CSFDB = Namer.LoadDBC("CreatureSoundFidget");
+                foreach (var csfdEntry in CSFDB.Values)
+                {
+                    var creatureSoundDataID = uint.Parse(csfdEntry["CreatureSoundDataID"].ToString()!);
+                    if (!CSFDMap.ContainsKey(creatureSoundDataID))
+                        CSFDMap[creatureSoundDataID] = new();
+
+                    CSFDMap[creatureSoundDataID].Add(csfdEntry);
                 }
             }
 
@@ -637,6 +648,13 @@ namespace WoWNamingLib.Namers
             #endregion
 
             #region NPCSounds
+            var cdiMapByNPCSoundID = new Dictionary<uint, DBCD.DBCDRow>();
+            foreach (var cdiRow in cdiMap.Values)
+            {
+                var npcSoundID = uint.Parse(cdiRow["NPCSoundID"].ToString()!);
+                cdiMapByNPCSoundID.TryAdd(npcSoundID, cdiRow);
+            }
+
             var npcSoundsDB = Namer.LoadDBC("NPCSounds");
             foreach (var npcSound in npcSoundsDB.Values)
             {
@@ -646,46 +664,39 @@ namespace WoWNamingLib.Namers
                 {
                     foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(npcsArr[i]))
                     {
-                        if (Namer.NeedsName((int)soundFileDataID))
+                        if (!Namer.NeedsName((int)soundFileDataID))
+                            continue;
+
+                        if (!cdiMapByNPCSoundID.TryGetValue(uint.Parse(npcSound["ID"].ToString()!), out var cdiRow))
+                            continue;
+
+                        if (!cdiToFDIDMap.TryGetValue(uint.Parse(cdiRow["ID"].ToString()!), out var mFDID))
+                            continue;
+
+                        if (!Namer.IDToNameLookup.TryGetValue((int)mFDID, out var modelFilename))
+                            continue;
+
+                        if (modelFilename.Contains("male_hd"))
+                            continue;
+
+                        var soundType = "UNK";
+                        switch (i)
                         {
-                            foreach (var cdiRow in cdiMap.Values)
-                            {
-                                if ((ushort)cdiRow["NPCSoundID"] != (int)npcSound["ID"])
-                                {
-                                    continue;
-                                }
-
-                                if (!cdiToFDIDMap.TryGetValue(uint.Parse(cdiRow["ID"].ToString()!), out var mFDID))
-                                {
-                                    continue;
-                                }
-
-                                if (!Namer.IDToNameLookup.TryGetValue((int)mFDID, out var modelFilename))
-                                {
-                                    //Console.WriteLine("Referenced model FDID " + mFDID + " does not exist in listfile");
-                                    continue;
-                                }
-
-                                if (modelFilename.Contains("male_hd"))
-                                    continue;
-
-                                var soundType = "UNK";
-                                switch (i)
-                                {
-                                    case 0:
-                                        soundType = "greetings";
-                                        break;
-                                    case 1:
-                                        soundType = "farewell";
-                                        break;
-                                    case 2:
-                                        soundType = "pissed";
-                                        break;
-                                }
-
-                                NewFileManager.AddNewFile(soundFileDataID, "sound/creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
-                            }
+                            case 0:
+                                soundType = "greetings";
+                                break;
+                            case 1:
+                                soundType = "farewell";
+                                break;
+                            case 2:
+                                soundType = "pissed";
+                                break;
+                            default:
+                                Console.WriteLine("Unknown NPCSound type " + i + " for NPCSoundID " + npcSound["ID"].ToString());
+                                break;
                         }
+
+                        NewFileManager.AddNewFile(soundFileDataID, "sound/creature/" + Path.GetFileNameWithoutExtension(modelFilename) + "/" + Path.GetFileNameWithoutExtension(modelFilename) + "_" + soundType + "_" + soundFileDataID + ".ogg");
                     }
                 }
             }
@@ -701,10 +712,10 @@ namespace WoWNamingLib.Namers
                 var soundCounter = 0;
                 foreach (var soundFileDataID in SoundKitHelper.GetFDIDsByKitID(soundKitID))
                 {
-                    if (Namer.NeedsName((int)soundFileDataID))
-                    {
-                        NewFileManager.AddNewFile(soundFileDataID, "Sound/Emitters/" + emitterName + "_" + soundCounter++ + "_" + soundFileDataID + ".ogg");
-                    }
+                    if (!Namer.NeedsName((int)soundFileDataID))
+                        continue;
+
+                    NewFileManager.AddNewFile(soundFileDataID, "Sound/Emitters/" + emitterName + "_" + soundCounter++ + "_" + soundFileDataID + ".ogg");
                 }
             }
             #endregion

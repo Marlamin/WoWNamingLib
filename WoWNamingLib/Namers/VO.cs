@@ -161,18 +161,6 @@ namespace WoWNamingLib.Namers
                 Console.WriteLine("Error parsing VO WoWDB Lua: " + e.Message);
             }
 
-            //try
-            //{
-            //    foreach (var wowdbLua in Directory.GetFiles(Path.Combine(Namer.wowDir, "_retail_", "WTF\\Account"), "+Wowhead_Looter.lua", SearchOption.AllDirectories))
-            //    {
-            //        ParseWowheadLua(wowdbLua);
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-            //    Console.WriteLine("Error parsing VO Wowhead LUA: " + e.Message);
-            //}
-
             if (textToSoundKitID.Count == 0)
             {
                 try
@@ -336,45 +324,6 @@ namespace WoWNamingLib.Namers
                     continue;
 
                 var quotes = npcTable.Get(key).ToObject<Table>().Get("quotes").ToObject<Table>();
-
-                if (quotes == null)
-                    continue;
-
-                if (!creatureVO.ContainsKey((creatureID, creatureName)))
-                    creatureVO.Add((creatureID, creatureName), new List<string>());
-
-                foreach (var quoteType in quotes.Keys)
-                {
-                    var messages = quotes.Get(quoteType).ToObject<Table>();
-                    foreach (var message in messages.Keys)
-                    {
-                        creatureVO[(creatureID, creatureName)].Add(message.String.Replace("$PLAYER_NAME", "$n"));
-                    }
-                }
-            }
-        }
-
-        private static void ParseWowheadLua(string filename)
-        {
-            var script = new Script();
-
-            var prepend = File.ReadAllText(filename);
-            var val = script.DoString(prepend + "\n return wlUnit");
-
-            if (val.Table == null)
-                return;
-
-            foreach (var key in val.Table.Keys)
-            {
-                var creatureID = uint.Parse(key.String);
-
-                if (!creatureNames.TryGetValue(creatureID, out string? creatureName))
-                {
-                    Console.WriteLine("No NPC name found for creature ID " + creatureID + ", skipping!");
-                    continue;
-                }
-
-                var quotes = val.Table.Get(key).ToObject<Table>().Get("quote").ToObject<Table>();
 
                 if (quotes == null)
                     continue;
