@@ -17,7 +17,7 @@ namespace WoWNamingLib.Services
 
         public static async Task<Stream> GetFileByID(uint filedataid)
         {
-            return new MemoryStream(buildInstance!.OpenFileByFDID(filedataid));
+            return new ReadOnlyMemoryStream(buildInstance!.OpenFileByFDID(filedataid));
         }
 
         public static bool FileExists(int fileDataID)
@@ -31,7 +31,7 @@ namespace WoWNamingLib.Services
 
             using (var jenkins = new TACTSharp.Jenkins96())
             {
-                file = new MemoryStream(buildInstance!.OpenFileByFDID(buildInstance.Root!.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
+                file = new ReadOnlyMemoryStream(buildInstance!.OpenFileByFDID(buildInstance.Root!.GetEntriesByLookup(jenkins.ComputeHash(name))[0].fileDataID));
             }
 
             return file;

@@ -45,7 +45,7 @@ namespace WoWNamingLib.Services
         {
             var wdb = new wdbCache();
 
-            using (var ms = new MemoryStream(File.ReadAllBytes(path)))
+            using (var ms = new ReadOnlyMemoryStream(File.ReadAllBytes(path)))
             using (var bin = new BinaryReader(ms))
             {
                 wdb.identifier = Encoding.ASCII.GetString(bin.ReadBytes(4).Reverse().ToArray());

@@ -2125,7 +2125,7 @@ namespace WoWNamingLib.Namers
                     switch (chunkName)
                     {
                         case 'M' << 0 | 'D' << 8 | '2' << 16 | '1' << 24:
-                            using (Stream m2stream = new MemoryStream(bin.ReadBytes((int)chunkSize)))
+                            using (Stream m2stream = new ReadOnlyMemoryStream(bin.ReadBytes((int)chunkSize)))
                             {
                                 model = ParseYeOldeM2Struct(m2stream);
                             }
